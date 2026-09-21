@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#fcfcfb">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%8D%B6%3C/text%3E%3C/svg%3E">
+<title>DrinkLog</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --surface-1:#fcfcfb; --page:#f9f9f7; --surface-raised:#ffffff;
+  --ink-1:#0b0b0b; --ink-2:#52514e; --ink-3:#898781;
+  --hairline:#e1e0d9; --border:rgba(11,11,11,0.10);
+  --cat-sake:#2a78d6; --cat-beer:#b8791f; --cat-shochu:#1baf7a; --cat-wine:#c23b5a;
+  --cat-sake-soft:#e8f1fc; --cat-beer-soft:#f8efdd; --cat-shochu-soft:#e2f7ef; --cat-wine-soft:#fbe9ee;
+  --star:#d99a2b; --accent-agg:#4a3aa7;
+  --danger:#c23b3b; --danger-soft:#fbeceb;
+  --radius:18px; --radius-sm:12px; --shadow:0 2px 10px rgba(20,20,18,0.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --surface-1:#242420; --page:#181816; --surface-raised:#2c2c27;
+    --ink-1:#f5f4f0; --ink-2:#c3c2b7; --ink-3:#8f8d84;
+    --hairline:#3a3a34; --border:rgba(255,255,255,0.12);
+    --cat-sake:#6ba3e0; --cat-beer:#e0aa4a; --cat-shochu:#4cc99a; --cat-wine:#e2879a;
+    --cat-sake-soft:#1c2c3d; --cat-beer-soft:#332a17; --cat-shochu-soft:#163027; --cat-wine-soft:#3a2027;
+    --star:#e0aa4a; --accent-agg:#9085e9;
+    --danger:#e88a89; --danger-soft:#3a2323;
+  }
+}
+:root[data-theme="dark"]{
+  --surface-1:#242420; --page:#181816; --surface-raised:#2c2c27;
+  --ink-1:#f5f4f0; --ink-2:#c3c2b7; --ink-3:#8f8d84;
+  --hairline:#3a3a34; --border:rgba(255,255,255,0.12);
+  --cat-sake:#6ba3e0; --cat-beer:#e0aa4a; --cat-shochu:#4cc99a; --cat-wine:#e2879a;
+  --cat-sake-soft:#1c2c3d; --cat-beer-soft:#332a17; --cat-shochu-soft:#163027; --cat-wine-soft:#3a2027;
+  --star:#e0aa4a; --accent-agg:#9085e9;
+  --danger:#e88a89; --danger-soft:#3a2323;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:'M PLUS Rounded 1c',-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif;
+  background:var(--page); color:var(--ink-1); -webkit-font-smoothing:antialiased;
+  font-size:15px; line-height:1.6;
+  padding-bottom:calc(80px + env(safe-area-inset-bottom));
+}
+h1,h2,h3{font-weight:800; text-wrap:balance; margin:0}
+button{font-family:inherit}
+[hidden]{display:none!important}
+.wrap{max-width:640px; margin:0 auto; padding:0 16px}
+
+/* header */
+header.app-header{ background:var(--surface-1); padding:calc(14px + env(safe-area-inset-top)) 0 14px; border-bottom:1px solid var(--hairline) }
+.brand{display:flex; align-items:center; gap:9px}
+.brand .logo{font-size:24px}
+.brand h1{font-size:19px; letter-spacing:.01em}
+.brand .tagline{margin:2px 0 0; font-size:12px; color:var(--ink-3)}
+.header-row{display:flex; align-items:center; justify-content:space-between; gap:10px}
+.today-pill{font-size:12px; font-weight:700; color:var(--ink-2); background:var(--page); border:1px solid var(--hairline); border-radius:999px; padding:6px 12px; white-space:nowrap}
+
+/* hero stats */
+.hero-stats{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px}
+.hero-tile{background:var(--page); border:1px solid var(--hairline); border-radius:var(--radius-sm); padding:12px 14px}
+.hero-tile .lbl{font-size:11.5px; color:var(--ink-3); font-weight:700}
+.hero-tile .val{font-size:22px; font-weight:800; margin-top:2px; font-variant-numeric:tabular-nums}
+.hero-tile .val small{font-size:12px; font-weight:700; color:var(--ink-3); margin-left:2px}
+
+/* cards */
+main{max-width:640px; margin:0 auto; padding:16px; display:flex; flex-direction:column; gap:14px}
+.card{background:var(--surface-raised); border:1px solid var(--hairline); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow)}
+.card h2{font-size:15px}
+.card .card-sub{font-size:12px; color:var(--ink-3); margin-top:2px}
+.card-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin-bottom:12px}
+
+/* empty state */
+.empty-state{text-align:center; padding:28px 12px; color:var(--ink-3)}
+.empty-state .ico{font-size:30px; margin-bottom:8px}
+.empty-state p{margin:4px 0; font-size:13px}
+.empty-state .cta{margin-top:12px}
+
+/* category breakdown bars */
+.cat-bar-row{display:flex; align-items:center; gap:10px; padding:7px 0}
+.cat-bar-row .cb-label{flex:0 0 92px; font-size:12.5px; font-weight:700; display:flex; align-items:center; gap:5px; color:var(--ink-2)}
+.cat-bar-track{flex:1; height:10px; background:var(--page); border-radius:999px; overflow:hidden}
+.cat-bar-fill{height:100%; border-radius:999px; min-width:3px}
+.cat-bar-row .cb-num{flex:0 0 68px; text-align:right; font-size:12px; font-weight:700; color:var(--ink-2); font-variant-numeric:tabular-nums}
+
+/* trend chart */
+.toggle-pills{display:flex; gap:6px; background:var(--page); border-radius:999px; padding:3px}
+.toggle-pills button{border:0; background:transparent; padding:6px 12px; font-size:12px; font-weight:700; color:var(--ink-3); border-radius:999px; cursor:pointer}
+.toggle-pills button.active{background:var(--surface-raised); color:var(--ink-1); box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.trend-chart{display:flex; align-items:flex-end; gap:8px; height:120px; margin-top:10px}
+.trend-col{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:6px}
+.trend-bar-wrap{flex:1; width:100%; display:flex; align-items:flex-end; justify-content:center}
+.trend-bar{width:60%; min-width:14px; border-radius:5px 5px 2px 2px; background:var(--accent-agg); position:relative}
+.trend-bar .tv{position:absolute; top:-18px; left:50%; transform:translateX(-50%); font-size:10.5px; font-weight:700; color:var(--ink-2); white-space:nowrap}
+.trend-col .tl{font-size:11px; color:var(--ink-3); font-weight:700}
+.trend-col.is-cur .tl{color:var(--ink-1)}
+
+/* ranking */
+.rank-row{display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--hairline)}
+.rank-row:last-child{border-bottom:0}
+.rank-num{flex:0 0 20px; font-size:13px; font-weight:800; color:var(--ink-3); text-align:center}
+.rank-dot{width:9px; height:9px; border-radius:50%; flex:0 0 auto}
+.rank-name{flex:1; font-size:13.5px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.rank-stars{flex:0 0 auto; font-size:12px; color:var(--star); letter-spacing:1px}
+
+/* category picker (add form) */
+.cat-picker{display:grid; grid-template-columns:repeat(4,1fr); gap:8px}
+.cat-btn{border:1.5px solid var(--hairline); background:var(--page); border-radius:var(--radius-sm); padding:10px 4px; text-align:center; cursor:pointer; font-size:12px; font-weight:700; color:var(--ink-2)}
+.cat-btn .ico{font-size:20px; display:block; margin-bottom:3px}
+.cat-btn.active{border-color:var(--cat-c); background:var(--cat-soft); color:var(--ink-1)}
+
+/* form */
+.field{margin-top:14px}
+.field label{display:block; font-size:12.5px; font-weight:700; color:var(--ink-2); margin-bottom:6px}
+.field .req{color:var(--danger); margin-left:2px}
+.field input[type=text], .field input[type=date], .field input[type=number], .field select, .field textarea{
+  width:100%; border:1.5px solid var(--hairline); background:var(--page); color:var(--ink-1); border-radius:var(--radius-sm);
+  padding:10px 12px; font-size:16px; font-family:inherit;
+}
+.field textarea{resize:vertical; min-height:64px}
+.field .hint{font-size:11px; color:var(--ink-3); margin-top:5px}
+.rakuten-results{margin-top:8px; display:flex; flex-direction:column; gap:6px; max-height:260px; overflow-y:auto}
+.rakuten-item{display:flex; align-items:center; gap:10px; border:1px solid var(--hairline); background:var(--page); border-radius:var(--radius-sm); padding:7px 9px; cursor:pointer; text-align:left; width:100%; font-family:inherit}
+.rakuten-item img{width:40px; height:40px; border-radius:8px; object-fit:cover; flex:0 0 auto; background:var(--surface-1)}
+.rakuten-item .ri-thumb-fallback{width:40px; height:40px; border-radius:8px; flex:0 0 auto; background:var(--surface-1); display:flex; align-items:center; justify-content:center; font-size:18px}
+.rakuten-item .ri-text{flex:1; min-width:0}
+.rakuten-item .ri-name{font-size:12px; font-weight:700; color:var(--ink-1); overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical}
+.rakuten-item .ri-shop{font-size:10.5px; color:var(--ink-3); margin-top:2px}
+.rakuten-setup-note{font-size:11.5px; color:var(--ink-3); margin-top:4px}
+.rakuten-setup-note a{color:var(--cat-sake)}
+.two-col{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.star-input{display:flex; gap:6px}
+.star-input button{border:0; background:none; font-size:28px; line-height:1; padding:2px; cursor:pointer; color:var(--hairline)}
+.star-input button.on{color:var(--star)}
+.photo-row{display:flex; align-items:center; gap:12px}
+.photo-preview{width:64px; height:64px; border-radius:12px; background:var(--page); border:1.5px dashed var(--hairline); flex:0 0 auto; display:flex; align-items:center; justify-content:center; overflow:hidden; font-size:22px; color:var(--ink-3)}
+.photo-preview img{width:100%; height:100%; object-fit:cover}
+.photo-actions{display:flex; flex-direction:column; gap:6px}
+.btn-file{display:inline-block; border:1.5px solid var(--hairline); background:var(--surface-raised); border-radius:999px; padding:7px 14px; font-size:12.5px; font-weight:700; cursor:pointer; color:var(--ink-2)}
+.btn-file input{display:none}
+.chip-row{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
+.chip{background:var(--page); border:1px solid var(--hairline); border-radius:999px; padding:4px 10px; font-size:11.5px; color:var(--ink-2); font-weight:700}
+.btn-primary{width:100%; margin-top:18px; border:0; background:var(--ink-1); color:var(--surface-1); font-weight:800; font-size:15px; padding:13px; border-radius:999px; cursor:pointer}
+.btn-secondary{width:100%; margin-top:8px; border:1.5px solid var(--hairline); background:var(--surface-raised); color:var(--ink-2); font-weight:700; font-size:13.5px; padding:10px; border-radius:999px; cursor:pointer}
+.form-status{font-size:12.5px; font-weight:700; margin-top:10px; text-align:center; min-height:16px}
+.form-status.ok{color:var(--cat-shochu)}
+
+/* history */
+.search-row{margin-bottom:10px}
+.search-row input{width:100%; border:1.5px solid var(--hairline); background:var(--page); color:var(--ink-1); border-radius:999px; padding:9px 14px; font-size:16px; font-family:inherit}
+.filter-scroll{display:flex; gap:7px; overflow-x:auto; padding-bottom:2px}
+.filter-chip{flex:0 0 auto; border:1.5px solid var(--hairline); background:var(--surface-raised); border-radius:999px; padding:7px 14px; font-size:12.5px; font-weight:700; color:var(--ink-2); cursor:pointer; white-space:nowrap}
+.filter-chip.active{background:var(--ink-1); color:var(--surface-1); border-color:var(--ink-1)}
+.rec-list{display:flex; flex-direction:column; gap:10px; margin-top:14px}
+.rec-card{display:flex; gap:12px; background:var(--surface-raised); border:1px solid var(--hairline); border-left:4px solid var(--cat-c); border-radius:var(--radius-sm); padding:12px; box-shadow:var(--shadow)}
+.rec-thumb{width:52px; height:52px; border-radius:10px; background:var(--cat-soft); flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:22px; overflow:hidden}
+.rec-thumb img{width:100%; height:100%; object-fit:cover}
+.rec-body{flex:1; min-width:0}
+.rec-top{display:flex; align-items:center; justify-content:space-between; gap:8px}
+.rec-badge{font-size:10.5px; font-weight:800; color:var(--cat-c); background:var(--cat-soft); border-radius:999px; padding:2px 8px}
+.rec-date{font-size:11px; color:var(--ink-3); font-weight:700; white-space:nowrap}
+.rec-name{font-size:14.5px; font-weight:800; margin-top:4px; overflow-wrap:anywhere}
+.rec-stars{font-size:12px; color:var(--star); margin-top:2px; letter-spacing:1px}
+.rec-meta{font-size:12px; color:var(--ink-2); margin-top:3px}
+.rec-memo{font-size:12px; color:var(--ink-3); margin-top:4px}
+.rec-tags{margin-top:5px}
+.rec-actions{display:flex; gap:8px; margin-top:8px}
+.rec-actions button{border:0; background:none; font-size:11.5px; font-weight:700; color:var(--ink-3); cursor:pointer; padding:2px 0}
+.rec-actions button.del{color:var(--danger)}
+
+/* data tab */
+.data-btn-row{display:flex; gap:8px; flex-wrap:wrap}
+.data-btn{flex:1; min-width:120px; border:1.5px solid var(--hairline); background:var(--page); border-radius:var(--radius-sm); padding:10px; font-size:13px; font-weight:700; color:var(--ink-2); cursor:pointer; text-align:center}
+.data-note{font-size:12px; color:var(--ink-3); margin-top:10px; line-height:1.7}
+textarea#importPaste{width:100%; margin-top:10px; min-height:70px; border:1.5px solid var(--hairline); background:var(--page); border-radius:var(--radius-sm); padding:10px; font-size:12px; color:var(--ink-1); font-family:inherit}
+
+/* bottom nav */
+nav.bottom-nav{position:fixed; left:0; right:0; bottom:0; z-index:40; background:var(--surface-1); border-top:1px solid var(--hairline); display:flex; padding-bottom:env(safe-area-inset-bottom, 0px)}
+nav.bottom-nav button{flex:1; border:0; background:none; padding:9px 0 8px; display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; color:var(--ink-3)}
+nav.bottom-nav button .ico{font-size:20px; line-height:1}
+nav.bottom-nav button .lbl{font-size:10.5px; font-weight:700}
+nav.bottom-nav button.active{color:var(--ink-1)}
+
+.toast{position:fixed; left:50%; bottom:calc(78px + env(safe-area-inset-bottom)); transform:translateX(-50%) translateY(10px); background:var(--ink-1); color:var(--surface-1); font-size:12.5px; font-weight:700; padding:10px 18px; border-radius:999px; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; z-index:60; max-width:86vw; text-align:center}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+
+<div id="app">
+<header class="app-header">
+  <div class="wrap">
+    <div class="header-row">
+      <div class="brand">
+        <span class="logo">🍶</span>
+        <div>
+          <h1>DrinkLog</h1>
+          <p class="tagline">ビール・日本酒・焼酎・ワインの記録</p>
+        </div>
+      </div>
+      <div class="today-pill" id="todayPill"></div>
+    </div>
+    <div class="hero-stats" id="heroStats"></div>
+  </div>
+</header>
+
+<main>
+
+  <section id="tab-home" class="tab-panel">
+    <div class="card" id="cardCatBreakdown">
+      <div class="card-head"><h2>カテゴリー別の記録数</h2></div>
+      <div id="catBreakdownBody"></div>
+    </div>
+
+    <div class="card" id="cardTrend">
+      <div class="card-head">
+        <h2>月別の記録数</h2>
+      </div>
+      <div id="trendBody"></div>
+    </div>
+
+    <div class="card" id="cardRanking">
+      <div class="card-head"><h2>評価ランキング</h2><span class="card-sub">上位5件</span></div>
+      <div id="rankingBody"></div>
+    </div>
+  </section>
+
+  <section id="tab-add" class="tab-panel" hidden>
+    <form class="card" id="addForm">
+      <h2 id="formTitle">記録を追加</h2>
+
+      <div class="field">
+        <label>カテゴリー<span class="req">*</span></label>
+        <div class="cat-picker" id="catPicker"></div>
+      </div>
+
+      <div class="field">
+        <label>銘柄名<span class="req">*</span></label>
+        <input type="text" id="fName" placeholder="例: 獺祭 純米大吟醸45" required autocomplete="off">
+        <div id="rakutenPanel" hidden>
+          <p class="hint" id="rakutenStatus"></p>
+          <div id="rakutenResults" class="rakuten-results"></div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="field">
+          <label>飲んだ日<span class="req">*</span></label>
+          <input type="date" id="fDate" required>
+        </div>
+        <div class="field">
+          <label>度数(%)</label>
+          <input type="number" id="fAbv" min="0" max="100" step="0.1" placeholder="例: 5.5" inputmode="decimal">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>評価<span class="req">*</span></label>
+        <div class="star-input" id="starInput">
+          <button type="button" data-v="1">★</button>
+          <button type="button" data-v="2">★</button>
+          <button type="button" data-v="3">★</button>
+          <button type="button" data-v="4">★</button>
+          <button type="button" data-v="5">★</button>
+        </div>
+      </div>
+
+      <div id="detailFields"></div>
+
+      <div class="field">
+        <label>写真</label>
+        <div class="photo-row">
+          <div class="photo-preview" id="photoPreview">🍶</div>
+          <div class="photo-actions">
+            <label class="btn-file">写真を選ぶ<input type="file" id="fPhoto" accept="image/*"></label>
+            <button type="button" class="btn-file" id="photoClearBtn" style="border:0;background:none;padding:2px 4px;color:var(--ink-3);font-weight:700;font-size:11.5px" hidden>写真を削除</button>
+          </div>
+        </div>
+        <p class="hint">端末内にのみ保存されます。データ容量に配慮し自動で縮小されます。</p>
+      </div>
+
+      <div class="field">
+        <label>メモ</label>
+        <textarea id="fMemo" placeholder="味の感想や飲んだシーンなど"></textarea>
+      </div>
+
+      <div class="field">
+        <label>タグ</label>
+        <input type="text" id="fTags" placeholder="家飲み, 贈り物 のようにカンマ区切り">
+        <div class="chip-row" id="tagsPreview"></div>
+      </div>
+
+      <button type="submit" class="btn-primary" id="submitBtn">記録を追加</button>
+      <button type="button" class="btn-secondary" id="cancelEditBtn" hidden>編集をキャンセル</button>
+      <p class="form-status" id="formStatus"></p>
+    </form>
+  </section>
+
+  <section id="tab-history" class="tab-panel" hidden>
+    <div class="card">
+      <div class="search-row">
+        <input type="text" id="historySearch" placeholder="🔍 銘柄名・タグ・メモで検索">
+      </div>
+      <div class="filter-scroll" id="historyFilter"></div>
+      <div class="rec-list" id="historyList"></div>
+    </div>
+  </section>
+
+  <section id="tab-data" class="tab-panel" hidden>
+    <div class="card">
+      <h2>バックアップ・引き継ぎ</h2>
+      <p class="card-sub">記録はこの端末のブラウザ内にのみ保存されます。他の端末でも見る場合や、うっかり消さないためのバックアップに、書き出し・読み込みをご利用ください。</p>
+      <div class="data-btn-row" style="margin-top:12px">
+        <button class="data-btn" id="exportBtn">📤 書き出す(JSON)</button>
+        <label class="data-btn" style="cursor:pointer">📥 ファイルを読み込む<input type="file" id="importFile" accept="application/json" style="display:none"></label>
+      </div>
+      <textarea id="importPaste" placeholder="または、書き出したJSONの中身をここに貼り付けて「貼り付けた内容を読み込む」を押してください"></textarea>
+      <button class="data-btn" id="importPasteBtn" style="width:100%; margin-top:8px">貼り付けた内容を読み込む</button>
+      <p class="data-note" id="dataCount"></p>
+    </div>
+    <div class="card">
+      <h2>楽天市場で銘柄を検索(自動入力)</h2>
+      <p class="card-sub">「記録」タブで銘柄名を入力すると、楽天市場の商品名から候補を検索できます。利用には楽天ウェブサービスの無料登録で発行される「アプリID」が必要です。</p>
+      <div class="field" style="margin-top:12px">
+        <label>アプリID(applicationId)<span class="req">*</span></label>
+        <input type="text" id="rakutenAppId" placeholder="例: 1234567890123456789" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>アクセスキー(任意・必要な場合のみ)</label>
+        <input type="text" id="rakutenAccessKey" placeholder="APIの仕様上、必要な場合のみ入力" autocomplete="off">
+      </div>
+      <button type="button" class="data-btn" id="rakutenSaveBtn" style="width:100%; margin-top:4px">保存する</button>
+      <p class="rakuten-setup-note">アプリIDの取得方法は<a href="https://webservice.rakuten.co.jp/" target="_blank" rel="noopener">楽天ウェブサービス</a>の「アプリID発行」から（無料）。この検索機能は、GitHub Pagesなどで公開したページや端末に保存したファイルから開いた場合に動作します（Cowork上のプレビューでは、セキュリティ制限により動作しないことがあります）。</p>
+      <p class="data-note" id="rakutenSaveStatus"></p>
+    </div>
+    <div class="card">
+      <h2>このアプリについて</h2>
+      <p class="data-note">・記録件数：<span id="aboutCount">0</span>件<br>・保存先：この端末・このブラウザのlocalStorage(サーバーには送信されません)<br>・他の端末で使う場合は「書き出す」でJSONを保存し、その端末側で「読み込む」ことでコピーできます。</p>
+    </div>
+  </section>
+
+</main>
+
+<nav class="bottom-nav">
+  <button data-tab="home" class="active"><span class="ico">🏠</span><span class="lbl">ホーム</span></button>
+  <button data-tab="add"><span class="ico">➕</span><span class="lbl">記録</span></button>
+  <button data-tab="history"><span class="ico">📜</span><span class="lbl">履歴</span></button>
+  <button data-tab="data"><span class="ico">💾</span><span class="lbl">データ</span></button>
+</nav>
+
+<div class="toast" id="toast"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var STORAGE_KEY = "drinklog_records_v1";
+
+var CATEGORIES = [
+  { id:"beer",   label:"ビール",  icon:"🍺", c:"--cat-beer",   soft:"--cat-beer-soft",
+    detail:[{key:"style", label:"スタイル", type:"select",
+      options:["IPA","ラガー","ピルスナー","エール","スタウト","ホワイトビール","ヴァイツェン","その他"]}] },
+  { id:"sake",   label:"日本酒",  icon:"🍶", c:"--cat-sake",   soft:"--cat-sake-soft",
+    detail:[{key:"type", label:"種類", type:"select",
+      options:["純米","純米吟醸","純米大吟醸","吟醸","大吟醸","本醸造","普通酒","その他"]}] },
+  { id:"shochu", label:"焼酎",   icon:"🥃", c:"--cat-shochu", soft:"--cat-shochu-soft",
+    detail:[{key:"base", label:"原料", type:"select",
+      options:["芋","麦","米","黒糖","そば","泡盛(米)","その他"]}] },
+  { id:"wine",   label:"ワイン",  icon:"🍷", c:"--cat-wine",   soft:"--cat-wine-soft",
+    detail:[
+      {key:"type", label:"種類", type:"select", options:["赤","白","ロゼ","スパークリング","オレンジ","その他"]},
+      {key:"grape", label:"品種(任意)", type:"text", placeholder:"例: カベルネ・ソーヴィニヨン"}
+    ] }
+];
+var CAT_BY_ID = {}; CATEGORIES.forEach(function(c){ CAT_BY_ID[c.id]=c; });
+
+var state = { records: [] };
+var uiFilter = "all";
+var uiSearch = "";
+var editingId = null;
+var pendingPhoto = null; // dataURL staged from file input for the form currently open
+
+/* ---------- storage ---------- */
+function loadState(){
+  try{
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      var parsed = JSON.parse(raw);
+      if(parsed && Array.isArray(parsed.records)) return parsed;
+    }
+  }catch(e){}
+  return { records: [] };
+}
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){
+    showToast("保存に失敗しました(容量不足の可能性)。写真を減らすか、書き出しでバックアップしてください。");
+  }
+}
+
+/* ---------- helpers ---------- */
+function uid(){ return "r" + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function todayStr(){
+  var d = new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function fmtDateShort(iso){
+  if(!iso) return "";
+  var p = iso.split("-"); if(p.length<3) return iso;
+  var wd = ["日","月","火","水","木","金","土"][new Date(iso+"T00:00:00").getDay()];
+  return parseInt(p[1],10)+"/"+parseInt(p[2],10)+"("+wd+")";
+}
+function yen(n){ return "¥"+Number(n).toLocaleString("ja-JP"); }
+function starsStr(n){ n = n||0; return "★★★★★".slice(0,n) + "☆☆☆☆☆".slice(0,5-n); }
+function escHtml(s){
+  return String(s==null?"":s).replace(/[&<>"']/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+  });
+}
+function showToast(msg){
+  var t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(function(){ t.classList.remove("show"); }, 2600);
+}
+
+/* ---------- tabs ---------- */
+function switchTab(name){
+  document.querySelectorAll(".tab-panel").forEach(function(el){ el.hidden = (el.id !== "tab-"+name); });
+  document.querySelectorAll(".bottom-nav button").forEach(function(b){ b.classList.toggle("active", b.dataset.tab===name); });
+  if(name!=="add" && editingId!==null){ resetForm(); }
+  if(name==="home"){ renderDashboard(); }
+  if(name==="history"){ renderHistory(); }
+  if(name==="data"){ renderDataTab(); }
+  window.scrollTo(0,0);
+}
+document.querySelectorAll(".bottom-nav button").forEach(function(b){
+  b.addEventListener("click", function(){ switchTab(b.dataset.tab); });
+});
+
+/* ---------- header ---------- */
+function renderHeader(){
+  var d = new Date();
+  document.getElementById("todayPill").textContent = (d.getMonth()+1)+"月"+d.getDate()+"日";
+  var ym = todayStr().slice(0,7);
+  var thisMonth = state.records.filter(function(r){ return r.date && r.date.slice(0,7)===ym; });
+  var html = ""
+    + '<div class="hero-tile"><div class="lbl">今月の記録</div><div class="val">'+thisMonth.length+'<small>件</small></div></div>'
+    + '<div class="hero-tile"><div class="lbl">総記録数</div><div class="val">'+state.records.length+'<small>件</small></div></div>';
+  document.getElementById("heroStats").innerHTML = html;
+}
+
+/* ---------- dashboard ---------- */
+function renderDashboard(){
+  renderHeader();
+  var recs = state.records;
+  var breakdownEl = document.getElementById("catBreakdownBody");
+  if(recs.length===0){
+    breakdownEl.innerHTML = emptyStateHtml("📊","まだ記録がありません","「記録」タブから最初の1杯を記録してみましょう");
+  } else {
+    var total = recs.length;
+    breakdownEl.innerHTML = CATEGORIES.map(function(cat){
+      var n = recs.filter(function(r){ return r.category===cat.id; }).length;
+      var pct = total ? Math.round(n/total*100) : 0;
+      return '<div class="cat-bar-row">'
+        + '<div class="cb-label"><span>'+cat.icon+'</span><span>'+cat.label+'</span></div>'
+        + '<div class="cat-bar-track"><div class="cat-bar-fill" style="width:'+pct+'%; background:var('+cat.c+')"></div></div>'
+        + '<div class="cb-num">'+n+'件 '+pct+'%</div>'
+        + '</div>';
+    }).join("");
+  }
+
+  renderTrend();
+
+  var rankEl = document.getElementById("rankingBody");
+  var top = recs.slice().sort(function(a,b){
+    if((b.rating||0) !== (a.rating||0)) return (b.rating||0)-(a.rating||0);
+    return (b.date||"").localeCompare(a.date||"");
+  }).slice(0,5);
+  if(top.length===0){
+    rankEl.innerHTML = emptyStateHtml("🏆","評価データがありません","記録に評価をつけるとランキングが表示されます");
+  } else {
+    rankEl.innerHTML = top.map(function(r,i){
+      var cat = CAT_BY_ID[r.category] || CATEGORIES[0];
+      return '<div class="rank-row">'
+        + '<div class="rank-num">'+(i+1)+'</div>'
+        + '<div class="rank-dot" style="background:var('+cat.c+')"></div>'
+        + '<div class="rank-name">'+escHtml(r.name)+'</div>'
+        + '<div class="rank-stars">'+starsStr(r.rating)+'</div>'
+        + '</div>';
+    }).join("");
+  }
+}
+
+function lastNMonths(n){
+  var out = [];
+  var d = new Date();
+  d.setDate(1);
+  for(var i=n-1;i>=0;i--){
+    var dt = new Date(d.getFullYear(), d.getMonth()-i, 1);
+    out.push(dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0"));
+  }
+  return out;
+}
+function renderTrend(){
+  var recs = state.records;
+  var months = lastNMonths(6);
+  var curYm = todayStr().slice(0,7);
+  var body = document.getElementById("trendBody");
+  if(recs.length===0){
+    body.innerHTML = emptyStateHtml("📈","データがまだありません","記録が増えると月別の推移が表示されます");
+    return;
+  }
+  var values = months.map(function(ym){
+    return recs.filter(function(r){ return r.date && r.date.slice(0,7)===ym; }).length;
+  });
+  var max = Math.max.apply(null, values.concat([1]));
+  var html = '<div class="trend-chart">' + months.map(function(ym,i){
+    var v = values[i];
+    var h = Math.max(4, Math.round((v/max)*90));
+    var mLabel = parseInt(ym.slice(5,7),10)+"月";
+    return '<div class="trend-col'+(ym===curYm?" is-cur":"")+'">'
+      + '<div class="trend-bar-wrap"><div class="trend-bar" style="height:'+h+'%">'
+      + (v>0?'<span class="tv">'+v+'</span>':'')
+      + '</div></div>'
+      + '<div class="tl">'+mLabel+'</div>'
+      + '</div>';
+  }).join("") + '</div>';
+  body.innerHTML = html;
+}
+
+function emptyStateHtml(icon,title,body){
+  return '<div class="empty-state"><div class="ico">'+icon+'</div><p style="font-weight:800;color:var(--ink-2)">'+title+'</p><p>'+body+'</p></div>';
+}
+
+/* ---------- add / edit form ---------- */
+var selectedCategory = null;
+var selectedRating = 0;
+
+function renderCatPicker(){
+  var el = document.getElementById("catPicker");
+  el.innerHTML = CATEGORIES.map(function(cat){
+    return '<button type="button" class="cat-btn'+(selectedCategory===cat.id?" active":"")+'" data-id="'+cat.id+'" '
+      + 'style="--cat-c:var('+cat.c+'); --cat-soft:var('+cat.soft+')">'
+      + '<span class="ico">'+cat.icon+'</span>'+cat.label+'</button>';
+  }).join("");
+}
+document.getElementById("catPicker").addEventListener("click", function(e){
+  var b = e.target.closest(".cat-btn"); if(!b) return;
+  selectedCategory = b.dataset.id;
+  renderCatPicker();
+  renderDetailFields();
+});
+
+function renderDetailFields(existingDetail){
+  var wrap = document.getElementById("detailFields");
+  if(!selectedCategory){ wrap.innerHTML = ""; return; }
+  var cat = CAT_BY_ID[selectedCategory];
+  wrap.innerHTML = cat.detail.map(function(f){
+    var val = (existingDetail && existingDetail[f.key]) || "";
+    if(f.type==="select"){
+      var opts = f.options.map(function(o){
+        return '<option value="'+escHtml(o)+'"'+(o===val?" selected":"")+'>'+escHtml(o)+'</option>';
+      }).join("");
+      return '<div class="field"><label>'+f.label+'</label><select data-detail-key="'+f.key+'">'
+        + '<option value="">選択してください</option>' + opts + '</select></div>';
+    }
+    return '<div class="field"><label>'+f.label+'</label><input type="text" data-detail-key="'+f.key+'" '
+      + 'value="'+escHtml(val)+'" placeholder="'+(f.placeholder||"")+'"></div>';
+  }).join("");
+}
+
+function renderStarInput(){
+  document.querySelectorAll("#starInput button").forEach(function(b){
+    b.classList.toggle("on", parseInt(b.dataset.v,10) <= selectedRating);
+  });
+}
+document.getElementById("starInput").addEventListener("click", function(e){
+  var b = e.target.closest("button[data-v]"); if(!b) return;
+  var v = parseInt(b.dataset.v,10);
+  selectedRating = (selectedRating===v) ? v : v; // tap sets rating to tapped star
+  if(selectedRating===v && v===1 && document.querySelectorAll("#starInput button.on").length===1){
+    // allow deselect by tapping the single active star again handled below
+  }
+  renderStarInput();
+});
+// double logic simplified: track last value; tapping same single star toggles to 0
+(function(){
+  var lastTap = 0;
+  document.getElementById("starInput").addEventListener("click", function(e){
+    var b = e.target.closest("button[data-v]"); if(!b) return;
+    var v = parseInt(b.dataset.v,10);
+    if(v===1 && selectedRating===1 && lastTap===1){ selectedRating = 0; }
+    lastTap = v;
+    renderStarInput();
+  });
+})();
+
+document.getElementById("fPhoto").addEventListener("change", function(e){
+  var file = e.target.files && e.target.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    var img = new Image();
+    img.onload = function(){
+      var maxDim = 900;
+      var w = img.width, h = img.height;
+      if(w>h && w>maxDim){ h = Math.round(h*maxDim/w); w = maxDim; }
+      else if(h>=w && h>maxDim){ w = Math.round(w*maxDim/h); h = maxDim; }
+      var canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      canvas.getContext("2d").drawImage(img,0,0,w,h);
+      pendingPhoto = canvas.toDataURL("image/jpeg", 0.72);
+      updatePhotoPreview();
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+document.getElementById("photoClearBtn").addEventListener("click", function(){
+  pendingPhoto = null;
+  document.getElementById("fPhoto").value = "";
+  updatePhotoPreview();
+});
+function updatePhotoPreview(){
+  var el = document.getElementById("photoPreview");
+  var clearBtn = document.getElementById("photoClearBtn");
+  if(pendingPhoto){ el.innerHTML = '<img src="'+pendingPhoto+'" alt="">'; clearBtn.hidden = false; }
+  else { el.innerHTML = "🍶"; clearBtn.hidden = true; }
+}
+
+document.getElementById("fTags").addEventListener("input", renderTagsPreview);
+function renderTagsPreview(){
+  var raw = document.getElementById("fTags").value;
+  var tags = parseTags(raw);
+  document.getElementById("tagsPreview").innerHTML = tags.map(function(t){
+    return '<span class="chip">#'+escHtml(t)+'</span>';
+  }).join("");
+}
+function parseTags(raw){
+  return (raw||"").split(/[,、]/).map(function(s){ return s.trim(); }).filter(Boolean);
+}
+
+/* ---------- 楽天市場 商品検索(銘柄名の自動入力) ---------- */
+var RAKUTEN_KEY = "drinklog_rakuten_v1";
+var RAKUTEN_ENDPOINT = "https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706";
+
+function loadRakutenConfig(){
+  try{
+    var raw = localStorage.getItem(RAKUTEN_KEY);
+    if(raw){ var c = JSON.parse(raw); if(c && c.appId) return c; }
+  }catch(e){}
+  return null;
+}
+function saveRakutenConfig(cfg){
+  try{ localStorage.setItem(RAKUTEN_KEY, JSON.stringify(cfg)); }catch(e){}
+}
+
+function rakutenSearch(keyword){
+  return new Promise(function(resolve, reject){
+    var cfg = loadRakutenConfig();
+    if(!cfg || !cfg.appId){ reject({code:"no_key"}); return; }
+    var cbName = "__rakutenCb_" + Date.now() + "_" + Math.floor(Math.random()*100000);
+    var script = document.createElement("script");
+    var timer = setTimeout(function(){ cleanup(); reject({code:"timeout"}); }, 6000);
+    function cleanup(){
+      clearTimeout(timer);
+      try{ delete window[cbName]; }catch(e){ window[cbName] = undefined; }
+      if(script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cbName] = function(data){
+      cleanup();
+      if(data && data.error){ reject({code:"api_error", detail:data.error_description||data.error}); return; }
+      resolve(data);
+    };
+    var qs = "applicationId=" + encodeURIComponent(cfg.appId)
+      + "&keyword=" + encodeURIComponent(keyword)
+      + "&hits=8&format=json&formatVersion=2&callback=" + cbName;
+    if(cfg.accessKey){ qs += "&accessKey=" + encodeURIComponent(cfg.accessKey); }
+    script.src = RAKUTEN_ENDPOINT + "?" + qs;
+    script.onerror = function(){ cleanup(); reject({code:"network"}); };
+    document.body.appendChild(script);
+  });
+}
+
+var rakutenDebounceTimer = null;
+document.getElementById("fName").addEventListener("input", function(){
+  var q = this.value.trim();
+  clearTimeout(rakutenDebounceTimer);
+  var panel = document.getElementById("rakutenPanel");
+  var statusEl = document.getElementById("rakutenStatus");
+  var resultsEl = document.getElementById("rakutenResults");
+  if(q.length < 2){ panel.hidden = true; return; }
+  if(!loadRakutenConfig()){ panel.hidden = true; return; }
+  rakutenDebounceTimer = setTimeout(function(){
+    panel.hidden = false;
+    statusEl.textContent = "検索中…";
+    resultsEl.innerHTML = "";
+    rakutenSearch(q).then(function(data){
+      var items = (data && data.items) || [];
+      if(items.length===0){ statusEl.textContent = "候補が見つかりませんでした"; return; }
+      statusEl.textContent = "候補（タップで銘柄名に反映・価格は取り込みません）";
+      resultsEl.innerHTML = items.map(function(it, i){
+        var img = (it.mediumImageUrls && it.mediumImageUrls[0]) || "";
+        if(img && typeof img === "object" && img.imageUrl) img = img.imageUrl;
+        return '<button type="button" class="rakuten-item" data-idx="'+i+'">'
+          + (img? '<img src="'+escHtml(img)+'" alt="">' : '<span class="ri-thumb-fallback">🍶</span>')
+          + '<span class="ri-text"><span class="ri-name">'+escHtml(it.itemName||"")+'</span>'
+          + '<span class="ri-shop">'+escHtml(it.shopName||"")+'</span></span>'
+          + '</button>';
+      }).join("");
+      resultsEl._items = items;
+    }).catch(function(err){
+      if(err && err.code==="timeout"){ statusEl.textContent = "検索がタイムアウトしました(この環境では利用できない可能性があります)"; }
+      else if(err && err.code==="network"){ statusEl.textContent = "検索できませんでした(この環境では利用できない可能性があります)"; }
+      else if(err && err.code==="api_error"){ statusEl.textContent = "検索エラー："+(err.detail||""); }
+      else { statusEl.textContent = "検索できませんでした"; }
+    });
+  }, 550);
+});
+document.getElementById("rakutenResults").addEventListener("click", function(e){
+  var b = e.target.closest(".rakuten-item"); if(!b) return;
+  var items = this._items || [];
+  var it = items[parseInt(b.dataset.idx,10)];
+  if(!it) return;
+  document.getElementById("fName").value = it.itemName || "";
+  document.getElementById("rakutenPanel").hidden = true;
+});
+
+function renderRakutenSettings(){
+  var cfg = loadRakutenConfig();
+  document.getElementById("rakutenAppId").value = (cfg && cfg.appId) || "";
+  document.getElementById("rakutenAccessKey").value = (cfg && cfg.accessKey) || "";
+}
+document.getElementById("rakutenSaveBtn").addEventListener("click", function(){
+  var appId = document.getElementById("rakutenAppId").value.trim();
+  var accessKey = document.getElementById("rakutenAccessKey").value.trim();
+  if(!appId){
+    saveRakutenConfig(null);
+    try{ localStorage.removeItem(RAKUTEN_KEY); }catch(e){}
+    document.getElementById("rakutenSaveStatus").textContent = "アプリIDを削除しました(検索機能はオフになります)";
+    return;
+  }
+  saveRakutenConfig({ appId: appId, accessKey: accessKey });
+  document.getElementById("rakutenSaveStatus").textContent = "保存しました";
+});
+
+function resetForm(){
+  editingId = null;
+  selectedCategory = null;
+  selectedRating = 0;
+  pendingPhoto = null;
+  document.getElementById("addForm").reset();
+  document.getElementById("fDate").value = todayStr();
+  renderCatPicker();
+  renderDetailFields();
+  renderStarInput();
+  updatePhotoPreview();
+  renderTagsPreview();
+  document.getElementById("formTitle").textContent = "記録を追加";
+  document.getElementById("submitBtn").textContent = "記録を追加";
+  document.getElementById("cancelEditBtn").hidden = true;
+  document.getElementById("formStatus").textContent = "";
+  document.getElementById("rakutenPanel").hidden = true;
+}
+
+function startEdit(id){
+  var r = state.records.find(function(x){ return x.id===id; });
+  if(!r) return;
+  editingId = id;
+  selectedCategory = r.category;
+  selectedRating = r.rating || 0;
+  pendingPhoto = r.photo || null;
+  renderCatPicker();
+  renderDetailFields(r.detail);
+  renderStarInput();
+  updatePhotoPreview();
+  document.getElementById("fName").value = r.name || "";
+  document.getElementById("fDate").value = r.date || todayStr();
+  document.getElementById("fAbv").value = r.abv != null ? r.abv : "";
+  document.getElementById("fMemo").value = r.memo || "";
+  document.getElementById("fTags").value = (r.tags||[]).join(", ");
+  renderTagsPreview();
+  document.getElementById("formTitle").textContent = "記録を編集";
+  document.getElementById("submitBtn").textContent = "記録を更新";
+  document.getElementById("cancelEditBtn").hidden = false;
+  document.getElementById("formStatus").textContent = "";
+  document.getElementById("rakutenPanel").hidden = true;
+  switchTabSilent("add");
+  window.scrollTo(0,0);
+}
+function switchTabSilent(name){
+  document.querySelectorAll(".tab-panel").forEach(function(el){ el.hidden = (el.id !== "tab-"+name); });
+  document.querySelectorAll(".bottom-nav button").forEach(function(b){ b.classList.toggle("active", b.dataset.tab===name); });
+}
+
+document.getElementById("cancelEditBtn").addEventListener("click", function(){ resetForm(); });
+
+document.getElementById("addForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  var status = document.getElementById("formStatus");
+  if(!selectedCategory){ status.textContent = "カテゴリーを選択してください"; status.className="form-status"; return; }
+  var name = document.getElementById("fName").value.trim();
+  if(!name){ status.textContent = "銘柄名を入力してください"; status.className="form-status"; return; }
+  var date = document.getElementById("fDate").value;
+  if(!date){ status.textContent = "日付を入力してください"; status.className="form-status"; return; }
+  if(!selectedRating){ status.textContent = "評価(★)を選択してください"; status.className="form-status"; return; }
+
+  var detail = {};
+  document.querySelectorAll("#detailFields [data-detail-key]").forEach(function(el){
+    detail[el.dataset.detailKey] = el.value;
+  });
+  var abvVal = document.getElementById("fAbv").value;
+  var tags = parseTags(document.getElementById("fTags").value);
+
+  var rec = {
+    id: editingId || uid(),
+    category: selectedCategory,
+    name: name,
+    date: date,
+    rating: selectedRating,
+    abv: abvVal===""? null : Number(abvVal),
+    detail: detail,
+    photo: pendingPhoto,
+    memo: document.getElementById("fMemo").value.trim(),
+    tags: tags,
+    updatedAt: new Date().toISOString()
+  };
+
+  if(editingId){
+    var idx = state.records.findIndex(function(x){ return x.id===editingId; });
+    rec.createdAt = state.records[idx].createdAt || rec.updatedAt;
+    state.records[idx] = rec;
+  } else {
+    rec.createdAt = rec.updatedAt;
+    state.records.push(rec);
+  }
+  saveState();
+  showToast((editingId?"更新しました：":"記録しました：") + name);
+  resetForm();
+  switchTab("history");
+});
+
+/* ---------- history ---------- */
+function renderHistoryFilter(){
+  var el = document.getElementById("historyFilter");
+  var chips = [{id:"all", label:"すべて", icon:"🍹"}].concat(CATEGORIES.map(function(c){ return {id:c.id, label:c.label, icon:c.icon}; }));
+  el.innerHTML = chips.map(function(c){
+    return '<button type="button" class="filter-chip'+(uiFilter===c.id?" active":"")+'" data-id="'+c.id+'">'+c.icon+' '+c.label+'</button>';
+  }).join("");
+}
+document.getElementById("historyFilter").addEventListener("click", function(e){
+  var b = e.target.closest(".filter-chip"); if(!b) return;
+  uiFilter = b.dataset.id;
+  renderHistory();
+});
+document.getElementById("historySearch").addEventListener("input", function(e){
+  uiSearch = e.target.value;
+  renderHistory();
+});
+
+function recMatchesSearch(r, q){
+  if(!q) return true;
+  var hay = [r.name, r.memo, (r.tags||[]).join(" ")].concat(Object.keys(r.detail||{}).map(function(k){ return r.detail[k]; })).join(" ").toLowerCase();
+  return hay.indexOf(q) !== -1;
+}
+function renderHistory(){
+  renderHistoryFilter();
+  var el = document.getElementById("historyList");
+  var q = uiSearch.trim().toLowerCase();
+  var recs = state.records.filter(function(r){ return (uiFilter==="all" || r.category===uiFilter) && recMatchesSearch(r, q); })
+    .slice().sort(function(a,b){ return (b.date||"").localeCompare(a.date||"") || (b.createdAt||"").localeCompare(a.createdAt||""); });
+  if(recs.length===0){
+    var msg = q ? '「'+q+'」に一致する記録が見つかりません' : (uiFilter==="all" ? "「記録」タブから追加してみましょう" : "このカテゴリーの記録はまだありません");
+    el.innerHTML = emptyStateHtml("📭","記録がありません", msg);
+    return;
+  }
+  el.innerHTML = recs.map(function(r){
+    var cat = CAT_BY_ID[r.category] || CATEGORIES[0];
+    var metaParts = [];
+    if(r.abv!=null) metaParts.push("度数 "+r.abv+"%");
+    var detailParts = Object.keys(r.detail||{}).map(function(k){ return r.detail[k]; }).filter(Boolean);
+    var metaLine = detailParts.concat(metaParts).join(" ・ ");
+    return '<div class="rec-card" style="--cat-c:var('+cat.c+'); --cat-soft:var('+cat.soft+')">'
+      + '<div class="rec-thumb">'+(r.photo? '<img src="'+r.photo+'" alt="">' : cat.icon)+'</div>'
+      + '<div class="rec-body">'
+      +   '<div class="rec-top"><span class="rec-badge">'+cat.icon+' '+cat.label+'</span><span class="rec-date">'+fmtDateShort(r.date)+'</span></div>'
+      +   '<div class="rec-name">'+escHtml(r.name)+'</div>'
+      +   '<div class="rec-stars">'+starsStr(r.rating)+'</div>'
+      +   (metaLine? '<div class="rec-meta">'+escHtml(metaLine)+'</div>' : '')
+      +   (r.tags && r.tags.length? '<div class="rec-tags">'+r.tags.map(function(t){return '<span class="chip" style="margin-right:4px">#'+escHtml(t)+'</span>';}).join("")+'</div>' : '')
+      +   (r.memo? '<div class="rec-memo">'+escHtml(r.memo)+'</div>' : '')
+      +   '<div class="rec-actions"><button data-act="edit" data-id="'+r.id+'">編集</button><button data-act="delete" data-id="'+r.id+'" class="del">削除</button></div>'
+      + '</div></div>';
+  }).join("");
+}
+document.getElementById("historyList").addEventListener("click", function(e){
+  var b = e.target.closest("button[data-act]"); if(!b) return;
+  var id = b.dataset.id;
+  if(b.dataset.act==="edit"){ startEdit(id); }
+  else if(b.dataset.act==="delete"){
+    if(confirm("この記録を削除しますか？")){
+      state.records = state.records.filter(function(r){ return r.id!==id; });
+      saveState();
+      renderHistory();
+      showToast("削除しました");
+    }
+  }
+});
+
+/* ---------- data tab ---------- */
+function renderDataTab(){
+  document.getElementById("dataCount").textContent = "現在 "+state.records.length+" 件の記録があります。";
+  document.getElementById("aboutCount").textContent = state.records.length;
+  renderRakutenSettings();
+}
+document.getElementById("exportBtn").addEventListener("click", function(){
+  var json = JSON.stringify(state, null, 2);
+  var d = new Date();
+  var fname = "drinklog_"+d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0")+".json";
+
+  function fallbackDownload(){
+    var blob = new Blob([json], {type:"application/json"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = fname;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    showToast("書き出しました："+fname);
+  }
+
+  if(window.claude && typeof window.claude.use === "function"){
+    window.claude.use("downloads").then(function(downloads){
+      if(!downloads){ fallbackDownload(); return; }
+      downloads.save({ filename: fname, data: json }).then(function(){
+        showToast("書き出しました："+fname);
+      }).catch(function(err){
+        if(err && err.code === "declined"){ return; }
+        fallbackDownload();
+      });
+    }).catch(fallbackDownload);
+  } else {
+    fallbackDownload();
+  }
+});
+function importFromJsonString(str){
+  try{
+    var parsed = JSON.parse(str);
+    if(!parsed || !Array.isArray(parsed.records)) throw new Error("invalid");
+    state = { records: parsed.records };
+    saveState();
+    renderAll();
+    showToast("読み込みました："+state.records.length+"件");
+  }catch(e){
+    showToast("読み込みに失敗しました。ファイル内容を確認してください。");
+  }
+}
+document.getElementById("importFile").addEventListener("change", function(e){
+  var file = e.target.files && e.target.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev){ importFromJsonString(ev.target.result); };
+  reader.readAsText(file);
+  e.target.value = "";
+});
+document.getElementById("importPasteBtn").addEventListener("click", function(){
+  var v = document.getElementById("importPaste").value.trim();
+  if(!v){ showToast("JSONを貼り付けてください"); return; }
+  importFromJsonString(v);
+  document.getElementById("importPaste").value = "";
+});
+
+/* ---------- boot ---------- */
+function renderAll(){
+  renderHeader();
+  renderDashboard();
+  renderHistory();
+  renderDataTab();
+}
+state = loadState();
+resetForm();
+renderAll();
+
+})();
+</script>
+
+</body>
+</html>
