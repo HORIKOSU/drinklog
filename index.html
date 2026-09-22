@@ -2,44 +2,25 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#fcfcfb">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%8D%B6%3C/text%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="icon" href="data:,">
 <title>DrinkLog</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --surface-1:#fcfcfb; --page:#f9f9f7; --surface-raised:#ffffff;
-  --ink-1:#0b0b0b; --ink-2:#52514e; --ink-3:#898781;
-  --hairline:#e1e0d9; --border:rgba(11,11,11,0.10);
+  color-scheme: light;
+  --page:#f2ecdd; --surface-1:#fffdf7; --surface-raised:#fffdf7;
+  --surface-dark:#2a2118; --text-on-dark:#f7f1e2;
+  --ink-1:#211d16; --ink-2:#5c5346; --ink-3:#948a78;
+  --hairline:#e6ddc9; --border:rgba(33,29,22,0.10);
   --cat-sake:#2a78d6; --cat-beer:#b8791f; --cat-shochu:#1baf7a; --cat-wine:#c23b5a;
   --cat-sake-soft:#e8f1fc; --cat-beer-soft:#f8efdd; --cat-shochu-soft:#e2f7ef; --cat-wine-soft:#fbe9ee;
-  --star:#d99a2b; --accent-agg:#4a3aa7;
+  --star:#d99a2b; --accent:#c94a2c; --accent-soft:#f7ded4;
   --danger:#c23b3b; --danger-soft:#fbeceb;
-  --radius:18px; --radius-sm:12px; --shadow:0 2px 10px rgba(20,20,18,0.06);
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --surface-1:#242420; --page:#181816; --surface-raised:#2c2c27;
-    --ink-1:#f5f4f0; --ink-2:#c3c2b7; --ink-3:#8f8d84;
-    --hairline:#3a3a34; --border:rgba(255,255,255,0.12);
-    --cat-sake:#6ba3e0; --cat-beer:#e0aa4a; --cat-shochu:#4cc99a; --cat-wine:#e2879a;
-    --cat-sake-soft:#1c2c3d; --cat-beer-soft:#332a17; --cat-shochu-soft:#163027; --cat-wine-soft:#3a2027;
-    --star:#e0aa4a; --accent-agg:#9085e9;
-    --danger:#e88a89; --danger-soft:#3a2323;
-  }
-}
-:root[data-theme="dark"]{
-  --surface-1:#242420; --page:#181816; --surface-raised:#2c2c27;
-  --ink-1:#f5f4f0; --ink-2:#c3c2b7; --ink-3:#8f8d84;
-  --hairline:#3a3a34; --border:rgba(255,255,255,0.12);
-  --cat-sake:#6ba3e0; --cat-beer:#e0aa4a; --cat-shochu:#4cc99a; --cat-wine:#e2879a;
-  --cat-sake-soft:#1c2c3d; --cat-beer-soft:#332a17; --cat-shochu-soft:#163027; --cat-wine-soft:#3a2027;
-  --star:#e0aa4a; --accent-agg:#9085e9;
-  --danger:#e88a89; --danger-soft:#3a2323;
+  --radius:20px; --radius-sm:14px;
+  --shadow:0 10px 26px rgba(42,33,24,0.09); --shadow-dark:0 16px 34px rgba(42,33,24,0.24);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
@@ -55,24 +36,25 @@ button{font-family:inherit}
 .wrap{max-width:640px; margin:0 auto; padding:0 16px}
 
 /* header */
-header.app-header{ background:var(--surface-1); padding:calc(14px + env(safe-area-inset-top)) 0 14px; border-bottom:1px solid var(--hairline) }
-.brand{display:flex; align-items:center; gap:9px}
-.brand .logo{font-size:24px}
-.brand h1{font-size:19px; letter-spacing:.01em}
-.brand .tagline{margin:2px 0 0; font-size:12px; color:var(--ink-3)}
-.header-row{display:flex; align-items:center; justify-content:space-between; gap:10px}
-.today-pill{font-size:12px; font-weight:700; color:var(--ink-2); background:var(--page); border:1px solid var(--hairline); border-radius:999px; padding:6px 12px; white-space:nowrap}
+header.app-header{ margin:calc(14px + env(safe-area-inset-top)) 16px 6px; padding:20px 22px; border-radius:var(--radius); background:var(--surface-dark); box-shadow:var(--shadow-dark) }
+header.app-header .wrap{max-width:608px; margin:0 auto; padding:0}
+.brand{display:flex; align-items:center; gap:10px}
+.brand .logo{font-size:26px}
+.brand h1{font-size:19px; letter-spacing:.01em; color:var(--text-on-dark)}
+.brand .tagline{margin:3px 0 0; font-size:12px; color:rgba(247,241,226,0.72)}
 
-/* hero stats */
-.hero-stats{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px}
-.hero-tile{background:var(--page); border:1px solid var(--hairline); border-radius:var(--radius-sm); padding:12px 14px}
-.hero-tile .lbl{font-size:11.5px; color:var(--ink-3); font-weight:700}
-.hero-tile .val{font-size:22px; font-weight:800; margin-top:2px; font-variant-numeric:tabular-nums}
-.hero-tile .val small{font-size:12px; font-weight:700; color:var(--ink-3); margin-left:2px}
+/* hero card */
+.hero-card{background:var(--surface-dark); box-shadow:var(--shadow-dark); display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap}
+.hero-info{flex:1; min-width:150px}
+.hero-info .hero-lbl{font-size:12px; font-weight:700; color:rgba(247,241,226,0.72); margin-bottom:6px}
+.hero-info .hero-val{font-size:30px; font-weight:800; color:var(--text-on-dark); font-variant-numeric:tabular-nums}
+.hero-info .hero-val small{font-size:13px; font-weight:700; color:rgba(247,241,226,0.68); margin-left:2px}
+.hero-info .hero-sub{margin-top:6px; font-size:12px; color:rgba(247,241,226,0.68)}
+.hero-add-btn{flex:0 0 auto; border:0; background:var(--accent); color:#fff; font-weight:800; font-size:13.5px; padding:12px 20px; border-radius:999px; cursor:pointer; box-shadow:0 8px 18px rgba(201,74,44,0.4)}
 
 /* cards */
-main{max-width:640px; margin:0 auto; padding:16px; display:flex; flex-direction:column; gap:14px}
-.card{background:var(--surface-raised); border:1px solid var(--hairline); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow)}
+main{max-width:640px; margin:0 auto; padding:16px; display:flex; flex-direction:column; gap:22px}
+.card{background:var(--surface-raised); border:none; border-radius:var(--radius); padding:18px; box-shadow:var(--shadow)}
 .card h2{font-size:15px}
 .card .card-sub{font-size:12px; color:var(--ink-3); margin-top:2px}
 .card-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin-bottom:12px}
@@ -97,7 +79,7 @@ main{max-width:640px; margin:0 auto; padding:16px; display:flex; flex-direction:
 .trend-chart{display:flex; align-items:flex-end; gap:8px; height:120px; margin-top:10px}
 .trend-col{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:6px}
 .trend-bar-wrap{flex:1; width:100%; display:flex; align-items:flex-end; justify-content:center}
-.trend-bar{width:60%; min-width:14px; border-radius:5px 5px 2px 2px; background:var(--accent-agg); position:relative}
+.trend-bar{width:60%; min-width:14px; border-radius:5px 5px 2px 2px; background:var(--accent); position:relative}
 .trend-bar .tv{position:absolute; top:-18px; left:50%; transform:translateX(-50%); font-size:10.5px; font-weight:700; color:var(--ink-2); white-space:nowrap}
 .trend-col .tl{font-size:11px; color:var(--ink-3); font-weight:700}
 .trend-col.is-cur .tl{color:var(--ink-1)}
@@ -147,7 +129,7 @@ main{max-width:640px; margin:0 auto; padding:16px; display:flex; flex-direction:
 .btn-file input{display:none}
 .chip-row{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
 .chip{background:var(--page); border:1px solid var(--hairline); border-radius:999px; padding:4px 10px; font-size:11.5px; color:var(--ink-2); font-weight:700}
-.btn-primary{width:100%; margin-top:18px; border:0; background:var(--ink-1); color:var(--surface-1); font-weight:800; font-size:15px; padding:13px; border-radius:999px; cursor:pointer}
+.btn-primary{width:100%; margin-top:18px; border:0; background:var(--accent); color:#fff; font-weight:800; font-size:15px; padding:13px; border-radius:999px; cursor:pointer; box-shadow:0 8px 18px rgba(201,74,44,0.32)}
 .btn-secondary{width:100%; margin-top:8px; border:1.5px solid var(--hairline); background:var(--surface-raised); color:var(--ink-2); font-weight:700; font-size:13.5px; padding:10px; border-radius:999px; cursor:pointer}
 .form-status{font-size:12.5px; font-weight:700; margin-top:10px; text-align:center; min-height:16px}
 .form-status.ok{color:var(--cat-shochu)}
@@ -157,7 +139,7 @@ main{max-width:640px; margin:0 auto; padding:16px; display:flex; flex-direction:
 .search-row input{width:100%; border:1.5px solid var(--hairline); background:var(--page); color:var(--ink-1); border-radius:999px; padding:9px 14px; font-size:16px; font-family:inherit}
 .filter-scroll{display:flex; gap:7px; overflow-x:auto; padding-bottom:2px}
 .filter-chip{flex:0 0 auto; border:1.5px solid var(--hairline); background:var(--surface-raised); border-radius:999px; padding:7px 14px; font-size:12.5px; font-weight:700; color:var(--ink-2); cursor:pointer; white-space:nowrap}
-.filter-chip.active{background:var(--ink-1); color:var(--surface-1); border-color:var(--ink-1)}
+.filter-chip.active{background:var(--accent); color:#fff; border-color:var(--accent)}
 .rec-list{display:flex; flex-direction:column; gap:10px; margin-top:14px}
 .rec-card{display:flex; gap:12px; background:var(--surface-raised); border:1px solid var(--hairline); border-left:4px solid var(--cat-c); border-radius:var(--radius-sm); padding:12px; box-shadow:var(--shadow)}
 .rec-thumb{width:52px; height:52px; border-radius:10px; background:var(--cat-soft); flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:22px; overflow:hidden}
@@ -182,39 +164,45 @@ main{max-width:640px; margin:0 auto; padding:16px; display:flex; flex-direction:
 textarea#importPaste{width:100%; margin-top:10px; min-height:70px; border:1.5px solid var(--hairline); background:var(--page); border-radius:var(--radius-sm); padding:10px; font-size:12px; color:var(--ink-1); font-family:inherit}
 
 /* bottom nav */
-nav.bottom-nav{position:fixed; left:0; right:0; bottom:0; z-index:40; background:var(--surface-1); border-top:1px solid var(--hairline); display:flex; padding-bottom:env(safe-area-inset-bottom, 0px)}
-nav.bottom-nav button{flex:1; border:0; background:none; padding:9px 0 8px; display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; color:var(--ink-3)}
+nav.bottom-nav{position:fixed; left:50%; transform:translateX(-50%); bottom:0; width:100%; max-width:640px; z-index:40; background:var(--surface-1); border-radius:22px 22px 0 0; box-shadow:0 -10px 26px rgba(42,33,24,0.12); display:flex; align-items:flex-end; padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+nav.bottom-nav button{flex:1; border:0; background:none; padding:8px 4px 7px; display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; color:var(--ink-3); border-radius:14px}
 nav.bottom-nav button .ico{font-size:20px; line-height:1}
 nav.bottom-nav button .lbl{font-size:10.5px; font-weight:700}
-nav.bottom-nav button.active{color:var(--ink-1)}
+nav.bottom-nav button.active{color:var(--accent); background:var(--accent-soft)}
+nav.bottom-nav button.nav-fab{flex:0 0 auto; position:relative; top:-16px; width:54px; height:54px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 22px rgba(201,74,44,0.45); border:4px solid var(--page); padding:0}
+nav.bottom-nav button.nav-fab .nav-fab-icon{font-size:26px; font-weight:700; line-height:1}
+nav.bottom-nav button.nav-fab.active{background:var(--accent); color:#fff}
 
-.toast{position:fixed; left:50%; bottom:calc(78px + env(safe-area-inset-bottom)); transform:translateX(-50%) translateY(10px); background:var(--ink-1); color:var(--surface-1); font-size:12.5px; font-weight:700; padding:10px 18px; border-radius:999px; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; z-index:60; max-width:86vw; text-align:center}
+.toast{position:fixed; left:50%; bottom:calc(78px + env(safe-area-inset-bottom)); transform:translateX(-50%) translateY(10px); background:var(--surface-dark); color:var(--text-on-dark); font-size:12.5px; font-weight:700; padding:10px 18px; border-radius:999px; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; z-index:60; max-width:86vw; text-align:center}
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
-
-
 <div id="app">
 <header class="app-header">
   <div class="wrap">
-    <div class="header-row">
-      <div class="brand">
-        <span class="logo">🍶</span>
-        <div>
-          <h1>DrinkLog</h1>
-          <p class="tagline">ビール・日本酒・焼酎・ワインの記録</p>
-        </div>
+    <div class="brand">
+      <span class="logo">🍶</span>
+      <div>
+        <h1>DrinkLog</h1>
+        <p class="tagline">ビール・日本酒・焼酎・ワインの記録</p>
       </div>
-      <div class="today-pill" id="todayPill"></div>
     </div>
-    <div class="hero-stats" id="heroStats"></div>
   </div>
 </header>
 
 <main>
 
   <section id="tab-home" class="tab-panel">
+    <div class="card hero-card">
+      <div class="hero-info">
+        <div class="hero-lbl">今月の記録</div>
+        <div class="hero-val" id="heroMonthVal">0<small>件</small></div>
+        <div class="hero-sub" id="heroTotalVal">総記録数 0件</div>
+      </div>
+      <button type="button" class="hero-add-btn" id="heroAddBtn">＋ 記録を追加</button>
+    </div>
+
     <div class="card" id="cardCatBreakdown">
       <div class="card-head"><h2>カテゴリー別の記録数</h2></div>
       <div id="catBreakdownBody"></div>
@@ -351,8 +339,8 @@ nav.bottom-nav button.active{color:var(--ink-1)}
 
 <nav class="bottom-nav">
   <button data-tab="home" class="active"><span class="ico">🏠</span><span class="lbl">ホーム</span></button>
-  <button data-tab="add"><span class="ico">➕</span><span class="lbl">記録</span></button>
   <button data-tab="history"><span class="ico">📜</span><span class="lbl">履歴</span></button>
+  <button type="button" data-tab="add" class="nav-fab" aria-label="記録を追加"><span class="nav-fab-icon">＋</span></button>
   <button data-tab="data"><span class="ico">💾</span><span class="lbl">データ</span></button>
 </nav>
 
@@ -445,17 +433,14 @@ function switchTab(name){
 document.querySelectorAll(".bottom-nav button").forEach(function(b){
   b.addEventListener("click", function(){ switchTab(b.dataset.tab); });
 });
+document.getElementById("heroAddBtn").addEventListener("click", function(){ switchTab("add"); });
 
 /* ---------- header ---------- */
 function renderHeader(){
-  var d = new Date();
-  document.getElementById("todayPill").textContent = (d.getMonth()+1)+"月"+d.getDate()+"日";
   var ym = todayStr().slice(0,7);
   var thisMonth = state.records.filter(function(r){ return r.date && r.date.slice(0,7)===ym; });
-  var html = ""
-    + '<div class="hero-tile"><div class="lbl">今月の記録</div><div class="val">'+thisMonth.length+'<small>件</small></div></div>'
-    + '<div class="hero-tile"><div class="lbl">総記録数</div><div class="val">'+state.records.length+'<small>件</small></div></div>';
-  document.getElementById("heroStats").innerHTML = html;
+  document.getElementById("heroMonthVal").innerHTML = thisMonth.length+"<small>件</small>";
+  document.getElementById("heroTotalVal").textContent = "総記録数 "+state.records.length+"件";
 }
 
 /* ---------- dashboard ---------- */
