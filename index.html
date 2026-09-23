@@ -699,11 +699,12 @@ document.getElementById("fName").addEventListener("input", function(){
     statusEl.textContent = "検索中…";
     resultsEl.innerHTML = "";
     rakutenSearch(q).then(function(data){
-      var items = (data && data.items) || [];
+      var items = (data && (data.Items || data.items)) || [];
       if(items.length===0){ statusEl.textContent = "候補が見つかりませんでした"; return; }
       statusEl.textContent = "候補（タップで銘柄名に反映・価格は取り込みません）";
       resultsEl.innerHTML = items.map(function(it, i){
-        var img = (it.mediumImageUrls && it.mediumImageUrls[0]) || "";
+        var imgUrls = it.mediumImageUrls || it.MediumImageUrls || [];
+        var img = imgUrls[0] || "";
         if(img && typeof img === "object" && img.imageUrl) img = img.imageUrl;
         return '<button type="button" class="rakuten-item" data-idx="'+i+'">'
           + (img? '<img src="'+escHtml(img)+'" alt="">' : '<span class="ri-thumb-fallback">🍶</span>')
