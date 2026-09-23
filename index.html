@@ -1,9 +1,8 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>DrinkLog</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -659,7 +658,7 @@ function rakutenSearch(keyword){
     keyword: keyword,
     format: "json",
     formatVersion: "2",
-    hits: "8"
+    hits: "15"
   });
   var controller = (typeof AbortController !== "undefined") ? new AbortController() : null;
   var timer = setTimeout(function(){ if(controller) controller.abort(); }, 6000);
@@ -685,6 +684,23 @@ function rakutenSearch(keyword){
     });
 }
 
+/* 商品名から【】等の宣伝文言を除去してシンプルにする */
+function cleanRakutenName(name){
+  if(!name) return "";
+  var s = name;
+  s = s.replace(/【[^】]*】/g, " ");
+  s = s.replace(/\([^)]*送料[^)]*\)/g, " ");
+  s = s.replace(/[◎★☆♪]/g, " ");
+  s = s.replace(/\s+/g, " ").trim();
+  return s || name;
+}
+/* ふるさと納税・定期便など通常の飲用記録に合わない商品を候補から除外 */
+function isExcludedRakutenItem(it){
+  var text = (it.itemName||"") + " " + (it.shopName||"");
+  return /ふるさと納税|定期便|ふるさと/.test(text);
+}
+var RAKUTEN_MAX_RESULTS = 1;
+
 var rakutenDebounceTimer = null;
 document.getElementById("fName").addEventListener("input", function(){
   var q = this.value.trim();
@@ -699,17 +715,17 @@ document.getElementById("fName").addEventListener("input", function(){
     statusEl.textContent = "検索中…";
     resultsEl.innerHTML = "";
     rakutenSearch(q).then(function(data){
-      var items = (data && (data.Items || data.items)) || [];
+      var rawItems = (data && (data.Items || data.items)) || [];
+      var items = rawItems.filter(function(it){ return !isExcludedRakutenItem(it); }).slice(0, RAKUTEN_MAX_RESULTS);
       if(items.length===0){ statusEl.textContent = "候補が見つかりませんでした"; return; }
-      statusEl.textContent = "候補（タップで銘柄名に反映・価格は取り込みません）";
+      statusEl.textContent = "この商品でよければタップ（銘柄名に反映・価格は取り込みません）";
       resultsEl.innerHTML = items.map(function(it, i){
         var imgUrls = it.mediumImageUrls || it.MediumImageUrls || [];
         var img = imgUrls[0] || "";
         if(img && typeof img === "object" && img.imageUrl) img = img.imageUrl;
         return '<button type="button" class="rakuten-item" data-idx="'+i+'">'
           + (img? '<img src="'+escHtml(img)+'" alt="">' : '<span class="ri-thumb-fallback">🍶</span>')
-          + '<span class="ri-text"><span class="ri-name">'+escHtml(it.itemName||"")+'</span>'
-          + '<span class="ri-shop">'+escHtml(it.shopName||"")+'</span></span>'
+          + '<span class="ri-text"><span class="ri-name">'+escHtml(cleanRakutenName(it.itemName))+'</span></span>'
           + '</button>';
       }).join("");
       resultsEl._items = items;
@@ -727,7 +743,7 @@ document.getElementById("rakutenResults").addEventListener("click", function(e){
   var items = this._items || [];
   var it = items[parseInt(b.dataset.idx,10)];
   if(!it) return;
-  document.getElementById("fName").value = it.itemName || "";
+  document.getElementById("fName").value = cleanRakutenName(it.itemName);
   document.getElementById("rakutenPanel").hidden = true;
 });
 
