@@ -684,15 +684,20 @@ function rakutenSearch(keyword){
     });
 }
 
-/* 商品名から【】等の宣伝文言を除去してシンプルにする */
+/* 商品名から各種カッコ内の宣伝文言・付帯情報を除去し、商品名だけをシンプルに表示する */
+var RAKUTEN_BRACKET_PAIRS = [["【","】"],["［","］"],["〔","〕"],["《","》"],["〈","〉"],["(",")"],["[","]"]];
 function cleanRakutenName(name){
   if(!name) return "";
   var s = name;
-  s = s.replace(/【[^】]*】/g, " ");
-  s = s.replace(/\([^)]*送料[^)]*\)/g, " ");
+  RAKUTEN_BRACKET_PAIRS.forEach(function(pair){
+    var open = pair[0].replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    var close = pair[1].replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    var re = new RegExp(open + "[^" + close + "]*" + close, "g");
+    s = s.replace(re, " ");
+  });
   s = s.replace(/[◎★☆♪]/g, " ");
   s = s.replace(/\s+/g, " ").trim();
-  return s || name;
+  return s || name.trim();
 }
 /* ふるさと納税・定期便など通常の飲用記録に合わない商品を候補から除外 */
 function isExcludedRakutenItem(it){
