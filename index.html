@@ -319,14 +319,14 @@ nav.bottom-nav button.nav-fab.active{background:var(--accent); color:#fff}
       <p class="card-sub">「記録」タブで銘柄名を入力すると、楽天市場の商品名から候補を検索できます。利用には楽天ウェブサービスの無料登録で発行される「アプリID」が必要です。</p>
       <div class="field" style="margin-top:12px">
         <label>アプリID(applicationId)<span class="req">*</span></label>
-        <input type="text" id="rakutenAppId" placeholder="例: 1234567890123456789" autocomplete="off">
+        <input type="text" id="rakutenAppId" placeholder="例: c428cf1b-896d-4616-a585-b6ab14509e9a" autocomplete="off">
       </div>
       <div class="field">
-        <label>アクセスキー(任意・必要な場合のみ)</label>
-        <input type="text" id="rakutenAccessKey" placeholder="APIの仕様上、必要な場合のみ入力" autocomplete="off">
+        <label>アクセスキー(accessKey)<span class="req">*</span></label>
+        <input type="text" id="rakutenAccessKey" placeholder="Rakuten Developersの管理画面に表示されています" autocomplete="off">
       </div>
       <button type="button" class="data-btn" id="rakutenSaveBtn" style="width:100%; margin-top:4px">保存する</button>
-      <p class="rakuten-setup-note">アプリIDの取得方法は<a href="https://webservice.rakuten.co.jp/" target="_blank" rel="noopener">楽天ウェブサービス</a>の「アプリID発行」から（無料）。この検索機能は、GitHub Pagesなどで公開したページや端末に保存したファイルから開いた場合に動作します（Cowork上のプレビューでは、セキュリティ制限により動作しないことがあります）。</p>
+      <p class="rakuten-setup-note">アプリID・アクセスキーの取得方法は<a href="https://webservice.rakuten.co.jp/" target="_blank" rel="noopener">Rakuten Developers</a>の「Your Apps」から（無料。2026年の仕様変更以降、両方の入力が必須です）。この検索機能は、GitHub Pagesなどで公開したページや端末に保存したファイルから開いた場合に動作します（Cowork上のプレビューでは、セキュリティ制限により動作しないことがあります）。</p>
       <p class="data-note" id="rakutenSaveStatus"></p>
     </div>
     <div class="card">
@@ -635,13 +635,14 @@ function parseTags(raw){
 }
 
 /* ---------- 楽天市場 商品検索(銘柄名の自動入力) ---------- */
+/* 2026年の楽天API仕様変更に対応：新エンドポイント(ichibams)・accessKey必須・fetch(CORS)方式に更新 */
 var RAKUTEN_KEY = "drinklog_rakuten_v1";
-var RAKUTEN_ENDPOINT = "https://app.rakuten.co.jp/services/api/IchibaItem/Search/20170706";
+var RAKUTEN_ENDPOINT = "https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20260701";
 
 function loadRakutenConfig(){
   try{
     var raw = localStorage.getItem(RAKUTEN_KEY);
-    if(raw){ var c = JSON.parse(raw); if(c && c.appId) return c; }
+    if(raw){ var c = JSON.parse(raw); if(c && c.appId && c.accessKey) return c; }
   }catch(e){}
   return null;
 }
@@ -650,30 +651,38 @@ function saveRakutenConfig(cfg){
 }
 
 function rakutenSearch(keyword){
-  return new Promise(function(resolve, reject){
-    var cfg = loadRakutenConfig();
-    if(!cfg || !cfg.appId){ reject({code:"no_key"}); return; }
-    var cbName = "__rakutenCb_" + Date.now() + "_" + Math.floor(Math.random()*100000);
-    var script = document.createElement("script");
-    var timer = setTimeout(function(){ cleanup(); reject({code:"timeout"}); }, 6000);
-    function cleanup(){
-      clearTimeout(timer);
-      try{ delete window[cbName]; }catch(e){ window[cbName] = undefined; }
-      if(script.parentNode) script.parentNode.removeChild(script);
-    }
-    window[cbName] = function(data){
-      cleanup();
-      if(data && data.error){ reject({code:"api_error", detail:data.error_description||data.error}); return; }
-      resolve(data);
-    };
-    var qs = "applicationId=" + encodeURIComponent(cfg.appId)
-      + "&keyword=" + encodeURIComponent(keyword)
-      + "&hits=8&format=json&formatVersion=2&callback=" + cbName;
-    if(cfg.accessKey){ qs += "&accessKey=" + encodeURIComponent(cfg.accessKey); }
-    script.src = RAKUTEN_ENDPOINT + "?" + qs;
-    script.onerror = function(){ cleanup(); reject({code:"network"}); };
-    document.body.appendChild(script);
+  var cfg = loadRakutenConfig();
+  if(!cfg || !cfg.appId || !cfg.accessKey){ return Promise.reject({code:"no_key"}); }
+  var params = new URLSearchParams({
+    applicationId: cfg.appId,
+    accessKey: cfg.accessKey,
+    keyword: keyword,
+    format: "json",
+    formatVersion: "2",
+    hits: "8"
   });
+  var controller = (typeof AbortController !== "undefined") ? new AbortController() : null;
+  var timer = setTimeout(function(){ if(controller) controller.abort(); }, 6000);
+  return fetch(RAKUTEN_ENDPOINT + "?" + params.toString(), { signal: controller ? controller.signal : undefined })
+    .then(function(res){
+      clearTimeout(timer);
+      if(!res.ok){
+        var err = { code:"http_error", status:res.status };
+        if(res.status===401 || res.status===403){ err.code = "auth_error"; }
+        throw err;
+      }
+      return res.json();
+    })
+    .then(function(data){
+      if(data && data.error){ throw { code:"api_error", detail: data.error_description || data.error }; }
+      return data;
+    })
+    .catch(function(err){
+      clearTimeout(timer);
+      if(err && err.name === "AbortError"){ throw { code:"timeout" }; }
+      if(err && err.code){ throw err; }
+      throw { code:"network" };
+    });
 }
 
 var rakutenDebounceTimer = null;
@@ -706,6 +715,7 @@ document.getElementById("fName").addEventListener("input", function(){
     }).catch(function(err){
       if(err && err.code==="timeout"){ statusEl.textContent = "検索がタイムアウトしました(この環境では利用できない可能性があります)"; }
       else if(err && err.code==="network"){ statusEl.textContent = "検索できませんでした(この環境では利用できない可能性があります)"; }
+      else if(err && err.code==="auth_error"){ statusEl.textContent = "アプリID・アクセスキーが正しくない可能性があります(データタブで確認してください)"; }
       else if(err && err.code==="api_error"){ statusEl.textContent = "検索エラー："+(err.detail||""); }
       else { statusEl.textContent = "検索できませんでした"; }
     });
@@ -728,10 +738,14 @@ function renderRakutenSettings(){
 document.getElementById("rakutenSaveBtn").addEventListener("click", function(){
   var appId = document.getElementById("rakutenAppId").value.trim();
   var accessKey = document.getElementById("rakutenAccessKey").value.trim();
-  if(!appId){
+  if(!appId && !accessKey){
     saveRakutenConfig(null);
     try{ localStorage.removeItem(RAKUTEN_KEY); }catch(e){}
-    document.getElementById("rakutenSaveStatus").textContent = "アプリIDを削除しました(検索機能はオフになります)";
+    document.getElementById("rakutenSaveStatus").textContent = "アプリID・アクセスキーを削除しました(検索機能はオフになります)";
+    return;
+  }
+  if(!appId || !accessKey){
+    document.getElementById("rakutenSaveStatus").textContent = "アプリIDとアクセスキーの両方を入力してください(現在のAPI仕様では両方必須です)";
     return;
   }
   saveRakutenConfig({ appId: appId, accessKey: accessKey });
