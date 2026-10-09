@@ -23,6 +23,7 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
+html{scroll-padding-bottom:110px}
 body{
   font-family:'M PLUS Rounded 1c',-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif;
   background:var(--page); color:var(--ink-1); -webkit-font-smoothing:antialiased;
@@ -327,8 +328,8 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
         <input type="text" id="rakutenAccessKey" placeholder="Rakuten Developersの管理画面に表示されています" autocomplete="off">
       </div>
       <button type="button" class="data-btn" id="rakutenSaveBtn" style="width:100%; margin-top:4px">保存する</button>
+      <p class="data-note" id="rakutenSaveStatus" role="status" style="font-weight:700; margin-top:8px"></p>
       <p class="rakuten-setup-note">アプリID・アクセスキーの取得方法は<a href="https://webservice.rakuten.co.jp/" target="_blank" rel="noopener">Rakuten Developers</a>の「Your Apps」から（無料。2026年の仕様変更以降、両方の入力が必須です）。この検索機能は、GitHub Pagesなどで公開したページや端末に保存したファイルから開いた場合に動作します（Cowork上のプレビューでは、セキュリティ制限により動作しないことがあります）。</p>
-      <p class="data-note" id="rakutenSaveStatus"></p>
     </div>
     <div class="card">
       <h2>このアプリについて</h2>
@@ -785,7 +786,20 @@ document.getElementById("rakutenSaveBtn").addEventListener("click", function(){
     return;
   }
   saveRakutenConfig({ appId: appId, accessKey: accessKey });
-  document.getElementById("rakutenSaveStatus").textContent = "保存しました";
+  document.getElementById("rakutenSaveStatus").textContent = "保存しました ✓ 「追加」タブで銘柄名を入力すると検索できます";
+  showToast("楽天の設定を保存しました");
+});
+/* 入力欄から離れたとき、両方入力済みなら自動保存(ボタンが押しにくい端末でも保存できるように) */
+["rakutenAppId","rakutenAccessKey"].forEach(function(id){
+  document.getElementById(id).addEventListener("change", function(){
+    var a = document.getElementById("rakutenAppId").value.trim();
+    var k = document.getElementById("rakutenAccessKey").value.trim();
+    if(a && k){
+      saveRakutenConfig({ appId: a, accessKey: k });
+      document.getElementById("rakutenSaveStatus").textContent = "自動で保存しました ✓";
+      showToast("楽天の設定を保存しました");
+    }
+  });
 });
 
 function resetForm(){
