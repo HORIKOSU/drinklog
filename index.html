@@ -504,7 +504,7 @@ function renderDashboard(){
       return '<div class="rank-row">'
         + '<div class="rank-num">'+(i+1)+'</div>'
         + '<div class="rank-dot" style="background:var('+cat.c+')"></div>'
-        + '<div class="rank-name">'+escHtml(r.name)+'</div>'
+        + '<div class="rank-name">'+escHtml(displayName(r.name))+'</div>'
         + '<div class="rank-stars">'+starsStr(r.rating)+'</div>'
         + '</div>';
     }).join("");
@@ -1048,6 +1048,10 @@ function recMatchesSearch(r, q){
   var hay = [r.name, r.memo, (r.tags||[]).join(" ")].concat(Object.keys(r.detail||{}).map(function(k){ return r.detail[k]; })).join(" ").toLowerCase();
   return hay.indexOf(q) !== -1;
 }
+/* 履歴・ランキングにはお酒の名前だけを表示(保存データはそのまま。宣伝文言・容量などを除去) */
+function displayName(name){
+  try{ return cleanRakutenName(name) || name; }catch(e){ return name; }
+}
 function renderHistory(){
   renderHistoryFilter();
   var el = document.getElementById("historyList");
@@ -1069,7 +1073,7 @@ function renderHistory(){
       + '<div class="rec-thumb">'+(r.photo? '<img src="'+r.photo+'" alt="">' : cat.icon)+'</div>'
       + '<div class="rec-body">'
       +   '<div class="rec-top"><span class="rec-badge">'+cat.icon+' '+cat.label+'</span><span class="rec-date">'+fmtDateShort(r.date)+'</span></div>'
-      +   '<div class="rec-name">'+escHtml(r.name)+'</div>'
+      +   '<div class="rec-name">'+escHtml(displayName(r.name))+'</div>'
       +   '<div class="rec-stars">'+starsStr(r.rating)+'</div>'
       +   (metaLine? '<div class="rec-meta">'+escHtml(metaLine)+'</div>' : '')
       +   (r.tags && r.tags.length? '<div class="rec-tags">'+r.tags.map(function(t){return '<span class="chip" style="margin-right:4px">#'+escHtml(t)+'</span>';}).join("")+'</div>' : '')
