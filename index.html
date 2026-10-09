@@ -766,6 +766,28 @@ function pickRakutenItem(items, query){
   });
   return best;
 }
+/* 表記ゆれ(旧字体⇔新字体)対応: 結果が0件のとき、字を入れ替えた検索語でもう一度検索する */
+var RAKUTEN_VARIANT_PAIRS = [["祿","禄"],["冨","富"],["髙","高"],["澤","沢"],["國","国"],["櫻","桜"],["邊","辺"],["邉","辺"],["齋","斎"],["齊","斉"],["龍","竜"],["實","実"],["德","徳"],["眞","真"],["瀧","滝"],["嶋","島"],["濱","浜"],["縣","県"],["惠","恵"],["廣","広"],["藏","蔵"],["禮","礼"],["發","発"],["來","来"],["鷗","鴎"],["﨑","崎"],["嵜","崎"]];
+function rakutenQueryVariants(q){
+  var s = String(q).normalize("NFKC"), toNew = s, toOld = s, out = [];
+  RAKUTEN_VARIANT_PAIRS.forEach(function(p){
+    toNew = toNew.split(p[0]).join(p[1]);
+    toOld = toOld.split(p[1]).join(p[0]);
+  });
+  [toNew, toOld].forEach(function(v){ if(v !== s && v !== q && out.indexOf(v) < 0) out.push(v); });
+  return out;
+}
+function rakutenSearchWithVariants(q, genreId){
+  var variants = rakutenQueryVariants(q);
+  function itemsOf(d){ return (d && (d.Items || d.items)) || []; }
+  function attempt(query, rest){
+    return rakutenSearch(query, null, 30, genreId).then(function(data){
+      if(itemsOf(data).length > 0 || rest.length === 0){ return { data: data, query: query }; }
+      return new Promise(function(r){ setTimeout(r, 1200); }).then(function(){ return attempt(rest[0], rest.slice(1)); }); /* 楽天は1秒1回までなので間隔をあける */
+    });
+  }
+  return attempt(q, variants);
+}
 var RAKUTEN_MAX_RESULTS = 1;
 
 var rakutenDebounceTimer = null;
@@ -788,11 +810,12 @@ document.getElementById("fName").addEventListener("input", function(){
     panel.hidden = false;
     statusEl.textContent = "検索中…";
     resultsEl.innerHTML = "";
-    rakutenSearch(q, null, 30, cat.rakutenGenre).then(function(data){
+    rakutenSearchWithVariants(q, cat.rakutenGenre).then(function(res){
+      var data = res.data;
       var rawItems = (data && (data.Items || data.items)) || [];
       var cands = rawItems.filter(function(it){ return !isExcludedRakutenItem(it); });
       if(cands.length===0){ cands = rawItems; } /* ふるさと納税でしか売られていない銘柄(出雲富士など)は、名前だけ拾うため除外を解除 */
-      var bestIt = pickRakutenItem(cands, q);
+      var bestIt = pickRakutenItem(cands, res.query);
       var items = bestIt ? [bestIt] : [];
       if(items.length===0){ statusEl.textContent = "候補が見つかりませんでした"; return; }
       statusEl.textContent = "この商品でよければタップ（銘柄名に反映・価格は取り込みません）";
