@@ -714,25 +714,57 @@ function rakutenSearch(keyword, cfgOverride, hitsOverride, genreId){
     });
 }
 
-/* 商品名から各種カッコ内の宣伝文言・付帯情報を除去し、商品名だけをシンプルに表示する */
-var RAKUTEN_BRACKET_PAIRS = [["【","】"],["［","］"],["〔","〕"],["《","》"],["〈","〉"],["(",")"],["[","]"]];
+/* 商品名から「お酒の名前」だけを取り出す */
+var RAKUTEN_BRACKET_PAIRS = [["【","】"],["［","］"],["〔","〕"],["《","》"],["〈","〉"],["(",")"],["[","]"],["「","」"],["『","』"],["<",">"]];
+var RAKUTEN_PROMO_RE = new RegExp([
+  "[\\d,]+円(?:均一|OFF|off|オフ|引き|以上|以下|まで|ポッキリ|ぽっきり|相当|分|換算)?","ボトル換算","送料\\s*(?:無料|込み?|0円|別|込)","\\d+\\s*倍","\\d+(?:\\.\\d+)?\\s*[%％]","\\d+(?:\\.\\d+)?\\s*度",
+  "先着","最大","限定","クーポン","ポイント","あす楽","即日","在庫","セール","SALE","ランキング","お買い得","特価","訳あり","新発売","おすすめ","オススメ","人気","正規品","直送","ギフト","プレゼント","贈答","お祝い","内祝い?","誕生日","母の日","父の日","お中元","お歳暮","お土産","手土産","家飲み","のし","熨斗","包装","ラッピング","化粧箱","箱入り?","BOX","パック","AIB","spmrank","mp2_\\w*","送料","楽天","蔵元直送","公式","メーカー直送","同梱可","まとめ買い","お取り寄せ","ケース販売","単品","新入荷","早割","父の日ギフト","プチギフト","全品P?","食いしんぼう祭","配布中","まで","正規","箱なし","超希少","蔵出し","\\d{1,2}\\/\\d{1,2}","\\d{1,2}:\\d{2}","おいしい","特産物","贈り物"
+].join("|"), "gi");
+var RAKUTEN_CAP_RE = /\d[\d.]*\s*(?:ml|mL|ML|リットル|cl|kg|本|缶|ケース|箱|個|入|袋|セット)|\d[\d.]*\s*[lLgG](?![A-Za-z])|[×xX*＊]\s*\d+/;
+var RAKUTEN_GENERIC = ["日本酒","焼酎","ビール","ワイン","洋酒","国産","お酒","酒","発泡酒","地酒","スパークリングワイン","赤ワイン","白ワイン","本格焼酎","芋焼酎","麦焼酎","米焼酎","純米酒","送料無料","瓶","ボトル","お酒","缶","中瓶","大瓶","小瓶","入り","品","祭"];
 function cleanRakutenName(name){
   if(!name) return "";
-  var s = name;
+  var s = String(name).normalize("NFKC");
   RAKUTEN_BRACKET_PAIRS.forEach(function(pair){
-    var open = pair[0].replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    var close = pair[1].replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    var re = new RegExp(open + "[^" + close + "]*" + close, "g");
-    s = s.replace(re, " ");
+    var o = pair[0].normalize("NFKC").replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+    var c = pair[1].normalize("NFKC").replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+    s = s.replace(new RegExp(o+"[^"+c+"]*"+c,"g")," ");
   });
-  s = s.replace(/[◎★☆♪]/g, " ");
-  s = s.replace(/\s+/g, " ").trim();
-  return s || name.trim();
+  s = s.replace(/[◎★☆♪※▼▲■□●○◆◇♥♡!！?？~〜]/g," ");
+  /* 容量・本数以降は商品名ではないので切り落とす(先頭に名前が残る場合のみ) */
+  var m = s.match(RAKUTEN_CAP_RE);
+  if(m && m.index >= 2){ s = s.slice(0, m.index); }
+  else { s = s.replace(new RegExp(RAKUTEN_CAP_RE.source,"g")," "); }
+  s = s.replace(/[|｜]/g," ").replace(RAKUTEN_PROMO_RE," ");
+  s = s.replace(/\s+/g," ").trim().replace(/^\d{1,3}-\d{1,3}\s+/,"");
+  var parts = s.split(" ").filter(function(w){ return w; });
+  parts = parts.filter(function(w,i){ return !(i>0 && /^\d{3}$/.test(w) && i===parts.length-1); });
+  var kept = parts.filter(function(w){ return RAKUTEN_GENERIC.indexOf(w)<0; });
+  if(kept.length) parts = kept;
+  s = parts.join(" ").replace(/^[\s\-\/・,、.]+|[\s\-\/・,、.]+$/g,"");
+  if(s.length>40){ s = s.slice(0,40).replace(/\s+\S*$/,""); }
+  if(s.length<2){ return String(name).normalize("NFKC").replace(/\s+/g," ").trim().slice(0,40); }
+  return s;
 }
-/* ふるさと納税・定期便など通常の飲用記録に合わない商品を候補から除外 */
 function isExcludedRakutenItem(it){
-  var text = (it.itemName||"") + " " + (it.shopName||"");
-  return /ふるさと納税|定期便|ふるさと/.test(text);
+  return /ふるさと納税|定期便|ふるさと/.test((it.itemName||"")+" "+(it.shopName||""));
+}
+var RAKUTEN_SET_RE = /セット|アソート|詰め?合わせ|飲み比べ|福袋|まとめ買い|お試し|選べる|ケース|箱買い|定期|\d+\s*種|グラス付|ギフト/;
+function pickRakutenItem(items, query){
+  var q = String(query||"").normalize("NFKC").replace(/\s+/g,"").toLowerCase();
+  var best=null, bestScore=1e9;
+  items.forEach(function(it, idx){
+    var raw = String(it.itemName||"").normalize("NFKC");
+    var clean = cleanRakutenName(raw);
+    var score = idx;
+    if(RAKUTEN_SET_RE.test(raw)) score += 12;
+    else { var cm = raw.match(/(\d+)\s*(?:本|缶)/); if(cm && cm[1]!=="1") score += 5; }
+    var cl = clean.replace(/\s+/g,"").toLowerCase();
+    if(q && cl.indexOf(q)>=0){ score -= 6; if(cl.indexOf(q)===0) score -= 2; }
+    if(clean.length<2) score += 20;
+    if(score<bestScore){ bestScore=score; best=it; }
+  });
+  return best;
 }
 var RAKUTEN_MAX_RESULTS = 1;
 
@@ -756,9 +788,11 @@ document.getElementById("fName").addEventListener("input", function(){
     panel.hidden = false;
     statusEl.textContent = "検索中…";
     resultsEl.innerHTML = "";
-    rakutenSearch(q, null, null, cat.rakutenGenre).then(function(data){
+    rakutenSearch(q, null, 30, cat.rakutenGenre).then(function(data){
       var rawItems = (data && (data.Items || data.items)) || [];
-      var items = rawItems.filter(function(it){ return !isExcludedRakutenItem(it); }).slice(0, RAKUTEN_MAX_RESULTS);
+      var cands = rawItems.filter(function(it){ return !isExcludedRakutenItem(it); });
+      var bestIt = pickRakutenItem(cands, q);
+      var items = bestIt ? [bestIt] : [];
       if(items.length===0){ statusEl.textContent = "候補が見つかりませんでした"; return; }
       statusEl.textContent = "この商品でよければタップ（銘柄名に反映・価格は取り込みません）";
       resultsEl.innerHTML = items.map(function(it, i){
