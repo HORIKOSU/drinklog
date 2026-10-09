@@ -791,6 +791,7 @@ document.getElementById("fName").addEventListener("input", function(){
     rakutenSearch(q, null, 30, cat.rakutenGenre).then(function(data){
       var rawItems = (data && (data.Items || data.items)) || [];
       var cands = rawItems.filter(function(it){ return !isExcludedRakutenItem(it); });
+      if(cands.length===0){ cands = rawItems; } /* ふるさと納税でしか売られていない銘柄(出雲富士など)は、名前だけ拾うため除外を解除 */
       var bestIt = pickRakutenItem(cands, q);
       var items = bestIt ? [bestIt] : [];
       if(items.length===0){ statusEl.textContent = "候補が見つかりませんでした"; return; }
