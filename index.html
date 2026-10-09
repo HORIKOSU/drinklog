@@ -380,16 +380,16 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
 var STORAGE_KEY = "drinklog_records_v1";
 
 var CATEGORIES = [
-  { id:"beer",   label:"ビール",  icon:"🍺", c:"--cat-beer",   soft:"--cat-beer-soft",
+  { id:"beer",   label:"ビール",  icon:"🍺", rakutenGenre:"100324", c:"--cat-beer",   soft:"--cat-beer-soft",
     detail:[{key:"style", label:"スタイル", type:"select",
       options:["IPA","ラガー","ピルスナー","エール","スタウト","ホワイトビール","ヴァイツェン","その他"]}] },
-  { id:"sake",   label:"日本酒",  icon:"🍶", c:"--cat-sake",   soft:"--cat-sake-soft",
+  { id:"sake",   label:"日本酒",  icon:"🍶", rakutenGenre:"100337", c:"--cat-sake",   soft:"--cat-sake-soft",
     detail:[{key:"type", label:"種類", type:"select",
       options:["純米","純米吟醸","純米大吟醸","吟醸","大吟醸","本醸造","普通酒","その他"]}] },
-  { id:"shochu", label:"焼酎",   icon:"🥃", c:"--cat-shochu", soft:"--cat-shochu-soft",
+  { id:"shochu", label:"焼酎",   icon:"🥃", rakutenGenre:"110662", c:"--cat-shochu", soft:"--cat-shochu-soft",
     detail:[{key:"base", label:"原料", type:"select",
       options:["芋","麦","米","黒糖","そば","泡盛(米)","その他"]}] },
-  { id:"wine",   label:"ワイン",  icon:"🍷", c:"--cat-wine",   soft:"--cat-wine-soft",
+  { id:"wine",   label:"ワイン",  icon:"🍷", rakutenGenre:"100317", c:"--cat-wine",   soft:"--cat-wine-soft",
     detail:[
       {key:"type", label:"種類", type:"select", options:["赤","白","ロゼ","スパークリング","オレンジ","その他"]},
       {key:"grape", label:"品種(任意)", type:"text", placeholder:"例: カベルネ・ソーヴィニヨン"}
@@ -569,6 +569,8 @@ document.getElementById("catPicker").addEventListener("click", function(e){
   selectedCategory = b.dataset.id;
   renderCatPicker();
   renderDetailFields();
+  var nameEl = document.getElementById("fName");
+  if(nameEl.value.trim().length >= 2){ nameEl.dispatchEvent(new Event("input")); }
 });
 
 function renderDetailFields(existingDetail){
@@ -676,7 +678,7 @@ function saveRakutenConfig(cfg){
   try{ localStorage.setItem(RAKUTEN_KEY, JSON.stringify(cfg)); }catch(e){}
 }
 
-function rakutenSearch(keyword, cfgOverride, hitsOverride){
+function rakutenSearch(keyword, cfgOverride, hitsOverride, genreId){
   var cfg = cfgOverride || loadRakutenConfig();
   if(!cfg || !cfg.appId || !cfg.accessKey){ return Promise.reject({code:"no_key"}); }
   var params = new URLSearchParams({
@@ -687,6 +689,7 @@ function rakutenSearch(keyword, cfgOverride, hitsOverride){
     formatVersion: "2",
     hits: String(hitsOverride || 15)
   });
+  if(genreId){ params.set("genreId", genreId); } /* お酒のカテゴリーに絞る(万年筆など無関係な商品を除外) */
   var controller = (typeof AbortController !== "undefined") ? new AbortController() : null;
   var timer = setTimeout(function(){ if(controller) controller.abort(); }, 6000);
   return fetch(RAKUTEN_ENDPOINT + "?" + params.toString(), { signal: controller ? controller.signal : undefined })
@@ -742,11 +745,18 @@ document.getElementById("fName").addEventListener("input", function(){
   var resultsEl = document.getElementById("rakutenResults");
   if(q.length < 2){ panel.hidden = true; return; }
   if(!loadRakutenConfig()){ panel.hidden = true; return; }
+  var cat = selectedCategory ? CAT_BY_ID[selectedCategory] : null;
+  if(!cat){
+    panel.hidden = false;
+    statusEl.textContent = "先にカテゴリーを選ぶと、そのお酒の商品から候補を検索します";
+    resultsEl.innerHTML = "";
+    return;
+  }
   rakutenDebounceTimer = setTimeout(function(){
     panel.hidden = false;
     statusEl.textContent = "検索中…";
     resultsEl.innerHTML = "";
-    rakutenSearch(q).then(function(data){
+    rakutenSearch(q, null, null, cat.rakutenGenre).then(function(data){
       var rawItems = (data && (data.Items || data.items)) || [];
       var items = rawItems.filter(function(it){ return !isExcludedRakutenItem(it); }).slice(0, RAKUTEN_MAX_RESULTS);
       if(items.length===0){ statusEl.textContent = "候補が見つかりませんでした"; return; }
