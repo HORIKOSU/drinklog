@@ -750,6 +750,11 @@ function isExcludedRakutenItem(it){
   return /ふるさと納税|定期便|ふるさと/.test((it.itemName||"")+" "+(it.shopName||""));
 }
 var RAKUTEN_SET_RE = /セット|アソート|詰め?合わせ|飲み比べ|福袋|まとめ買い|お試し|選べる|ケース|箱買い|定期|\d+\s*種|グラス付|ギフト/;
+/* お酒ではない商品(前掛け・袋・酒器・食品など)は候補にしない */
+var RAKUTEN_NONLIQUOR_RE = /前掛|エプロン|手提げ|紙袋|ギフトバッグ|ショッパー|グラス|お猪口|ぐい呑|ぐいのみ|徳利|とっくり|酒器|盃|ポスター|タオル|Tシャツ|ステッカー|のれん|暖簾|栓|ストッパー|クーラー|セラー|オープナー|ボトルケース|おつまみ|お菓子|和菓子|クッキー|羊羹|煎茶|抹茶|お茶|粉茶|カード|中古|絵葉書|書籍|問題集|ブック/;
+var RAKUTEN_LIQUOR_RE = /純米|吟醸|本醸造|生酒|原酒|焼酎|ワイン|ビール|シャンパン|スパークリング|ウイスキー|梅酒|酒|ml|ｍｌ|mL|ML|\d+\s*度|\d+L\b/;
+var RAKUTEN_STRONG_LIQUOR_RE = /純米|吟醸|本醸造|生酒|原酒|焼酎|\d+\s*(?:ml|mL|ML|ｍｌ)|\d+\s*度/;
+function isNonLiquorItem(raw){ return RAKUTEN_NONLIQUOR_RE.test(raw) && !RAKUTEN_STRONG_LIQUOR_RE.test(raw); }
 function pickRakutenItem(items, query){
   var q = String(query||"").normalize("NFKC").replace(/\s+/g,"").toLowerCase();
   var best=null, bestScore=1e9;
@@ -757,6 +762,9 @@ function pickRakutenItem(items, query){
     var raw = String(it.itemName||"").normalize("NFKC");
     var clean = cleanRakutenName(raw);
     var score = idx;
+    if(isNonLiquorItem(raw)) score += 40;
+    else if(!RAKUTEN_LIQUOR_RE.test(raw)) score += 10;
+    if(isExcludedRakutenItem(it)) score += 8; /* ふるさと納税・定期便は後回し(他に無ければ採用) */
     if(RAKUTEN_SET_RE.test(raw)) score += 12;
     else { var cm = raw.match(/(\d+)\s*(?:本|缶)/); if(cm && cm[1]!=="1") score += 5; }
     var cl = clean.replace(/\s+/g,"").toLowerCase();
@@ -764,6 +772,7 @@ function pickRakutenItem(items, query){
     if(clean.length<2) score += 20;
     if(score<bestScore){ bestScore=score; best=it; }
   });
+  if(best && isNonLiquorItem(String(best.itemName||"").normalize("NFKC"))) return null;
   return best;
 }
 /* 表記ゆれ(旧字体⇔新字体)対応: 結果が0件のとき、字を入れ替えた検索語でもう一度検索する */
@@ -813,8 +822,7 @@ document.getElementById("fName").addEventListener("input", function(){
     rakutenSearchWithVariants(q, cat.rakutenGenre).then(function(res){
       var data = res.data;
       var rawItems = (data && (data.Items || data.items)) || [];
-      var cands = rawItems.filter(function(it){ return !isExcludedRakutenItem(it); });
-      if(cands.length===0){ cands = rawItems; } /* ふるさと納税でしか売られていない銘柄(出雲富士など)は、名前だけ拾うため除外を解除 */
+      var cands = rawItems; /* ふるさと納税・非酒類は pickRakutenItem 内で減点/除外 */
       var bestIt = pickRakutenItem(cands, res.query);
       var items = bestIt ? [bestIt] : [];
       if(items.length===0){ statusEl.textContent = "候補が見つかりませんでした"; return; }
