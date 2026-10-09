@@ -94,6 +94,11 @@ main{max-width:640px; margin:0 auto; padding:16px; display:flex; flex-direction:
 
 /* category picker (add form) */
 .cat-picker{display:grid; grid-template-columns:repeat(4,1fr); gap:8px}
+.cat-picker.need{outline:2px solid var(--accent); outline-offset:5px; border-radius:var(--radius-sm); animation:catNudge .5s ease 2}
+@keyframes catNudge{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@media (prefers-reduced-motion:reduce){.cat-picker.need{animation:none}}
+.cat-hint{font-size:12.5px; font-weight:700; margin-top:8px; color:var(--accent)}
+.cat-hint.ok{color:var(--ink-2); font-weight:600}
 .cat-btn{border:1.5px solid var(--hairline); background:var(--page); border-radius:var(--radius-sm); padding:10px 4px; text-align:center; cursor:pointer; font-size:12px; font-weight:700; color:var(--ink-2)}
 .cat-btn .ico{font-size:20px; display:block; margin-bottom:3px}
 .cat-btn.active{border-color:var(--cat-c); background:var(--cat-soft); color:var(--ink-1)}
@@ -240,6 +245,7 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
       <div class="field">
         <label>カテゴリー<span class="req">*</span></label>
         <div class="cat-picker" id="catPicker"></div>
+        <p class="cat-hint" id="catHint"></p>
       </div>
 
       <div class="field">
@@ -556,14 +562,33 @@ function emptyStateHtml(icon,title,body){
 var selectedCategory = null;
 var selectedRating = 0;
 
+/* カテゴリー未選択だと商品検索ができないため、最初に選ぶことが分かるように案内する */
+function updateCatHint(nudge){
+  var hint = document.getElementById("catHint"), picker = document.getElementById("catPicker"), nameEl = document.getElementById("fName");
+  if(!hint || !picker || !nameEl) return;
+  if(selectedCategory){
+    var cat = CAT_BY_ID[selectedCategory];
+    hint.textContent = "✓ " + cat.label + "を選択中。銘柄名を入力すると、商品候補を検索します";
+    hint.className = "cat-hint ok";
+    picker.classList.remove("need");
+    nameEl.placeholder = "例: 獺祭 純米大吟醸45";
+  }else{
+    hint.textContent = "↑ 先にカテゴリーを選んでください（選ぶと商品候補を検索できます）";
+    hint.className = "cat-hint";
+    nameEl.placeholder = "先にカテゴリーを選んでください";
+    if(nudge){ picker.classList.remove("need"); void picker.offsetWidth; picker.classList.add("need"); }
+  }
+}
 function renderCatPicker(){
   var el = document.getElementById("catPicker");
+  updateCatHint();
   el.innerHTML = CATEGORIES.map(function(cat){
     return '<button type="button" class="cat-btn'+(selectedCategory===cat.id?" active":"")+'" data-id="'+cat.id+'" '
       + 'style="--cat-c:var('+cat.c+'); --cat-soft:var('+cat.soft+')">'
       + '<span class="ico">'+cat.icon+'</span>'+cat.label+'</button>';
   }).join("");
 }
+document.getElementById("fName").addEventListener("focus", function(){ if(!selectedCategory){ updateCatHint(true); } });
 document.getElementById("catPicker").addEventListener("click", function(e){
   var b = e.target.closest(".cat-btn"); if(!b) return;
   selectedCategory = b.dataset.id;
@@ -812,6 +837,7 @@ document.getElementById("fName").addEventListener("input", function(){
   if(!cat){
     panel.hidden = false;
     statusEl.textContent = "先にカテゴリーを選ぶと、そのお酒の商品から候補を検索します";
+    updateCatHint(true);
     resultsEl.innerHTML = "";
     return;
   }
