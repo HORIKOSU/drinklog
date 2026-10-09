@@ -116,6 +116,16 @@ main{max-width:640px; margin:0 auto; padding:16px; display:flex; flex-direction:
 .rakuten-item .ri-name{font-size:12px; font-weight:700; color:var(--ink-1); overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical}
 .rakuten-item .ri-shop{font-size:10.5px; color:var(--ink-3); margin-top:2px}
 .rakuten-setup-note{font-size:11.5px; color:var(--ink-3); margin-top:4px}
+.status-badge{flex:0 0 auto; font-size:11px; font-weight:800; padding:3px 10px; border-radius:999px; background:var(--page); color:var(--ink-3)}
+.status-badge.ok{background:var(--cat-shochu-soft); color:#12805a}
+.secret-input{-webkit-text-security:disc; text-security:disc}
+.secret-input.reveal{-webkit-text-security:none; text-security:none}
+.reveal-row{display:flex; align-items:center; gap:8px; margin-top:12px; font-size:12.5px; font-weight:700; color:var(--ink-2); cursor:pointer}
+.reveal-row input{width:18px; height:18px; accent-color:var(--accent)}
+.btn-primary:disabled{background:var(--hairline); color:var(--ink-3); box-shadow:none; cursor:not-allowed}
+.form-status.err{color:var(--danger)}
+.form-status.warn{color:var(--cat-beer)}
+.link-danger{display:block; margin:2px auto 0; border:0; background:none; color:var(--danger); font-size:12px; font-weight:700; padding:8px 12px; cursor:pointer}
 .rakuten-setup-note a{color:var(--cat-sake)}
 .two-col{display:grid; grid-template-columns:1fr 1fr; gap:10px}
 .star-input{display:flex; gap:6px}
@@ -317,19 +327,21 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
       <p class="data-note" id="dataCount"></p>
     </div>
     <div class="card">
-      <h2>楽天市場で銘柄を検索(自動入力)</h2>
-      <p class="card-sub">「追加」タブで銘柄名を入力すると、楽天市場の商品名から候補を検索できます。利用には楽天ウェブサービスの無料登録で発行される「アプリID」が必要です。</p>
-      <div class="field" style="margin-top:12px">
-        <label>アプリID(applicationId)<span class="req">*</span></label>
-        <input type="text" id="rakutenAppId" placeholder="例: c428cf1b-896d-4616-a585-b6ab14509e9a" autocomplete="off">
+      <div class="card-head"><h2>楽天市場で銘柄を検索</h2><span class="status-badge" id="rakutenBadge">未設定</span></div>
+      <p class="card-sub">「追加」タブで銘柄名を入力すると、楽天市場の商品名を候補に表示します。</p>
+      <div class="field">
+        <label for="rakutenAppId">アプリID<span class="req">*</span></label>
+        <input type="text" id="rakutenAppId" class="secret-input" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
       </div>
       <div class="field">
-        <label>アクセスキー(accessKey)<span class="req">*</span></label>
-        <input type="text" id="rakutenAccessKey" placeholder="Rakuten Developersの管理画面に表示されています" autocomplete="off">
+        <label for="rakutenAccessKey">アクセスキー<span class="req">*</span></label>
+        <input type="text" id="rakutenAccessKey" class="secret-input" placeholder="pk_ から始まる文字列" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
       </div>
-      <button type="button" class="data-btn" id="rakutenSaveBtn" style="width:100%; margin-top:4px">保存する</button>
-      <p class="data-note" id="rakutenSaveStatus" role="status" style="font-weight:700; margin-top:8px"></p>
-      <p class="rakuten-setup-note">アプリID・アクセスキーの取得方法は<a href="https://webservice.rakuten.co.jp/" target="_blank" rel="noopener">Rakuten Developers</a>の「Your Apps」から（無料。2026年の仕様変更以降、両方の入力が必須です）。この検索機能は、GitHub Pagesなどで公開したページや端末に保存したファイルから開いた場合に動作します（Cowork上のプレビューでは、セキュリティ制限により動作しないことがあります）。</p>
+      <label class="reveal-row" for="rakutenReveal"><input type="checkbox" id="rakutenReveal"> 入力内容を表示する</label>
+      <button type="button" class="btn-primary" id="rakutenSaveBtn" disabled>保存して接続を確認</button>
+      <p class="form-status" id="rakutenSaveStatus" role="status"></p>
+      <button type="button" class="link-danger" id="rakutenClearBtn" hidden>設定を削除する</button>
+      <p class="rakuten-setup-note">取得先は<a href="https://webservice.rakuten.co.jp/" target="_blank" rel="noopener">Rakuten Developers</a>の「Your Apps」(無料・両方必須)。入力した値はこの端末のブラウザにだけ保存され、楽天への検索にのみ使われます。</p>
     </div>
     <div class="card">
       <h2>このアプリについて</h2>
@@ -664,8 +676,8 @@ function saveRakutenConfig(cfg){
   try{ localStorage.setItem(RAKUTEN_KEY, JSON.stringify(cfg)); }catch(e){}
 }
 
-function rakutenSearch(keyword){
-  var cfg = loadRakutenConfig();
+function rakutenSearch(keyword, cfgOverride, hitsOverride){
+  var cfg = cfgOverride || loadRakutenConfig();
   if(!cfg || !cfg.appId || !cfg.accessKey){ return Promise.reject({code:"no_key"}); }
   var params = new URLSearchParams({
     applicationId: cfg.appId,
@@ -673,7 +685,7 @@ function rakutenSearch(keyword){
     keyword: keyword,
     format: "json",
     formatVersion: "2",
-    hits: "15"
+    hits: String(hitsOverride || 15)
   });
   var controller = (typeof AbortController !== "undefined") ? new AbortController() : null;
   var timer = setTimeout(function(){ if(controller) controller.abort(); }, 6000);
@@ -767,39 +779,78 @@ document.getElementById("rakutenResults").addEventListener("click", function(e){
   document.getElementById("rakutenPanel").hidden = true;
 });
 
+/* ---- 楽天設定UI：入力値は伏せ字、入力済みの時だけ保存ボタンが有効、保存時に接続確認 ---- */
+function rakutenFormValues(){
+  return {
+    appId: document.getElementById("rakutenAppId").value.replace(/\s+/g,""),
+    accessKey: document.getElementById("rakutenAccessKey").value.replace(/\s+/g,"")
+  };
+}
+function setRakutenStatus(msg, kind){
+  var el = document.getElementById("rakutenSaveStatus");
+  el.textContent = msg || "";
+  el.className = "form-status" + (kind ? " "+kind : "");
+}
+function updateRakutenUI(){
+  var v = rakutenFormValues();
+  var cfg = loadRakutenConfig();
+  var btn = document.getElementById("rakutenSaveBtn");
+  var unchanged = !!cfg && cfg.appId===v.appId && cfg.accessKey===v.accessKey;
+  btn.disabled = !(v.appId && v.accessKey) || unchanged;
+  btn.textContent = unchanged ? "保存済み ✓" : "保存して接続を確認";
+  var badge = document.getElementById("rakutenBadge");
+  badge.textContent = cfg ? "設定済み ✓" : "未設定";
+  badge.classList.toggle("ok", !!cfg);
+  document.getElementById("rakutenClearBtn").hidden = !cfg;
+}
 function renderRakutenSettings(){
   var cfg = loadRakutenConfig();
   document.getElementById("rakutenAppId").value = (cfg && cfg.appId) || "";
   document.getElementById("rakutenAccessKey").value = (cfg && cfg.accessKey) || "";
+  updateRakutenUI();
 }
-document.getElementById("rakutenSaveBtn").addEventListener("click", function(){
-  var appId = document.getElementById("rakutenAppId").value.trim();
-  var accessKey = document.getElementById("rakutenAccessKey").value.trim();
-  if(!appId && !accessKey){
-    saveRakutenConfig(null);
-    try{ localStorage.removeItem(RAKUTEN_KEY); }catch(e){}
-    document.getElementById("rakutenSaveStatus").textContent = "アプリID・アクセスキーを削除しました(検索機能はオフになります)";
-    return;
-  }
-  if(!appId || !accessKey){
-    document.getElementById("rakutenSaveStatus").textContent = "アプリIDとアクセスキーの両方を入力してください(現在のAPI仕様では両方必須です)";
-    return;
-  }
-  saveRakutenConfig({ appId: appId, accessKey: accessKey });
-  document.getElementById("rakutenSaveStatus").textContent = "保存しました ✓ 「追加」タブで銘柄名を入力すると検索できます";
-  showToast("楽天の設定を保存しました");
-});
-/* 入力欄から離れたとき、両方入力済みなら自動保存(ボタンが押しにくい端末でも保存できるように) */
 ["rakutenAppId","rakutenAccessKey"].forEach(function(id){
-  document.getElementById(id).addEventListener("change", function(){
-    var a = document.getElementById("rakutenAppId").value.trim();
-    var k = document.getElementById("rakutenAccessKey").value.trim();
-    if(a && k){
-      saveRakutenConfig({ appId: a, accessKey: k });
-      document.getElementById("rakutenSaveStatus").textContent = "自動で保存しました ✓";
+  document.getElementById(id).addEventListener("input", function(){
+    setRakutenStatus("");
+    updateRakutenUI();
+  });
+});
+document.getElementById("rakutenReveal").addEventListener("change", function(){
+  var on = this.checked;
+  ["rakutenAppId","rakutenAccessKey"].forEach(function(id){
+    document.getElementById(id).classList.toggle("reveal", on);
+  });
+});
+document.getElementById("rakutenSaveBtn").addEventListener("click", function(){
+  var v = rakutenFormValues();
+  if(!v.appId || !v.accessKey){ return; }
+  document.getElementById("rakutenAppId").value = v.appId;
+  document.getElementById("rakutenAccessKey").value = v.accessKey;
+  var btn = this;
+  btn.disabled = true; btn.textContent = "接続を確認中…";
+  setRakutenStatus("");
+  rakutenSearch("ビール", v, 1).then(function(){
+    saveRakutenConfig(v);
+    setRakutenStatus("接続OK ✓ 保存しました。「追加」タブで銘柄名を入力すると候補が出ます", "ok");
+    showToast("楽天の設定を保存しました");
+  }).catch(function(err){
+    var code = err && err.code;
+    if(code==="auth_error" || code==="api_error"){
+      setRakutenStatus("アプリIDまたはアクセスキーが正しくありません。コピーし直してください(保存していません)", "err");
+    } else {
+      saveRakutenConfig(v);
+      setRakutenStatus("保存しました。ただし接続を確認できませんでした(通信状況をご確認ください)", "warn");
       showToast("楽天の設定を保存しました");
     }
-  });
+  }).then(function(){ updateRakutenUI(); });
+});
+document.getElementById("rakutenClearBtn").addEventListener("click", function(){
+  if(!confirm("楽天の設定(アプリID・アクセスキー)を削除しますか？")) return;
+  try{ localStorage.removeItem(RAKUTEN_KEY); }catch(e){}
+  document.getElementById("rakutenAppId").value = "";
+  document.getElementById("rakutenAccessKey").value = "";
+  setRakutenStatus("削除しました。検索機能はオフになります");
+  updateRakutenUI();
 });
 
 function resetForm(){
