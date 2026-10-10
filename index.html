@@ -168,6 +168,67 @@ main{max-width:640px; margin:0 auto; padding:16px; display:flex; flex-direction:
 .form-status{font-size:12.5px; font-weight:700; margin-top:10px; text-align:center; min-height:16px}
 .form-status.ok{color:var(--cat-shochu)}
 
+/* バーコード */
+.hero-actions{display:flex; flex-direction:column; gap:8px; align-items:stretch; flex:1 1 210px}
+.hero-scan-btn{display:flex; align-items:center; justify-content:center; gap:6px; border:1.5px solid rgba(217,171,95,0.55); background:transparent; color:var(--gold); font-weight:800; font-size:12.5px; padding:9px 14px; border-radius:var(--r-pill); cursor:pointer; font-family:inherit}
+.hero-scan-btn .ic{width:16px; height:16px}
+.scan-entry{display:flex; align-items:center; justify-content:center; gap:7px; width:100%; margin:6px 0 14px; border:1.5px dashed var(--accent); background:var(--surface-input); color:var(--accent); font-weight:800; font-size:13.5px; padding:11px; border-radius:var(--r-pill); cursor:pointer; font-family:inherit}
+.scan-entry .ic{width:18px; height:18px}
+.scan-modal{position:fixed; inset:0; z-index:80; background:rgba(20,15,10,0.6); display:flex; align-items:flex-end; justify-content:center}
+.scan-modal[hidden]{display:none}
+.scan-sheet{background:var(--page); width:100%; max-width:520px; max-height:94vh; overflow-y:auto; border-radius:20px 20px 0 0; padding:16px 16px calc(18px + env(safe-area-inset-bottom))}
+.scan-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px}
+.scan-head h2{margin:0; font-size:16px}
+.scan-close{border:0; background:var(--surface-input); width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--ink-2); cursor:pointer}
+#scanReader{width:100%; min-height:150px; background:#1c1510; border-radius:var(--radius-sm); overflow:hidden}
+#scanFrame{position:relative; border-radius:var(--radius-sm); overflow:hidden}
+#scanFrame[hidden]{display:none}
+.scan-guide{position:absolute; left:8%; right:8%; top:50%; height:44%; transform:translateY(-50%); border:2px dashed var(--gold); border-radius:10px; pointer-events:none; box-shadow:0 0 0 9999px rgba(20,15,10,0.28)}
+#scanReader video{width:100%; display:block}
+.scan-sheet .hint{font-size:11.5px; color:var(--ink-3); line-height:1.65; margin:6px 0}
+.scan-msg{margin:10px 0}
+.scan-manual{display:flex; gap:8px}
+.scan-manual input{flex:1; min-width:0; border:1.5px solid var(--hairline); background:var(--surface-input); color:var(--ink-1); border-radius:var(--r-pill); padding:10px 14px; font-size:16px; font-family:inherit}
+.scan-manual button{flex:0 0 auto; border:0; background:var(--accent); color:var(--on-accent); font-weight:800; font-size:13.5px; padding:0 18px; border-radius:var(--r-pill); cursor:pointer; font-family:inherit}
+.scan-file{margin-top:10px; text-align:center; width:100%; box-sizing:border-box}
+.scan-file input{display:none}
+.scan-status{font-size:13px; color:var(--ink-2); line-height:1.7; margin:6px 0 4px}
+.scan-prod{display:flex; gap:12px; align-items:flex-start}
+.scan-prod img,.scan-prod-ph{width:72px; height:72px; border-radius:12px; object-fit:cover; background:var(--surface-input); flex:0 0 auto; display:flex; align-items:center; justify-content:center}
+.scan-prod-body{min-width:0; flex:1}
+.scan-prod-name{font-family:var(--serif); font-size:16px; font-weight:800; overflow-wrap:anywhere}
+.scan-prod-chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; align-items:center}
+.scan-prod-chips .origin-pill{margin-top:0}
+.scan-jan{margin-top:5px; font-size:11px; color:var(--ink-3); font-variant-numeric:tabular-nums}
+.scan-taste{margin-top:14px; border-top:1px solid var(--hairline); padding-top:12px}
+.scan-taste h3{margin:0 0 6px; font-size:14px}
+.scan-taste-sum{margin:0 0 8px; font-family:var(--serif); font-size:17px; font-weight:800; color:var(--ink-1)}
+.scan-taste-sum small{font-size:11.5px; color:var(--ink-3); margin-left:6px; font-weight:700}
+.scan-taste-row{display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin-bottom:6px}
+.scan-taste-lbl{font-size:11px; font-weight:800; color:var(--ink-3); width:52px}
+.scan-map{width:100%; height:auto; display:block; margin-top:8px}
+.scan-map text{fill:var(--ink-3); font-size:10px; font-weight:700; font-family:inherit}
+.scan-map .tm-grid{stroke:var(--hairline); stroke-width:1}
+.scan-map .tm-frame{fill:var(--surface-input); stroke:var(--hairline); stroke-width:1}
+/* 産地 */
+.origin-pill{display:inline-flex; align-items:center; gap:4px; margin-top:6px; padding:3px 10px 3px 7px; border-radius:var(--r-pill); background:var(--surface-input); border:1px solid var(--hairline); color:var(--ink-1); font-size:12px; font-weight:800}
+.origin-pill .ic{width:13px; height:13px; color:var(--accent)}
+/* 味マップ */
+.taste-row{display:grid; grid-template-columns:34px 1fr 34px; align-items:center; gap:8px; font-size:12px; font-weight:700; color:var(--ink-2); margin-top:6px}
+.taste-row span:last-child{text-align:right}
+.taste-range{width:100%; accent-color:var(--accent); margin:0; height:28px}
+#tasteField.taste-unset .taste-range{accent-color:var(--ink-3); opacity:.5}
+.taste-clear{border:0; background:none; padding:2px 0; color:var(--ink-3); font-weight:700; font-size:11.5px; font-family:inherit; cursor:pointer; text-decoration:underline}
+#tasteMapWrap{margin-top:12px}
+#tasteMapSvg{width:100%; height:auto; display:block; touch-action:manipulation}
+#tasteMapSvg text{fill:var(--ink-3); font-size:10px; font-weight:700; font-family:inherit}
+#tasteMapSvg .tm-grid{stroke:var(--hairline); stroke-width:1}
+#tasteMapSvg .tm-frame{fill:var(--surface-input); stroke:var(--hairline); stroke-width:1}
+#tasteMapSvg .tm-dot{cursor:pointer}
+.tm-legend{display:flex; flex-wrap:wrap; gap:4px 14px; justify-content:center; margin-top:6px; font-size:11px; font-weight:700; color:var(--ink-2)}
+.tm-legend i{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:-1px}
+.taste-info{margin-top:10px; min-height:44px; font-size:12.5px; color:var(--ink-2); border-top:1px solid var(--hairline); padding-top:10px}
+.taste-info b{font-family:var(--serif); font-size:14px; color:var(--ink-1)}
 /* history */
 .search-row{margin-bottom:10px}
 .search-row input{width:100%; border:1.5px solid var(--hairline); background:var(--surface-input); color:var(--ink-1); border-radius:var(--r-pill); padding:9px 14px; font-size:16px; font-family:inherit}
@@ -236,12 +297,22 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
         <div class="hero-val" id="heroMonthVal">0<small>件</small></div>
         <div class="hero-sub" id="heroTotalVal">総記録数 0件</div>
       </div>
-      <button type="button" class="hero-add-btn" id="heroAddBtn">＋ 記録を追加</button>
+      <div class="hero-actions">
+        <button type="button" class="hero-add-btn" id="heroAddBtn">＋ 記録を追加</button>
+        <button type="button" class="hero-scan-btn" id="heroScanBtn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6v12M7 6v12M11 6v12M14 6v12M17 6v12M20 6v12"/></svg>バーコードで味を調べる</button>
+      </div>
     </div>
 
     <div class="card" id="cardCatBreakdown">
       <div class="card-head"><h2>カテゴリー別の記録数</h2></div>
       <div id="catBreakdownBody"></div>
+    </div>
+
+    <div class="card" id="cardTasteMap">
+      <div class="card-head"><h2>味マップ</h2><span class="card-sub" id="tasteMapSub">点の大きさ＝評価</span></div>
+      <div class="filter-scroll" id="tasteMapFilter"></div>
+      <div id="tasteMapWrap"></div>
+      <div class="taste-info" id="tasteInfo"></div>
     </div>
 
     <div class="card" id="cardTrend">
@@ -260,6 +331,7 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
   <section id="tab-add" class="tab-panel" hidden>
     <form class="card" id="addForm">
       <h2 id="formTitle">記録を追加</h2>
+      <button type="button" class="scan-entry" id="formScanBtn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6v12M7 6v12M11 6v12M14 6v12M17 6v12M20 6v12"/></svg>バーコードで読み取る</button>
 
       <div class="field">
         <label>カテゴリー<span class="req">*</span></label>
@@ -284,7 +356,15 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
         <div class="field">
           <label>度数(%)</label>
           <input type="number" id="fAbv" min="0" max="100" step="0.1" placeholder="例: 5.5" inputmode="decimal">
+          <p class="hint" id="abvHint" hidden></p>
         </div>
+      </div>
+
+      <div class="field">
+        <label>産地</label>
+        <input type="text" id="fOrigin" list="originList" placeholder="例: 新潟県 / フランス・ボルドー" autocomplete="off" enterkeyhint="done">
+        <datalist id="originList"></datalist>
+        <p class="hint" id="originHint" hidden></p>
       </div>
 
       <div class="field">
@@ -299,6 +379,14 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
       </div>
 
       <div id="detailFields"></div>
+
+      <div class="field taste-unset" id="tasteField">
+        <label>味(任意)</label>
+        <div class="taste-row"><span>甘口</span><input type="range" class="taste-range" id="fTasteX" min="0" max="100" step="5" value="50" aria-label="甘口から辛口"><span>辛口</span></div>
+        <div class="taste-row"><span>軽い</span><input type="range" class="taste-range" id="fTasteY" min="0" max="100" step="5" value="50" aria-label="軽いから重い"><span>重い</span></div>
+        <p class="hint" id="tasteHint">スライダーを動かすと、ホームの「味マップ」に載ります</p>
+        <button type="button" class="taste-clear" id="tasteClearBtn" hidden>味の入力をやめる</button>
+      </div>
 
       <div class="field">
         <label>写真</label>
@@ -377,6 +465,23 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
 
 </main>
 
+<div class="scan-modal" id="scanModal" hidden role="dialog" aria-modal="true" aria-label="バーコードで味を調べる">
+  <div class="scan-sheet">
+    <div class="scan-head"><h2>バーコードで味を調べる</h2><button type="button" id="scanClose" class="scan-close" aria-label="閉じる"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div id="scanStageCam">
+      <div class="scan-frame" id="scanFrame"><div id="scanReader"></div><div class="scan-guide"></div></div>
+      <p class="hint scan-msg" id="scanMsg"></p>
+      <div class="scan-manual">
+        <input type="text" id="scanJan" inputmode="numeric" pattern="[0-9]*" maxlength="14" placeholder="または番号を入力 (例: 4901004006714)" autocomplete="off">
+        <button type="button" id="scanGo">調べる</button>
+      </div>
+      <label class="btn-file scan-file">写真から読み取る<input type="file" id="scanFile" accept="image/*"></label>
+      <div id="scanFileHolder" hidden></div>
+    </div>
+    <div id="scanResult" hidden></div>
+  </div>
+</div>
+
 <nav class="bottom-nav" aria-label="メニュー">
   <button type="button" data-tab="home" class="active">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg>
@@ -414,10 +519,13 @@ var ICONS = {
   search: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>',
   upload: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 20h16"/></svg>',
   download: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 20h16"/></svg>',
+  pin: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.500-5.600-6.500-11A6.500 6.500 0 0 1 12 3.500 6.500 6.500 0 0 1 18.500 10c0 5.400-6.500 11-6.500 11z"/><circle cx="12" cy="10" r="2.300"/></svg>',
   chart: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V11M12 20V4M19 20v-6"/><path d="M3 20h18"/></svg>',
   star: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8 6.8 19.5l1-5.8-4.2-4.1 5.8-.8L12 3.5z"/></svg>',
   trend: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17l5-5 4 4 7-8"/><path d="M15 8h5v5"/></svg>',
   inbox: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13l2.5-7h11L20 13v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-5z"/><path d="M4 13h4.5l1 2.5h5l1-2.5H20"/></svg>',
+  barcode: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6v12M7 6v12M11 6v12M14 6v12M17 6v12M20 6v12"/></svg>',
+  close: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
   camera: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7H8l1.5-2h5L16 7h2.5A1.5 1.5 0 0 1 20 8.5v9A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5v-9z"/><circle cx="12" cy="13" r="3.5"/></svg>'
 };
 var CATEGORIES = [
@@ -530,6 +638,7 @@ function renderDashboard(){
     }).join("");
   }
 
+  renderTasteMap();
   renderTrend();
 
   var rankEl = document.getElementById("rankingBody");
@@ -844,6 +953,168 @@ function pickRakutenItem(items, query){
   if(best && isNonLiquorItem(String(best.itemName||"").normalize("NFKC"))) return null;
   return best;
 }
+/* 産地の自動抽出(商品名・商品説明から。都道府県/ワインの国・地域) */
+var ORIGIN_PREFS = ["北海道","青森県","岩手県","宮城県","秋田県","山形県","福島県","茨城県","栃木県","群馬県","埼玉県","千葉県","東京都","神奈川県","新潟県","富山県","石川県","福井県","山梨県","長野県","岐阜県","静岡県","愛知県","三重県","滋賀県","京都府","大阪府","兵庫県","奈良県","和歌山県","鳥取県","島根県","岡山県","広島県","山口県","徳島県","香川県","愛媛県","高知県","福岡県","佐賀県","長崎県","熊本県","大分県","宮崎県","鹿児島県","沖縄県"];
+var ORIGIN_PREF_ALIAS = { "薩摩":"鹿児島県","越後":"新潟県","灘":"兵庫県","伏見":"京都府","信州":"長野県","土佐":"高知県","津軽":"青森県","出羽":"山形県","加賀":"石川県","能登":"石川県","琉球":"沖縄県","泡盛":"沖縄県","球磨":"熊本県","壱岐":"長崎県","奥州":"岩手県","会津":"福島県","但馬":"兵庫県","丹波":"兵庫県","播磨":"兵庫県","出雲":"島根県","隠岐":"島根県","石見":"島根県","阿波":"徳島県","讃岐":"香川県","伊予":"愛媛県","筑後":"福岡県","博多":"福岡県" };
+var ORIGIN_WORLD = [
+  ["ボルドー","フランス・ボルドー"],["ブルゴーニュ","フランス・ブルゴーニュ"],["シャンパーニュ","フランス・シャンパーニュ"],["シャンパン","フランス・シャンパーニュ"],["ロワール","フランス・ロワール"],["ローヌ","フランス・ローヌ"],["アルザス","フランス・アルザス"],["ラングドック","フランス・ラングドック"],["プロヴァンス","フランス・プロヴァンス"],["フランス","フランス"],
+  ["トスカーナ","イタリア・トスカーナ"],["ピエモンテ","イタリア・ピエモンテ"],["シチリア","イタリア・シチリア"],["ヴェネト","イタリア・ヴェネト"],["プロセッコ","イタリア"],["イタリア","イタリア"],
+  ["リオハ","スペイン・リオハ"],["スペイン","スペイン"],
+  ["モーゼル","ドイツ・モーゼル"],["ラインヘッセン","ドイツ・ラインヘッセン"],["ドイツ","ドイツ"],
+  ["ナパバレー","アメリカ・ナパバレー"],["ナパ","アメリカ・ナパバレー"],["ソノマ","アメリカ・ソノマ"],["カリフォルニア","アメリカ・カリフォルニア"],["オレゴン","アメリカ・オレゴン"],["アメリカ","アメリカ"],["米国","アメリカ"],
+  ["マールボロ","ニュージーランド・マールボロ"],["ニュージーランド","ニュージーランド"],["バロッサ","オーストラリア・バロッサ"],["オーストラリア","オーストラリア"],
+  ["チリ","チリ"],["アルゼンチン","アルゼンチン"],["南アフリカ","南アフリカ"],["ポルトガル","ポルトガル"],["オーストリア","オーストリア"],["ハンガリー","ハンガリー"],["ギリシャ","ギリシャ"],
+  ["ベルギー","ベルギー"],["チェコ","チェコ"],["イギリス","イギリス"],["英国","イギリス"],["アイルランド","アイルランド"],["オランダ","オランダ"],["メキシコ","メキシコ"],["スコットランド","イギリス・スコットランド"],["台湾","台湾"],["中国","中国"],["韓国","韓国"]
+];
+var ORIGIN_LABEL_RE = /(?:原産国|原産地|産地|生産地|生産国|製造地|産出国|生産者所在地|蔵元所在地|蔵所在地|都道府県)\s*[:：]?\s*([^\s、,。\/／【】()（）]{1,16})/g;
+function originFromText(text, catId, labeledOnly){
+  if(!text) return null;
+  var s = String(text).normalize("NFKC");
+  function has(w, term){
+    var from = 0, i;
+    while((i = w.indexOf(term, from)) !== -1){
+      var after = w.slice(i+term.length, i+term.length+6), ctx = w.slice(Math.max(0,i-6), i) + term + after;
+      var nb = w.slice(Math.max(0,i-6), i) + after, edge = (term==="北海道" || term==="沖縄県" || term==="沖縄") && /東北|四国|九州|離島|関東|北海道|沖縄|円|・|、|\+/.test(nb);
+      if(!edge && !/送料|別途|配送|発送|不可|除く|離島|お届け|クール便|地域/.test(ctx) && !/^(産?(ホップ|麦芽|酵母)|風|式|製法|スタイル|仕込)/.test(after)) return true;
+      from = i + 1;
+    }
+    return false;
+  }
+  function fromWord(w){
+    var i, k;
+    for(i=0;i<ORIGIN_PREFS.length;i++){
+      var p = ORIGIN_PREFS[i], bare = p.replace(/[都府県]$/,"");
+      if(has(w,p) || (bare.length>=2 && has(w,bare))) return p;
+    }
+    for(k in ORIGIN_PREF_ALIAS){ if(has(w,k)) return ORIGIN_PREF_ALIAS[k]; }
+    if(catId!=="sake" && catId!=="shochu"){
+      for(i=0;i<ORIGIN_WORLD.length;i++){ if(has(w,ORIGIN_WORLD[i][0])) return ORIGIN_WORLD[i][1]; }
+    }
+    return null;
+  }
+  var m, v;
+  ORIGIN_LABEL_RE.lastIndex = 0;
+  while((m = ORIGIN_LABEL_RE.exec(s))){ v = fromWord(m[1]); if(v) return v; }
+  if(labeledOnly) return null;
+  return fromWord(s);
+}
+function pickOriginFor(item, catId, others){
+  var v = originFromText(item.itemName, catId, false);
+  if(v===null) v = originFromText(item.itemCaption, catId, true);
+  if(v===null && others){
+    var base = cleanRakutenName(item.itemName);
+    for(var i=0;i<others.length;i++){
+      var o = others[i]; if(o===item) continue;
+      if(cleanRakutenName(o.itemName) !== base) continue;
+      v = originFromText(o.itemName, catId, false);
+      if(v===null) v = originFromText(o.itemCaption, catId, true);
+      if(v!==null) break;
+    }
+  }
+  return v;
+}
+/* 商品情報の文章から「味」を推定(AI不使用・キーワード方式。目安) */
+var TASTE_DRYSWEET = [
+  [/超辛口|大辛口|極辛口|激辛口/,92,1],[/やや辛口|少し辛口|ほんのり辛口/,64,1],[/中辛口|中辛/,58,1],[/辛口/,78,1],[/ブリュット|ブリュト|エクストラドライ/,82,1],
+  [/極甘口|大甘口|貴腐/,8,1],[/やや甘口|少し甘口|ほんのり甘口/,36,1],[/甘口|スウィート|スイート|セミスイート/,22,1],[/ドゥミ|デミセック/,34,1],
+  [/ドライ/,72,1],[/中口/,50,1],[/キレ(?:の|が|味|よ|良|あ)/,66,.5],[/甘み|甘さ|甘味|甘い/,38,.5]
+];
+var TASTE_BODY = [
+  [/淡麗/,20,1],[/ライトボディ|軽快|軽め|軽やか|ライト(?!ス)/,24,1],[/すっきり|スッキリ|さっぱり|爽快|爽やか|クリア/,34,.5],[/ミディアム|中程度|バランス(?:の|が|よ)/,50,1],
+  [/フルボディ|濃醇|濃厚|重厚|リッチ|骨太|力強|ボリューム/,84,1],[/コク|しっかり|厚み|どっしり|深み|濃い/,72,.5],[/芳醇/,68,.5]
+];
+var TASTE_WORDS = [
+  ["香り",["フルーティ","華やか","芳醇","吟醸香","青リンゴ","バナナ","メロン","白桃","桃","柑橘","レモン","ライム","グレープフルーツ","オレンジ","フローラル","花の香","ハーブ","バニラ","スモーキー","樽","ナッツ","カラメル","黒糖","ベリー","チェリー","カシス","ミネラル","トロピカル","パイナップル","マスカット","洋梨","リンゴ"]],
+  ["口当たり",["まろやか","なめらか","滑らか","シャープ","キレ","すっきり","さっぱり","爽快","爽やか","軽快","ジューシー","クリーミー","しっかり","コク","余韻","スパイシー","のど越し","フレッシュ"]],
+  ["味わい",["旨み","旨味","うま味","甘み","甘さ","酸味","苦味","ほろ苦","渋み","タンニン","ドライ","辛口","甘口","濃厚","淡麗","フルボディ","ミディアムボディ","ライトボディ","芋の甘み","麦の旨み","米の旨み","麦芽"]]
+];
+function tasteFromText(text){
+  if(!text) return null;
+  var s = String(text).normalize("NFKC").replace(/[−‒–—ー－]/g, function(c){ return c==="ー" ? c : "-"; });
+  var sumX=0, wX=0, sumY=0, wY=0, ev=[];
+  /* 日本酒度(+は辛口・-は甘口) */
+  var nm = /日本酒度\s*[:：]?\s*(?:約)?\s*([+\-▲△]?)\s*(\d{1,2}(?:\.\d+)?)/.exec(s);
+  if(nm){
+    var n = parseFloat(nm[2]); if(nm[1]==="-"||nm[1]==="▲"||nm[1]==="△") n = -n;
+    if(n>=-15 && n<=15){ var xv = Math.max(5, Math.min(95, 50 + n*5)); sumX += xv*2; wX += 2; ev.push("日本酒度"+(n>0?"+":"")+n); }
+  }
+  /* 辛口/甘口: 一番強いものを優先(「やや辛口」を「辛口」と二重に数えない) */
+  var used = s;
+  TASTE_DRYSWEET.forEach(function(r){
+    var m = r[0].exec(used); if(m){ sumX += r[1]*r[2]; wX += r[2]; ev.push(m[0]); used = used.replace(m[0], "　"); }
+  });
+  used = s;
+  TASTE_BODY.forEach(function(r){
+    var m = r[0].exec(used); if(m){ sumY += r[1]*r[2]; wY += r[2]; ev.push(m[0]); used = used.replace(m[0], "　"); }
+  });
+  var groups = [], total = 0;
+  TASTE_WORDS.forEach(function(g){
+    var found = [];
+    g[1].forEach(function(w){
+      if(s.indexOf(w)!==-1 && !found.some(function(f){ return f.indexOf(w)!==-1 || w.indexOf(f)!==-1; })) found.push(w);
+    });
+    if(found.length){ groups.push({label:g[0], words:found.slice(0,6)}); total += found.length; }
+  });
+  if(!groups.length && !wX && !wY) return null;
+  return { x: wX ? Math.round((50 + (sumX/wX-50)*Math.min(1,wX))/5)*5 : null, y: wY ? Math.round((50 + (sumY/wY-50)*Math.min(1,wY))/5)*5 : null, groups: groups, ev: ev };
+}
+function pickTasteFor(item, catId, others){
+  var t = tasteFromText((item.catchcopy||"")+" "+(item.itemName||"")+" "+(item.itemCaption||""));
+  if(t && (t.x!==null || t.y!==null || t.groups.length>=2)) return t;
+  if(others){
+    var base = cleanRakutenName(item.itemName);
+    for(var i=0;i<others.length;i++){
+      var o = others[i]; if(o===item) continue;
+      if(cleanRakutenName(o.itemName) !== base) continue;
+      var t2 = tasteFromText((o.catchcopy||"")+" "+(o.itemName||"")+" "+(o.itemCaption||""));
+      if(t2 && (t2.x!==null || t2.y!==null || t2.groups.length>=2)) return t2;
+    }
+  }
+  return t;
+}
+/* 度数の自動抽出(商品名・商品説明から。見つからなければ空のまま) */
+var RAKUTEN_ABV_RANGE = { beer:[0.5,12], sake:[8,23], shochu:[10,45], wine:[5,22] };
+function extractAbv(text, catId, strictOnly){
+  if(!text) return null;
+  var s = String(text).normalize("NFKC");
+  var range = RAKUTEN_ABV_RANGE[catId] || [0.5,60];
+  function ok(v){ var n = parseFloat(v); return (n>=range[0] && n<=range[1]) ? n : null; }
+  var m, n;
+  var re1 = /アルコール(?:分|度数|度)?\s*[:：]?\s*約?\s*(\d{1,2}(?:\.\d+)?)\s*(?:度|%|パーセント)?/g;
+  while((m = re1.exec(s))){ n = ok(m[1]); if(n!==null) return n; }
+  var re2 = /度数\s*[:：]?\s*約?\s*(\d{1,2}(?:\.\d+)?)\s*(?:度|%)?/g;
+  while((m = re2.exec(s))){ n = ok(m[1]); if(n!==null) return n; }
+  var re2b = /ABV\s*[:：]?\s*(\d{1,2}(?:\.\d+)?)\s*%?/gi;
+  while((m = re2b.exec(s))){ n = ok(m[1]); if(n!==null) return n; }
+  if(strictOnly===true) return null;
+  var re3 = /(\d{1,2}(?:\.\d+)?)\s*度(?!数|以)/g;
+  while(strictOnly!=="pct" && catId!=="beer" && (m = re3.exec(s))){ n = ok(m[1]); if(n!==null) return n; }
+  var re4 = /(\d{1,2}(?:\.\d+)?)\s*%/g;
+  while((m = re4.exec(s))){
+    var before = s.slice(Math.max(0, m.index-8), m.index);
+    if(/精米|歩合|磨|割引|OFF|off|ポイント|還元|クーポン|引き|麦芽|果汁|糖質/.test(before)) continue;
+    n = ok(m[1]); if(n!==null) return n;
+  }
+  return null;
+}
+function pickAbvFor(item, catId, others){
+  var v = extractAbv(item.itemName, catId, "pct");
+  if(v===null) v = extractAbv(item.itemCaption, catId, true);
+  if(v===null) v = extractAbv(item.itemName, catId, false);
+  if(v===null && others){
+    var base = cleanRakutenName(item.itemName);
+    for(var i=0;i<others.length;i++){
+      var o = others[i]; if(o===item) continue;
+      if(cleanRakutenName(o.itemName) !== base) continue;
+      v = extractAbv(o.itemName, catId, "pct");
+      if(v===null) v = extractAbv(o.itemCaption, catId, true);
+      if(v===null) v = extractAbv(o.itemName, catId, false);
+      if(v!==null) break;
+    }
+  }
+  return v;
+}
+
 /* 表記ゆれ(旧字体⇔新字体)対応: 結果が0件のとき、字を入れ替えた検索語でもう一度検索する */
 var RAKUTEN_VARIANT_PAIRS = [["祿","禄"],["冨","富"],["髙","高"],["澤","沢"],["國","国"],["櫻","桜"],["邊","辺"],["邉","辺"],["齋","斎"],["齊","斉"],["龍","竜"],["實","実"],["德","徳"],["眞","真"],["瀧","滝"],["嶋","島"],["濱","浜"],["縣","県"],["惠","恵"],["廣","広"],["藏","蔵"],["禮","礼"],["發","発"],["來","来"],["鷗","鴎"],["﨑","崎"],["嵜","崎"]];
 function rakutenQueryVariants(q){
@@ -907,6 +1178,8 @@ document.getElementById("fName").addEventListener("input", function(){
           + '</button>';
       }).join("");
       resultsEl._items = items;
+      resultsEl._cands = cands;
+      resultsEl._cat = cat.id;
     }).catch(function(err){
       if(err && err.code==="timeout"){ statusEl.textContent = isRakutenBlockedEnv() ? RAKUTEN_BLOCKED_MSG : "検索がタイムアウトしました。通信状況をご確認ください"; }
       else if(err && err.code==="network"){ statusEl.textContent = isRakutenBlockedEnv() ? RAKUTEN_BLOCKED_MSG : "検索できませんでした。通信状況をご確認ください"; }
@@ -923,6 +1196,48 @@ document.getElementById("rakutenResults").addEventListener("click", function(e){
   if(!it) return;
   document.getElementById("fName").value = cleanRakutenName(it.itemName);
   document.getElementById("rakutenPanel").hidden = true;
+  autoFillAbv(it, this._cat, this._cands);
+  autoFillOrigin(it, this._cat, this._cands);
+});
+/* 選んだ商品の情報から度数を自動入力(入力済みの値は上書きしない) */
+function autoFillAbv(it, catId, cands){
+  var el = document.getElementById("fAbv"), hint = document.getElementById("abvHint");
+  var canFill = !el.value || el.dataset.auto === "1";
+  if(!canFill){ hint.hidden = true; return; }
+  var v = null;
+  try{ v = pickAbvFor(it, catId, cands); }catch(err){ v = null; }
+  if(v === null){
+    if(el.dataset.auto === "1"){ el.value = ""; el.dataset.auto = ""; }
+    hint.hidden = true; return;
+  }
+  el.value = String(v); el.dataset.auto = "1";
+  hint.textContent = "商品情報から自動入力しました。違う場合は修正してください";
+  hint.hidden = false;
+}
+function autoFillOrigin(it, catId, cands){
+  var el = document.getElementById("fOrigin"), hint = document.getElementById("originHint");
+  var canFill = !el.value || el.dataset.auto === "1";
+  if(!canFill){ hint.hidden = true; return; }
+  var v = null;
+  try{ v = pickOriginFor(it, catId, cands); }catch(err){ v = null; }
+  if(v === null){
+    if(el.dataset.auto === "1"){ el.value = ""; el.dataset.auto = ""; }
+    hint.hidden = true; return;
+  }
+  el.value = v; el.dataset.auto = "1";
+  hint.textContent = "商品情報から自動入力しました。違う場合は修正してください";
+  hint.hidden = false;
+}
+document.getElementById("fOrigin").addEventListener("input", function(){
+  this.dataset.auto = ""; document.getElementById("originHint").hidden = true;
+});
+(function(){
+  var seen = {}, opts = ORIGIN_PREFS.slice();
+  ORIGIN_WORLD.forEach(function(w){ if(!seen[w[1]]){ seen[w[1]] = 1; opts.push(w[1]); } });
+  document.getElementById("originList").innerHTML = opts.map(function(o){ return '<option value="'+o+'">'; }).join("");
+})();
+document.getElementById("fAbv").addEventListener("input", function(){
+  this.dataset.auto = ""; document.getElementById("abvHint").hidden = true;
 });
 
 /* ---- 楽天設定UI：入力値は伏せ字、入力済みの時だけ保存ボタンが有効、保存時に接続確認 ---- */
@@ -1011,11 +1326,14 @@ function resetForm(){
   renderStarInput();
   updatePhotoPreview();
   renderTagsPreview();
+  setTasteUI(null);
   document.getElementById("formTitle").textContent = "記録を追加";
   document.getElementById("submitBtn").textContent = "記録を追加";
   document.getElementById("cancelEditBtn").hidden = true;
   document.getElementById("formStatus").textContent = "";
   document.getElementById("rakutenPanel").hidden = true;
+  document.getElementById("fAbv").dataset.auto = ""; document.getElementById("abvHint").hidden = true;
+  document.getElementById("fOrigin").dataset.auto = ""; document.getElementById("originHint").hidden = true;
 }
 
 function startEdit(id){
@@ -1032,6 +1350,10 @@ function startEdit(id){
   document.getElementById("fName").value = r.name || "";
   document.getElementById("fDate").value = r.date || todayStr();
   document.getElementById("fAbv").value = r.abv != null ? r.abv : "";
+  setTasteUI(r.taste);
+  document.getElementById("fOrigin").value = r.origin || "";
+  document.getElementById("fOrigin").dataset.auto = ""; document.getElementById("originHint").hidden = true;
+  document.getElementById("fAbv").dataset.auto = ""; document.getElementById("abvHint").hidden = true;
   document.getElementById("fMemo").value = r.memo || "";
   document.getElementById("fTags").value = (r.tags||[]).join(", ");
   renderTagsPreview();
@@ -1074,6 +1396,8 @@ document.getElementById("addForm").addEventListener("submit", function(e){
     date: date,
     rating: selectedRating,
     abv: abvVal===""? null : Number(abvVal),
+    origin: document.getElementById("fOrigin").value.trim(),
+    taste: tasteSet ? { x:Number(document.getElementById("fTasteX").value), y:Number(document.getElementById("fTasteY").value) } : null,
     detail: detail,
     photo: pendingPhoto,
     memo: document.getElementById("fMemo").value.trim(),
@@ -1095,6 +1419,325 @@ document.getElementById("addForm").addEventListener("submit", function(e){
   switchTab("history");
 });
 
+/* ---------- 味マップ ---------- */
+var tasteSet = false;
+function setTasteUI(t){
+  var fx = document.getElementById("fTasteX"), fy = document.getElementById("fTasteY");
+  var f = document.getElementById("tasteField");
+  tasteSet = !!(t && typeof t.x==="number" && typeof t.y==="number");
+  fx.value = tasteSet ? t.x : 50; fy.value = tasteSet ? t.y : 50;
+  f.classList.toggle("taste-unset", !tasteSet);
+  document.getElementById("tasteClearBtn").hidden = !tasteSet;
+  updateTasteHint();
+}
+function tasteWord(x, y){
+  var a = x<20?"甘口":x<40?"やや甘口":x<=60?"中間":x<=80?"やや辛口":"辛口";
+  var b = y<20?"軽い":y<40?"やや軽め":y<=60?"ふつう":y<=80?"やや重め":"重い";
+  return a+" × "+b;
+}
+function updateTasteHint(){
+  var h = document.getElementById("tasteHint");
+  if(!tasteSet){ h.textContent = "スライダーを動かすと、ホームの「味マップ」に載ります"; return; }
+  h.textContent = tasteWord(Number(document.getElementById("fTasteX").value), Number(document.getElementById("fTasteY").value));
+}
+["fTasteX","fTasteY"].forEach(function(id){
+  document.getElementById(id).addEventListener("input", function(){
+    tasteSet = true;
+    document.getElementById("tasteField").classList.remove("taste-unset");
+    document.getElementById("tasteClearBtn").hidden = false;
+    updateTasteHint();
+  });
+});
+document.getElementById("tasteClearBtn").addEventListener("click", function(){ setTasteUI(null); });
+
+var uiMapFilter = "all", uiMapSel = null;
+function renderTasteMap(){
+  var chipsEl = document.getElementById("tasteMapFilter");
+  var chips = [{id:"all", label:"すべて", icon:ICONS.all}].concat(CATEGORIES.map(function(c){ return {id:c.id, label:c.label, icon:c.icon}; }));
+  chipsEl.innerHTML = chips.map(function(c){
+    return '<button type="button" class="filter-chip'+(uiMapFilter===c.id?" active":"")+'" data-id="'+c.id+'">'+c.icon+' '+c.label+'</button>';
+  }).join("");
+  var wrap = document.getElementById("tasteMapWrap"), info = document.getElementById("tasteInfo");
+  var all = state.records.filter(function(r){ return r.taste && typeof r.taste.x==="number" && typeof r.taste.y==="number"; });
+  var pts = all.filter(function(r){ return uiMapFilter==="all" || r.category===uiMapFilter; });
+  document.getElementById("tasteMapSub").textContent = all.length ? ("点の大きさ＝評価 ・ "+pts.length+"件") : "点の大きさ＝評価";
+  if(all.length===0){
+    wrap.innerHTML = emptyStateHtml(ICONS.chart,"味の記録がまだありません","記録の追加で「味」のスライダーを動かすと、ここに地図ができます");
+    info.textContent = ""; return;
+  }
+  var L=36, T=12, W=270, H=250, B=T+H, R=L+W;
+  var s = '<svg id="tasteMapSvg" viewBox="0 0 320 292" role="img" aria-label="味マップ(横:甘口から辛口、縦:軽いから重い)">'
+    + '<rect class="tm-frame" x="'+L+'" y="'+T+'" width="'+W+'" height="'+H+'" rx="8"/>'
+    + '<line class="tm-grid" x1="'+(L+W/2)+'" y1="'+T+'" x2="'+(L+W/2)+'" y2="'+B+'" stroke-dasharray="3 4"/>'
+    + '<line class="tm-grid" x1="'+L+'" y1="'+(T+H/2)+'" x2="'+R+'" y2="'+(T+H/2)+'" stroke-dasharray="3 4"/>'
+    + '<text x="'+L+'" y="'+(B+16)+'" text-anchor="start">甘口</text>'
+    + '<text x="'+R+'" y="'+(B+16)+'" text-anchor="end">辛口</text>'
+    + '<text x="'+(L+W/2)+'" y="'+(B+16)+'" text-anchor="middle">甘さ・辛さ</text>'
+    + '<text x="'+(L-6)+'" y="'+(T+10)+'" text-anchor="end">重い</text>'
+    + '<text x="'+(L-6)+'" y="'+(B-2)+'" text-anchor="end">軽い</text>';
+  pts.slice().sort(function(a,b){ return (a.rating||0)-(b.rating||0); }).forEach(function(r){
+    var cat = CAT_BY_ID[r.category] || CATEGORIES[0];
+    var cx = L + r.taste.x/100*W, cy = T + (100-r.taste.y)/100*H, rad = 4 + (r.rating||3)*0.9;
+    var sel = (uiMapSel===r.id);
+    s += '<g class="tm-dot" data-id="'+r.id+'">'
+      + '<circle cx="'+cx+'" cy="'+cy+'" r="16" fill="transparent"/>'
+      + (sel ? '<circle cx="'+cx+'" cy="'+cy+'" r="'+(rad+4)+'" fill="none" stroke="var(--ink-1)" stroke-width="1.5"/>' : '')
+      + '<circle cx="'+cx+'" cy="'+cy+'" r="'+rad+'" fill="var('+cat.c+')" fill-opacity="0.85" stroke="var(--surface-1)" stroke-width="1.5"/>'
+      + '</g>';
+  });
+  s += '</svg>';
+  s += '<div class="tm-legend">'+CATEGORIES.map(function(cc){ return '<span><i style="background:var('+cc.c+')"></i>'+cc.label+'</span>'; }).join("")+'</div>';
+  wrap.innerHTML = s;
+  var sr = pts.filter(function(r){ return r.id===uiMapSel; })[0];
+  if(sr){
+    var sc = CAT_BY_ID[sr.category] || CATEGORIES[0];
+    info.innerHTML = '<b>'+escHtml(displayName(sr.name))+'</b> <span style="color:var('+sc.c+');font-weight:800">'+sc.label+'</span><br>'
+      + (sr.origin? '<br><span class="origin-pill">'+ICONS.pin+escHtml(sr.origin)+'</span>' : '')
+      + '<br>'+starsStr(sr.rating)+' ・ '+tasteWord(sr.taste.x, sr.taste.y);
+  } else {
+    info.textContent = pts.length ? "点をタップすると銘柄が表示されます" : "このカテゴリーに味の記録はありません";
+  }
+}
+document.getElementById("tasteMapFilter").addEventListener("click", function(e){
+  var b = e.target.closest(".filter-chip"); if(!b) return;
+  uiMapFilter = b.dataset.id; uiMapSel = null; renderTasteMap();
+});
+document.getElementById("tasteMapWrap").addEventListener("click", function(e){
+  var g = e.target.closest(".tm-dot"); if(!g) return;
+  uiMapSel = (uiMapSel===g.dataset.id) ? null : g.dataset.id; renderTasteMap();
+});
+
+/* ---------- バーコードで味を調べる ---------- */
+var SCAN_LIB_URL = "https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js";
+var scanner = null, scanBusy = false, scanState = null;
+
+function tasteAxisText(x, y){
+  var parts = [];
+  if(x!==null && x!==undefined) parts.push(x<20?"甘口":x<40?"やや甘口":x<=60?"甘辛は中間":x<=80?"やや辛口":"辛口");
+  if(y!==null && y!==undefined) parts.push(y<20?"軽い":y<40?"やや軽め":y<=60?"ボディはふつう":y<=80?"やや重め":"重い");
+  return parts.join(" × ");
+}
+function isValidJan(code){
+  if(!/^\d+$/.test(code)) return false;
+  if(code.length===12) code = "0"+code;
+  if(code.length===8){
+    var s8 = 0; for(var i=0;i<7;i++){ s8 += parseInt(code[i],10) * (i%2===0 ? 3 : 1); }
+    return (10 - s8%10)%10 === parseInt(code[7],10);
+  }
+  if(code.length!==13) return false;
+  var s = 0; for(var j=0;j<12;j++){ s += parseInt(code[j],10) * (j%2===0 ? 1 : 3); }
+  return (10 - s%10)%10 === parseInt(code[12],10);
+}
+var SCAN_LIQUOR_RE = /酒|ビール|ワイン|焼酎|ウイスキー|ウィスキー|シャンパン|チューハイ|サワー|リキュール|ジン|ラム|ウォッカ|ハイボール|発泡|エール|ラガー|ストロング/;
+function guessCategory(it){
+  var name = String(it.itemName||"").normalize("NFKC");
+  var rest = (String(it.catchcopy||"") + " " + String(it.itemCaption||"").slice(0,300)).normalize("NFKC");
+  var tests = [
+    ["shochu", /焼酎|泡盛/], ["sake", /日本酒|清酒|純米|吟醸|本醸造/], ["wine", /ワイン|シャンパン|スパークリング|ロゼ|シャルドネ|カベルネ|メルロー|ピノ/],
+    ["beer", /ビール|発泡酒|新ジャンル|エール|ラガー|ピルスナー|IPA|スタウト|ヴァイツェン/]
+  ];
+  for(var i=0;i<tests.length;i++){ if(tests[i][1].test(name)) return tests[i][0]; }
+  for(var j=0;j<tests.length;j++){ if(tests[j][1].test(rest)) return tests[j][0]; }
+  return null;
+}
+function setScanMsg(t){ document.getElementById("scanMsg").textContent = t; }
+function loadScanLib(){
+  return new Promise(function(resolve, reject){
+    if(window.Html5Qrcode){ resolve(); return; }
+    var s = document.createElement("script");
+    s.src = SCAN_LIB_URL; s.onload = function(){ resolve(); }; s.onerror = function(){ reject(new Error("lib")); };
+    document.head.appendChild(s);
+  });
+}
+function scanFormats(){
+  var F = window.Html5QrcodeSupportedFormats;
+  return F ? [F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E] : undefined;
+}
+function stopScanner(){
+  var sc = scanner; scanner = null;
+  if(!sc) return Promise.resolve();
+  var p;
+  try{ p = sc.isScanning ? sc.stop() : Promise.resolve(); }catch(e){ p = Promise.resolve(); }
+  return Promise.resolve(p).catch(function(){}).then(function(){ try{ sc.clear(); }catch(e){} });
+}
+function startScanner(){
+  setScanMsg("カメラを起動しています…");
+  loadScanLib().then(function(){
+    var sc = new Html5Qrcode("scanReader", { formatsToSupport: scanFormats(), experimentalFeatures:{ useBarCodeDetectorIfSupported:true }, verbose:false });
+    scanner = sc;
+    return sc.start({ facingMode:"environment" }, { fps:10 },
+      function(text){ if(!scanBusy && isValidJan(text)){ handleJan(text); } },
+      function(){});
+  }).then(function(){
+    if(scanner) setScanMsg("お酒のバーコードを枠に合わせてください");
+  }).catch(function(err){
+    scanner = null;
+    var lib = err && err.message==="lib";
+    setScanMsg(lib ? "読み取り用の部品を読み込めませんでした。通信状況を確認するか、下の欄に番号を入力してください"
+                   : "カメラを起動できませんでした。ブラウザのカメラ許可を確認するか、下の欄に番号を入力してください");
+  });
+}
+function openScan(){
+  var modal = document.getElementById("scanModal");
+  modal.hidden = false; document.body.style.overflow = "hidden";
+  document.getElementById("scanResult").hidden = true;
+  document.getElementById("scanResult").innerHTML = "";
+  document.getElementById("scanStageCam").hidden = false;
+  document.getElementById("scanJan").value = "";
+  scanBusy = false; scanState = null;
+  if(!loadRakutenConfig()){
+    document.getElementById("scanFrame").hidden = true;
+    setScanMsg("先に「データ」タブで楽天のアプリID・アクセスキーを設定してください(商品情報の検索に使います)");
+    return;
+  }
+  document.getElementById("scanFrame").hidden = false;
+  startScanner();
+}
+function closeScan(){
+  document.getElementById("scanModal").hidden = true; document.body.style.overflow = "";
+  scanBusy = false; stopScanner();
+}
+function handleJan(jan){
+  if(scanBusy) return;
+  scanBusy = true;
+  stopScanner();
+  document.getElementById("scanStageCam").hidden = true;
+  var box = document.getElementById("scanResult");
+  box.hidden = false;
+  box.innerHTML = '<p class="scan-status">バーコード '+escHtml(jan)+' の商品を検索しています…</p>';
+  rakutenSearch(jan, null, 30).then(function(data){
+    var items = (data && (data.Items || data.items)) || [];
+    var best = pickRakutenItem(items, "");
+    var probe = best ? (String(best.itemName||"")+" "+String(best.catchcopy||"")+" "+String(best.itemCaption||"").slice(0,300)).normalize("NFKC") : "";
+    if(!best || !SCAN_LIQUOR_RE.test(probe)){ renderScanNotFound(jan); return; }
+    renderScanResult(jan, best, items);
+  }).catch(function(err){
+    var msg = "検索できませんでした。通信状況をご確認ください";
+    if(err && err.code==="no_key") msg = "先に「データ」タブで楽天のアプリID・アクセスキーを設定してください";
+    else if(err && err.code==="auth_error") msg = "アプリID・アクセスキーが正しくない可能性があります(データタブで確認してください)";
+    else if(err && err.code==="timeout") msg = "検索がタイムアウトしました。もう一度お試しください";
+    else if((err && err.code==="network") && isRakutenBlockedEnv()) msg = RAKUTEN_BLOCKED_MSG;
+    box.innerHTML = '<p class="scan-status">'+escHtml(msg)+'</p><button type="button" class="btn-secondary" id="scanAgain">もう一度読み取る</button>';
+  });
+}
+function renderScanNotFound(jan){
+  document.getElementById("scanResult").innerHTML =
+    '<p class="scan-status"><b>商品が見つかりませんでした</b><br>バーコード '+escHtml(jan)+' に合うお酒を楽天市場で見つけられませんでした。銘柄名で探す場合は、追加画面で名前を入力してください。</p>'
+    + '<button type="button" class="btn-primary" id="scanAgain">もう一度読み取る</button>'
+    + '<button type="button" class="btn-secondary" id="scanToAdd">銘柄名を入力して記録する</button>';
+}
+function tasteMiniMap(est){
+  var L=30, T=10, W=262, H=170, B=T+H, R=L+W;
+  var s = '<svg class="scan-map" viewBox="0 0 320 214" role="img" aria-label="味マップ上の予想位置">'
+    + '<rect class="tm-frame" x="'+L+'" y="'+T+'" width="'+W+'" height="'+H+'" rx="8"/>'
+    + '<line class="tm-grid" x1="'+(L+W/2)+'" y1="'+T+'" x2="'+(L+W/2)+'" y2="'+B+'" stroke-dasharray="3 4"/>'
+    + '<line class="tm-grid" x1="'+L+'" y1="'+(T+H/2)+'" x2="'+R+'" y2="'+(T+H/2)+'" stroke-dasharray="3 4"/>'
+    + '<text x="'+L+'" y="'+(B+15)+'" text-anchor="start">甘口</text><text x="'+R+'" y="'+(B+15)+'" text-anchor="end">辛口</text>'
+    + '<text x="'+(L-5)+'" y="'+(T+10)+'" text-anchor="end">重い</text><text x="'+(L-5)+'" y="'+(B-2)+'" text-anchor="end">軽い</text>';
+  state.records.forEach(function(r){
+    if(!(r.taste && typeof r.taste.x==="number")) return;
+    var cat = CAT_BY_ID[r.category] || CATEGORIES[0];
+    s += '<circle cx="'+(L + r.taste.x/100*W)+'" cy="'+(T + (100-r.taste.y)/100*H)+'" r="4.5" fill="var('+cat.c+')" fill-opacity="0.4"/>';
+  });
+  var cx = L + est.x/100*W, cy = T + (100-est.y)/100*H;
+  s += '<circle cx="'+cx+'" cy="'+cy+'" r="13" fill="var(--gold)" fill-opacity="0.35"/>'
+     + '<circle cx="'+cx+'" cy="'+cy+'" r="7" fill="var(--accent)" stroke="var(--surface-1)" stroke-width="2"/>'
+     + '<text x="'+Math.min(Math.max(cx, L+16), R-16)+'" y="'+(cy>T+30 ? cy-17 : cy+27)+'" text-anchor="middle" style="fill:var(--accent);font-size:11px;font-weight:800">この商品(予想)</text>';
+  return s + '</svg>';
+}
+function renderScanResult(jan, item, cands){
+  var cat = guessCategory(item);
+  var name = displayName(item.itemName);
+  var abv = null, origin = null, taste = null;
+  try{ abv = pickAbvFor(item, cat, cands); }catch(e){}
+  try{ origin = pickOriginFor(item, cat, cands); }catch(e){}
+  try{ taste = pickTasteFor(item, cat, cands); }catch(e){}
+  var est = null;
+  if(taste && (taste.x!==null || taste.y!==null)){
+    est = { x: taste.x!==null ? taste.x : 50, y: taste.y!==null ? taste.y : 50 };
+  }
+  scanState = { jan:jan, cat:cat, name:name, abv:abv, origin:origin, est:est };
+  var imgs = item.mediumImageUrls || []; var img = imgs[0] || "";
+  if(img && typeof img==="object" && img.imageUrl) img = img.imageUrl;
+  var c = cat ? CAT_BY_ID[cat] : null;
+  var chips = '';
+  if(c) chips += '<span class="rec-badge" style="--cat-c:var('+c.c+');--cat-soft:var('+c.soft+')">'+c.icon+' '+c.label+'</span> ';
+  if(abv!==null) chips += '<span class="chip">度数 '+abv+'%</span> ';
+  if(origin) chips += '<span class="origin-pill">'+ICONS.pin+escHtml(origin)+'</span>';
+  var h = '<div class="scan-prod">'
+    + (img ? '<img src="'+escHtml(img)+'" alt="">' : '<span class="scan-prod-ph">'+(c?c.icon:ICONS.sake)+'</span>')
+    + '<div class="scan-prod-body"><div class="scan-prod-name">'+escHtml(name)+'</div><div class="scan-prod-chips">'+chips+'</div>'
+    + '<div class="scan-jan">JAN '+escHtml(jan)+'</div></div></div>';
+  h += '<div class="scan-taste"><h3>味の目安</h3>';
+  if(taste){
+    if(est){
+      h += '<p class="scan-taste-sum">'+escHtml(tasteAxisText(taste.x, taste.y))+'<small>(予想)</small></p>';
+    }
+    h += (taste.groups||[]).map(function(g){
+      return '<div class="scan-taste-row"><span class="scan-taste-lbl">'+g.label+'</span>'
+        + g.words.map(function(w){ return '<span class="chip">'+escHtml(w)+'</span>'; }).join("")+'</div>';
+    }).join("");
+    if(est){
+      h += tasteMiniMap(est);
+      if(taste.x===null || taste.y===null) h += '<p class="hint">'+(taste.x===null?"甘口・辛口":"軽い・重い")+'の情報が商品説明に無かったため、その軸は中央にしています。</p>';
+      h += '<p class="hint">薄い点はあなたが記録したお酒です。</p>';
+    }
+    h += '<p class="hint">商品説明の言葉から推定した目安です。実際の味は飲んで確かめてください。</p>';
+  } else {
+    h += '<p class="scan-status">この商品の説明に、味についての情報が見つかりませんでした。</p>';
+  }
+  h += '</div>'
+    + '<button type="button" class="btn-primary" id="scanUse">この内容で記録する</button>'
+    + '<button type="button" class="btn-secondary" id="scanAgain">もう一度読み取る</button>';
+  document.getElementById("scanResult").innerHTML = h;
+}
+function useScanResult(){
+  var st = scanState; if(!st) return;
+  closeScan();
+  resetForm();
+  if(st.cat){ selectedCategory = st.cat; renderCatPicker(); renderDetailFields(); updateCatHint(false); }
+  document.getElementById("fName").value = st.name;
+  var abvEl = document.getElementById("fAbv");
+  if(st.abv!==null){ abvEl.value = String(st.abv); abvEl.dataset.auto = "1"; var ah = document.getElementById("abvHint"); ah.textContent = "バーコードの商品情報から入力しました。違う場合は修正してください"; ah.hidden = false; }
+  var orEl = document.getElementById("fOrigin");
+  if(st.origin){ orEl.value = st.origin; orEl.dataset.auto = "1"; var oh = document.getElementById("originHint"); oh.textContent = "バーコードの商品情報から入力しました。違う場合は修正してください"; oh.hidden = false; }
+  if(st.est){
+    setTasteUI({ x:st.est.x, y:st.est.y });
+    document.getElementById("tasteHint").textContent = tasteWord(st.est.x, st.est.y) + "(商品説明からの予想。違う場合はスライダーで調整)";
+  }
+  switchTab("add");
+  showToast("読み取った内容を入力しました。評価を付けて記録できます");
+}
+function scanFromFile(file){
+  if(!file) return;
+  setScanMsg("写真を読み取っています…");
+  loadScanLib().then(function(){
+    var holder = new Html5Qrcode("scanFileHolder", { formatsToSupport: scanFormats(), verbose:false });
+    return holder.scanFile(file, false).then(function(text){ try{ holder.clear(); }catch(e){} return text; });
+  }).then(function(text){
+    if(isValidJan(text)){ handleJan(text); } else { setScanMsg("バーコードを読み取れませんでした。もう一度撮影するか、番号を入力してください"); }
+  }).catch(function(){
+    setScanMsg("写真からバーコードを読み取れませんでした。明るい場所でバーコードだけを大きく撮影するか、番号を入力してください");
+  });
+}
+document.getElementById("heroScanBtn").addEventListener("click", openScan);
+document.getElementById("formScanBtn").addEventListener("click", openScan);
+document.getElementById("scanClose").addEventListener("click", closeScan);
+document.getElementById("scanModal").addEventListener("click", function(e){
+  if(e.target === this){ closeScan(); return; }
+  var b = e.target.closest("button"); if(!b) return;
+  if(b.id==="scanUse"){ useScanResult(); }
+  else if(b.id==="scanAgain"){ openScan(); }
+  else if(b.id==="scanToAdd"){ closeScan(); resetForm(); switchTab("add"); }
+});
+document.getElementById("scanGo").addEventListener("click", function(){
+  var v = document.getElementById("scanJan").value.replace(/\D/g,"");
+  if(!isValidJan(v)){ setScanMsg("バーコードの番号(8桁または13桁)を正しく入力してください"); return; }
+  handleJan(v);
+});
+document.getElementById("scanFile").addEventListener("change", function(){ var f = this.files && this.files[0]; this.value = ""; scanFromFile(f); });
+document.addEventListener("keydown", function(e){ if(e.key==="Escape" && !document.getElementById("scanModal").hidden){ closeScan(); } });
+
 /* ---------- history ---------- */
 function renderHistoryFilter(){
   var el = document.getElementById("historyFilter");
@@ -1115,7 +1758,7 @@ document.getElementById("historySearch").addEventListener("input", function(e){
 
 function recMatchesSearch(r, q){
   if(!q) return true;
-  var hay = [r.name, r.memo, (r.tags||[]).join(" ")].concat(Object.keys(r.detail||{}).map(function(k){ return r.detail[k]; })).join(" ").toLowerCase();
+  var hay = [r.name, r.origin, r.memo, (r.tags||[]).join(" ")].concat(Object.keys(r.detail||{}).map(function(k){ return r.detail[k]; })).join(" ").toLowerCase();
   return hay.indexOf(q) !== -1;
 }
 /* 履歴・ランキングにはお酒の名前だけを表示(保存データはそのまま。宣伝文言・容量などを除去) */
@@ -1137,6 +1780,7 @@ function renderHistory(){
     var cat = CAT_BY_ID[r.category] || CATEGORIES[0];
     var metaParts = [];
     if(r.abv!=null) metaParts.push("度数 "+r.abv+"%");
+    if(r.taste && typeof r.taste.x==="number") metaParts.push("味 "+tasteWord(r.taste.x, r.taste.y));
     var detailParts = Object.keys(r.detail||{}).map(function(k){ return r.detail[k]; }).filter(Boolean);
     var metaLine = detailParts.concat(metaParts).join(" ・ ");
     return '<div class="rec-card" style="--cat-c:var('+cat.c+'); --cat-soft:var('+cat.soft+')">'
@@ -1144,6 +1788,7 @@ function renderHistory(){
       + '<div class="rec-body">'
       +   '<div class="rec-top"><span class="rec-badge">'+cat.icon+' '+cat.label+'</span><span class="rec-date">'+fmtDateShort(r.date)+'</span></div>'
       +   '<div class="rec-name">'+escHtml(displayName(r.name))+'</div>'
+      +   (r.origin? '<div class="origin-pill">'+ICONS.pin+escHtml(r.origin)+'</div>' : '')
       +   '<div class="rec-stars">'+starsStr(r.rating)+'</div>'
       +   (metaLine? '<div class="rec-meta">'+escHtml(metaLine)+'</div>' : '')
       +   (r.tags && r.tags.length? '<div class="rec-tags">'+r.tags.map(function(t){return '<span class="chip" style="margin-right:4px">#'+escHtml(t)+'</span>';}).join("")+'</div>' : '')
@@ -1241,6 +1886,5 @@ renderAll();
 
 })();
 </script>
-
 </body>
 </html>
