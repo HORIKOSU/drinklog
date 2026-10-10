@@ -168,6 +168,9 @@ main{max-width:640px; margin:0 auto; padding:16px; display:flex; flex-direction:
 .form-status{font-size:12.5px; font-weight:700; margin-top:10px; text-align:center; min-height:16px}
 .form-status.ok{color:var(--cat-shochu)}
 
+/* ダブルタップ拡大・入力時の自動拡大を防ぐ */
+html,body,#app,*{touch-action:manipulation}
+input:not([type=range]):not([type=file]),select,textarea{font-size:16px !important}
 /* バーコード */
 .hero-actions{display:flex; flex-direction:column; gap:8px; align-items:stretch; flex:1 1 210px}
 .hero-scan-btn{display:flex; align-items:center; justify-content:center; gap:6px; border:1.5px solid rgba(217,171,95,0.55); background:transparent; color:var(--gold); font-weight:800; font-size:12.5px; padding:9px 14px; border-radius:var(--r-pill); cursor:pointer; font-family:inherit}
@@ -184,12 +187,13 @@ main{max-width:640px; margin:0 auto; padding:16px; display:flex; flex-direction:
 #scanFrame{position:relative; border-radius:var(--radius-sm); overflow:hidden}
 #scanFrame[hidden]{display:none}
 .scan-guide{position:absolute; left:8%; right:8%; top:50%; height:44%; transform:translateY(-50%); border:2px dashed var(--gold); border-radius:10px; pointer-events:none; box-shadow:0 0 0 9999px rgba(20,15,10,0.28)}
-#scanReader video{width:100%; display:block}
+#scanReader video{width:100%; display:block; min-height:150px; object-fit:cover}
 .scan-sheet .hint{font-size:11.5px; color:var(--ink-3); line-height:1.65; margin:6px 0}
 .scan-msg{margin:10px 0}
 .scan-manual{display:flex; gap:8px}
 .scan-manual input{flex:1; min-width:0; border:1.5px solid var(--hairline); background:var(--surface-input); color:var(--ink-1); border-radius:var(--r-pill); padding:10px 14px; font-size:16px; font-family:inherit}
 .scan-manual button{flex:0 0 auto; border:0; background:var(--accent); color:var(--on-accent); font-weight:800; font-size:13.5px; padding:0 18px; border-radius:var(--r-pill); cursor:pointer; font-family:inherit}
+.scan-file.attn{border-color:var(--accent); color:var(--accent); background:var(--surface-input)}
 .scan-file{margin-top:10px; text-align:center; width:100%; box-sizing:border-box}
 .scan-file input{display:none}
 .scan-status{font-size:13px; color:var(--ink-2); line-height:1.7; margin:6px 0 4px}
@@ -475,7 +479,7 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
         <input type="text" id="scanJan" inputmode="numeric" pattern="[0-9]*" maxlength="14" placeholder="または番号を入力 (例: 4901004006714)" autocomplete="off">
         <button type="button" id="scanGo">調べる</button>
       </div>
-      <label class="btn-file scan-file">写真から読み取る<input type="file" id="scanFile" accept="image/*"></label>
+      <label class="btn-file scan-file" id="scanFileLbl">撮影・写真から読み取る<input type="file" id="scanFile" accept="image/*"></label>
       <div id="scanFileHolder" hidden></div>
     </div>
     <div id="scanResult" hidden></div>
@@ -1554,14 +1558,100 @@ function scanFormats(){
   return F ? [F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E] : undefined;
 }
 function stopScanner(){
+  stopCameraLoop();
   var sc = scanner; scanner = null;
   if(!sc) return Promise.resolve();
   var p;
   try{ p = sc.isScanning ? sc.stop() : Promise.resolve(); }catch(e){ p = Promise.resolve(); }
   return Promise.resolve(p).catch(function(){}).then(function(){ try{ sc.clear(); }catch(e){} });
 }
+/* 読み取りエンジン: ブラウザ標準のBarcodeDetector、無ければzxing-cpp(WebAssembly)版を使う。高解像度+連続オートフォーカスで撮影 */
+var POLY_URL = "https://cdn.jsdelivr.net/npm/barcode-detector@3.2.2/dist/iife/ponyfill.js";
+var SCAN_FORMATS = ["ean_13","ean_8","upc_a","upc_e"];
+var detectorPromise = null, camStream = null, camTimer = null, camVideo = null, camToken = 0, scanTipTimer = null;
+function loadScriptOnce(url){
+  return new Promise(function(resolve, reject){
+    var s = document.createElement("script");
+    s.src = url; s.onload = function(){ resolve(); }; s.onerror = function(){ reject(new Error("lib")); };
+    document.head.appendChild(s);
+  });
+}
+function getDetector(){
+  if(detectorPromise) return detectorPromise;
+  function poly(){
+    return (window.BarcodeDetectionAPI ? Promise.resolve() : loadScriptOnce(POLY_URL)).then(function(){
+      if(!window.BarcodeDetectionAPI) throw new Error("lib");
+      return new BarcodeDetectionAPI.BarcodeDetector({ formats: SCAN_FORMATS });
+    });
+  }
+  if(window.BarcodeDetector && window.BarcodeDetector.getSupportedFormats){
+    detectorPromise = window.BarcodeDetector.getSupportedFormats().then(function(f){
+      return (f.indexOf("ean_13")!==-1) ? new window.BarcodeDetector({ formats: SCAN_FORMATS }) : poly();
+    }).catch(function(){ return poly(); });
+  } else {
+    detectorPromise = poly();
+  }
+  detectorPromise.catch(function(){ detectorPromise = null; });
+  return detectorPromise;
+}
+function stopCameraLoop(){
+  camToken++;
+  if(camTimer){ clearTimeout(camTimer); camTimer = null; }
+  if(scanTipTimer){ clearTimeout(scanTipTimer); scanTipTimer = null; }
+  if(camStream){ camStream.getTracks().forEach(function(t){ try{ t.stop(); }catch(e){} }); camStream = null; }
+  if(camVideo){ try{ camVideo.srcObject = null; }catch(e){} if(camVideo.parentNode) camVideo.parentNode.removeChild(camVideo); camVideo = null; }
+}
 function startScanner(){
   setScanMsg("カメラを起動しています…");
+  var token = ++camToken;
+  getDetector().then(function(detector){
+    if(token !== camToken) return;
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw { name:"NoMedia" };
+    return navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:"environment" }, width:{ ideal:1920 }, height:{ ideal:1080 } }, audio:false }).then(function(stream){
+      if(token !== camToken){ stream.getTracks().forEach(function(t){ t.stop(); }); return; }
+      camStream = stream;
+      try{
+        var tr = stream.getVideoTracks()[0], cap = tr.getCapabilities ? tr.getCapabilities() : null;
+        if(cap && cap.focusMode && cap.focusMode.indexOf("continuous")!==-1){ tr.applyConstraints({ advanced:[{ focusMode:"continuous" }] }).catch(function(){}); }
+      }catch(e){}
+      var v = document.createElement("video");
+      v.setAttribute("playsinline",""); v.setAttribute("muted",""); v.muted = true; v.autoplay = true;
+      v.srcObject = stream; camVideo = v;
+      var host = document.getElementById("scanReader"); host.innerHTML = ""; host.appendChild(v);
+      v.play().catch(function(){});
+      setScanMsg("お酒のバーコードを枠に合わせてください");
+      scanTipTimer = setTimeout(function(){
+        if(token === camToken && !scanBusy){ setScanMsg("読み取れない時は、バーコードを画面いっぱいに大きく・明るい場所で・ピントが合う距離(15〜20cm)で。下の「撮影・写真から読み取る」も使えます"); document.getElementById("scanFileLbl").classList.add("attn"); }
+      }, 8000);
+      var busy = false, detectErr = 0;
+      (function loop(){
+        if(token !== camToken) return;
+        camTimer = setTimeout(function(){
+          if(token !== camToken) return;
+          if(busy || scanBusy || v.readyState < 2 || !v.videoWidth){ loop(); return; }
+          busy = true;
+          detector.detect(v).then(function(codes){
+            busy = false; if(token !== camToken) return;
+            for(var i=0;i<codes.length;i++){
+              var raw = String(codes[i].rawValue||"").replace(/\D/g,"");
+              if(isValidJan(raw)){ handleJan(raw); return; }
+            }
+            loop();
+          }).catch(function(){
+            busy = false; detectErr++;
+            if(detectErr >= 4 && token === camToken){ stopCameraLoop(); startLegacyScanner(); return; }
+            loop();
+          });
+        }, 90);
+      })();
+    });
+  }).catch(function(err){
+    if(token !== camToken) return;
+    if(err && err.message==="lib"){ startLegacyScanner(); return; }
+    setScanMsg("カメラを起動できませんでした。ブラウザのカメラ許可を確認するか、下の欄に番号を入力・写真から読み取ってください");
+  });
+}
+function startLegacyScanner(){
   loadScanLib().then(function(){
     var sc = new Html5Qrcode("scanReader", { formatsToSupport: scanFormats(), experimentalFeatures:{ useBarCodeDetectorIfSupported:true }, verbose:false });
     scanner = sc;
@@ -1585,6 +1675,7 @@ function openScan(){
   document.getElementById("scanStageCam").hidden = false;
   document.getElementById("scanJan").value = "";
   scanBusy = false; scanState = null;
+  document.getElementById("scanFileLbl").classList.remove("attn");
   if(!loadRakutenConfig()){
     document.getElementById("scanFrame").hidden = true;
     setScanMsg("先に「データ」タブで楽天のアプリID・アクセスキーを設定してください(商品情報の検索に使います)");
@@ -1708,16 +1799,34 @@ function useScanResult(){
   switchTab("add");
   showToast("読み取った内容を入力しました。評価を付けて記録できます");
 }
+function shrinkToBitmap(file){
+  if(!window.createImageBitmap) return Promise.reject(new Error("nobitmap"));
+  return createImageBitmap(file, { imageOrientation:"from-image" }).catch(function(){ return createImageBitmap(file); }).then(function(bm){
+    var max = 2200, w = bm.width, h = bm.height, k = Math.min(1, max/Math.max(w,h));
+    if(k >= 1) return bm;
+    var cv = document.createElement("canvas"); cv.width = Math.round(w*k); cv.height = Math.round(h*k);
+    cv.getContext("2d").drawImage(bm, 0, 0, cv.width, cv.height);
+    return cv;
+  });
+}
 function scanFromFile(file){
   if(!file) return;
   setScanMsg("写真を読み取っています…");
-  loadScanLib().then(function(){
-    var holder = new Html5Qrcode("scanFileHolder", { formatsToSupport: scanFormats(), verbose:false });
-    return holder.scanFile(file, false).then(function(text){ try{ holder.clear(); }catch(e){} return text; });
-  }).then(function(text){
-    if(isValidJan(text)){ handleJan(text); } else { setScanMsg("バーコードを読み取れませんでした。もう一度撮影するか、番号を入力してください"); }
+  function legacy(){
+    return loadScanLib().then(function(){
+      var holder = new Html5Qrcode("scanFileHolder", { formatsToSupport: scanFormats(), verbose:false });
+      return holder.scanFile(file, false).then(function(text){ try{ holder.clear(); }catch(e){} return text; });
+    });
+  }
+  getDetector().then(function(detector){
+    return shrinkToBitmap(file).then(function(src){ return detector.detect(src); }).then(function(codes){
+      for(var i=0;i<codes.length;i++){ var raw = String(codes[i].rawValue||"").replace(/\D/g,""); if(isValidJan(raw)) return raw; }
+      throw new Error("none");
+    });
+  }).catch(function(){ return legacy(); }).then(function(text){
+    if(isValidJan(text)){ handleJan(text); } else { throw new Error("none"); }
   }).catch(function(){
-    setScanMsg("写真からバーコードを読み取れませんでした。明るい場所でバーコードだけを大きく撮影するか、番号を入力してください");
+    setScanMsg("写真からバーコードを読み取れませんでした。バーコードだけを大きく・ピントを合わせて撮影するか、番号を入力してください");
   });
 }
 document.getElementById("heroScanBtn").addEventListener("click", openScan);
