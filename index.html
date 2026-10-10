@@ -37,6 +37,22 @@ button{font-family:inherit}
 [hidden]{display:none!important}
 .wrap{max-width:640px; margin:0 auto; padding:0 16px}
 
+.ic{width:1.15em; height:1.15em; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; vertical-align:-0.22em; flex:none}
+.brand .logo{display:inline-flex; color:var(--gold)}
+.brand .logo .ic{width:30px; height:30px; stroke-width:1.6}
+.empty-state .ico .ic{width:34px; height:34px; stroke-width:1.5; color:var(--ink-3)}
+.cat-btn .ico .ic{width:24px; height:24px; margin:0 auto; color:var(--cat-c)}
+.cb-label .ic{color:var(--cat-c)}
+.rec-thumb .ic{width:26px; height:26px; color:var(--cat-c)}
+.rec-badge .ic{width:12px; height:12px; vertical-align:-0.15em; margin-right:2px}
+.rakuten-item .ri-thumb-fallback .ic{width:22px; height:22px; color:var(--ink-3)}
+.photo-preview .ic{width:26px; height:26px; color:var(--ink-3)}
+.filter-chip .ic{width:14px; height:14px; margin-right:3px; vertical-align:-0.18em}
+.data-btn .ic{width:16px; height:16px; margin-right:4px; vertical-align:-0.2em}
+.search-row{position:relative}
+.search-ic{position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--ink-3); display:flex; pointer-events:none}
+.search-row input{padding-left:38px !important}
+
 /* header */
 header.app-header{ margin:calc(14px + env(safe-area-inset-top)) 16px 6px; padding:18px 22px; border-radius:var(--radius); background:linear-gradient(135deg,#2e231a 0%,#1a130e 100%); border:1px solid rgba(217,171,95,0.28); box-shadow:var(--shadow-dark) }
 header.app-header .wrap{max-width:608px; margin:0 auto; padding:0}
@@ -202,7 +218,7 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
 <header class="app-header">
   <div class="wrap">
     <div class="brand">
-      <span class="logo">🍶</span>
+      <span class="logo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.500 3h3v3.500c0 1.200 2.500 2.500 2.500 5.500v7a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-7c0-3 2.500-4.300 2.500-5.500V3z"/><path d="M8 14h8"/></svg></span>
       <div>
         <h1>DrinkLog</h1>
         <p class="tagline">ビール・日本酒・焼酎・ワインの記録</p>
@@ -287,7 +303,7 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
       <div class="field">
         <label>写真</label>
         <div class="photo-row">
-          <div class="photo-preview" id="photoPreview">🍶</div>
+          <div class="photo-preview" id="photoPreview"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.500A1.500 1.500 0 0 1 5.500 7H8l1.500-2h5L16 7h2.500A1.500 1.500 0 0 1 20 8.500v9A1.500 1.500 0 0 1 18.500 19h-13A1.500 1.500 0 0 1 4 17.500v-9z"/><circle cx="12" cy="13" r="3.500"/></svg></div>
           <div class="photo-actions">
             <label class="btn-file">写真を選ぶ<input type="file" id="fPhoto" accept="image/*"></label>
             <button type="button" class="btn-file" id="photoClearBtn" style="border:0;background:none;padding:2px 4px;color:var(--ink-3);font-weight:700;font-size:11.5px" hidden>写真を削除</button>
@@ -316,7 +332,8 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
   <section id="tab-history" class="tab-panel" hidden>
     <div class="card">
       <div class="search-row">
-        <input type="text" id="historySearch" placeholder="🔍 銘柄名・タグ・メモで検索">
+        <span class="search-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.500"/><path d="M16 16l4.500 4.500"/></svg></span>
+        <input type="text" id="historySearch" placeholder="銘柄名・タグ・メモで検索">
       </div>
       <div class="filter-scroll" id="historyFilter"></div>
       <div class="rec-list" id="historyList"></div>
@@ -328,8 +345,8 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
       <h2>バックアップ・引き継ぎ</h2>
       <p class="card-sub">記録はこの端末のブラウザ内にのみ保存されます。他の端末でも見る場合や、うっかり消さないためのバックアップに、書き出し・読み込みをご利用ください。</p>
       <div class="data-btn-row" style="margin-top:12px">
-        <button class="data-btn" id="exportBtn">📤 書き出す(JSON)</button>
-        <label class="data-btn" style="cursor:pointer">📥 ファイルを読み込む<input type="file" id="importFile" accept="application/json" style="display:none"></label>
+        <button class="data-btn" id="exportBtn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 20h16"/></svg> 書き出す(JSON)</button>
+        <label class="data-btn" style="cursor:pointer"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 20h16"/></svg> ファイルを読み込む<input type="file" id="importFile" accept="application/json" style="display:none"></label>
       </div>
       <textarea id="importPaste" placeholder="または、書き出したJSONの中身をここに貼り付けて「貼り付けた内容を読み込む」を押してください"></textarea>
       <button class="data-btn" id="importPasteBtn" style="width:100%; margin-top:8px">貼り付けた内容を読み込む</button>
@@ -388,17 +405,32 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
 
 var STORAGE_KEY = "drinklog_records_v1";
 
+var ICONS = {
+  beer: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8.5h10V19a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 5 19V8.5z"/><path d="M15 10.5h2.2a1.8 1.8 0 0 1 1.8 1.8v2.4a1.8 1.8 0 0 1-1.8 1.8H15"/><path d="M5 8.5C4.2 6.8 5.3 5 7.2 5c.6-1.3 1.8-2 3.1-2 1.8 0 3 1.1 3.5 2.6 1.1.1 1.900 1.3 1.2 2.900"/><path d="M8.5 12v5M11.5 12v5"/></svg>',
+  sake: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 3h3v3.5c0 1.2 2.5 2.5 2.5 5.5v7a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-7c0-3 2.5-4.3 2.5-5.5V3z"/><path d="M8 14h8"/></svg>',
+  shochu: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h12l-1.3 13.8a1.6 1.6 0 0 1-1.6 1.400H8.900a1.6 1.6 0 0 1-1.6-1.400L6 5z"/><path d="M7 9.5h10"/><rect x="9.8" y="12.2" width="3.6" height="3.6" rx=".7"/></svg>',
+  wine: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8c.4 3.8-.7 7.2-4 7.8C8.7 10.2 7.6 6.8 8 3z"/><path d="M12 10.8V20"/><path d="M8.5 21h7"/></svg>',
+  all: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg>',
+  search: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>',
+  upload: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 20h16"/></svg>',
+  download: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 20h16"/></svg>',
+  chart: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V11M12 20V4M19 20v-6"/><path d="M3 20h18"/></svg>',
+  star: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8 6.8 19.5l1-5.8-4.2-4.1 5.8-.8L12 3.5z"/></svg>',
+  trend: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17l5-5 4 4 7-8"/><path d="M15 8h5v5"/></svg>',
+  inbox: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13l2.5-7h11L20 13v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-5z"/><path d="M4 13h4.5l1 2.5h5l1-2.5H20"/></svg>',
+  camera: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7H8l1.5-2h5L16 7h2.5A1.5 1.5 0 0 1 20 8.5v9A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5v-9z"/><circle cx="12" cy="13" r="3.5"/></svg>'
+};
 var CATEGORIES = [
-  { id:"beer",   label:"ビール",  icon:"🍺", rakutenGenre:"100324", c:"--cat-beer",   soft:"--cat-beer-soft",
+  { id:"beer",   label:"ビール",  icon:ICONS.beer, rakutenGenre:"100324", c:"--cat-beer",   soft:"--cat-beer-soft",
     detail:[{key:"style", label:"スタイル", type:"select",
       options:["IPA","ラガー","ピルスナー","エール","スタウト","ホワイトビール","ヴァイツェン","その他"]}] },
-  { id:"sake",   label:"日本酒",  icon:"🍶", rakutenGenre:"100337", c:"--cat-sake",   soft:"--cat-sake-soft",
+  { id:"sake",   label:"日本酒",  icon:ICONS.sake, rakutenGenre:"100337", c:"--cat-sake",   soft:"--cat-sake-soft",
     detail:[{key:"type", label:"種類", type:"select",
       options:["純米","純米吟醸","純米大吟醸","吟醸","大吟醸","本醸造","普通酒","その他"]}] },
-  { id:"shochu", label:"焼酎",   icon:"🥃", rakutenGenre:"110662", c:"--cat-shochu", soft:"--cat-shochu-soft",
+  { id:"shochu", label:"焼酎",   icon:ICONS.shochu, rakutenGenre:"110662", c:"--cat-shochu", soft:"--cat-shochu-soft",
     detail:[{key:"base", label:"原料", type:"select",
       options:["芋","麦","米","黒糖","そば","泡盛(米)","その他"]}] },
-  { id:"wine",   label:"ワイン",  icon:"🍷", rakutenGenre:"100317", c:"--cat-wine",   soft:"--cat-wine-soft",
+  { id:"wine",   label:"ワイン",  icon:ICONS.wine, rakutenGenre:"100317", c:"--cat-wine",   soft:"--cat-wine-soft",
     detail:[
       {key:"type", label:"種類", type:"select", options:["赤","白","ロゼ","スパークリング","オレンジ","その他"]},
       {key:"grape", label:"品種(任意)", type:"text", placeholder:"例: カベルネ・ソーヴィニヨン"}
@@ -484,7 +516,7 @@ function renderDashboard(){
   var recs = state.records;
   var breakdownEl = document.getElementById("catBreakdownBody");
   if(recs.length===0){
-    breakdownEl.innerHTML = emptyStateHtml("📊","まだ記録がありません","「追加」タブから最初の1杯を記録してみましょう");
+    breakdownEl.innerHTML = emptyStateHtml(ICONS.chart,"まだ記録がありません","「追加」タブから最初の1杯を記録してみましょう");
   } else {
     var total = recs.length;
     breakdownEl.innerHTML = CATEGORIES.map(function(cat){
@@ -506,7 +538,7 @@ function renderDashboard(){
     return (b.date||"").localeCompare(a.date||"");
   }).slice(0,5);
   if(top.length===0){
-    rankEl.innerHTML = emptyStateHtml("🏆","評価データがありません","記録に評価をつけるとランキングが表示されます");
+    rankEl.innerHTML = emptyStateHtml(ICONS.star,"評価データがありません","記録に評価をつけるとランキングが表示されます");
   } else {
     rankEl.innerHTML = top.map(function(r,i){
       var cat = CAT_BY_ID[r.category] || CATEGORIES[0];
@@ -536,7 +568,7 @@ function renderTrend(){
   var curYm = todayStr().slice(0,7);
   var body = document.getElementById("trendBody");
   if(recs.length===0){
-    body.innerHTML = emptyStateHtml("📈","データがまだありません","記録が増えると月別の推移が表示されます");
+    body.innerHTML = emptyStateHtml(ICONS.trend,"データがまだありません","記録が増えると月別の推移が表示されます");
     return;
   }
   var values = months.map(function(ym){
@@ -571,7 +603,7 @@ function updateCatHint(nudge){
   if(!hint || !picker || !nameEl) return;
   if(selectedCategory){
     var cat = CAT_BY_ID[selectedCategory];
-    hint.textContent = "✓ " + cat.label + "を選択中。銘柄名を入力すると、商品候補を検索します";
+    hint.textContent = cat.label + "を選択中。銘柄名を入力すると、商品候補を検索します";
     hint.className = "cat-hint ok";
     picker.classList.remove("need");
     nameEl.placeholder = "例: 獺祭 純米大吟醸45";
@@ -675,7 +707,7 @@ function updatePhotoPreview(){
   var el = document.getElementById("photoPreview");
   var clearBtn = document.getElementById("photoClearBtn");
   if(pendingPhoto){ el.innerHTML = '<img src="'+pendingPhoto+'" alt="">'; clearBtn.hidden = false; }
-  else { el.innerHTML = "🍶"; clearBtn.hidden = true; }
+  else { el.innerHTML = ICONS.camera; clearBtn.hidden = true; }
 }
 
 document.getElementById("fTags").addEventListener("input", renderTagsPreview);
@@ -706,6 +738,15 @@ function saveRakutenConfig(cfg){
   try{ localStorage.setItem(RAKUTEN_KEY, JSON.stringify(cfg)); }catch(e){}
 }
 
+/* 楽天APIへの通信は、アーティファクト上では制限されるため、GitHub Pages版や自分のブラウザで使うよう案内する */
+function isRakutenBlockedEnv(){
+  try{
+    var h = location.hostname || "";
+    if(h === "" || h === "localhost" || h === "127.0.0.1" || /github\.io$/.test(h)) return false;
+    return true;
+  }catch(e){ return false; }
+}
+var RAKUTEN_BLOCKED_MSG = "この画面(アーティファクト)は外部への通信が制限されているため、商品検索を使えません。GitHub Pages版(horikosu.github.io/drinklog)でお使いください";
 function rakutenSearch(keyword, cfgOverride, hitsOverride, genreId){
   var cfg = cfgOverride || loadRakutenConfig();
   if(!cfg || !cfg.appId || !cfg.accessKey){ return Promise.reject({code:"no_key"}); }
@@ -861,14 +902,14 @@ document.getElementById("fName").addEventListener("input", function(){
         var img = imgUrls[0] || "";
         if(img && typeof img === "object" && img.imageUrl) img = img.imageUrl;
         return '<button type="button" class="rakuten-item" data-idx="'+i+'">'
-          + (img? '<img src="'+escHtml(img)+'" alt="">' : '<span class="ri-thumb-fallback">🍶</span>')
+          + (img? '<img src="'+escHtml(img)+'" alt="">' : '<span class="ri-thumb-fallback">'+ICONS.sake+'</span>')
           + '<span class="ri-text"><span class="ri-name">'+escHtml(cleanRakutenName(it.itemName))+'</span></span>'
           + '</button>';
       }).join("");
       resultsEl._items = items;
     }).catch(function(err){
-      if(err && err.code==="timeout"){ statusEl.textContent = "検索がタイムアウトしました(この環境では利用できない可能性があります)"; }
-      else if(err && err.code==="network"){ statusEl.textContent = "検索できませんでした(この環境では利用できない可能性があります)"; }
+      if(err && err.code==="timeout"){ statusEl.textContent = isRakutenBlockedEnv() ? RAKUTEN_BLOCKED_MSG : "検索がタイムアウトしました。通信状況をご確認ください"; }
+      else if(err && err.code==="network"){ statusEl.textContent = isRakutenBlockedEnv() ? RAKUTEN_BLOCKED_MSG : "検索できませんでした。通信状況をご確認ください"; }
       else if(err && err.code==="auth_error"){ statusEl.textContent = "アプリID・アクセスキーが正しくない可能性があります(データタブで確認してください)"; }
       else if(err && err.code==="api_error"){ statusEl.textContent = "検索エラー："+(err.detail||""); }
       else { statusEl.textContent = "検索できませんでした"; }
@@ -902,9 +943,9 @@ function updateRakutenUI(){
   var btn = document.getElementById("rakutenSaveBtn");
   var unchanged = !!cfg && cfg.appId===v.appId && cfg.accessKey===v.accessKey;
   btn.disabled = !(v.appId && v.accessKey) || unchanged;
-  btn.textContent = unchanged ? "保存済み ✓" : "保存して接続を確認";
+  btn.textContent = unchanged ? "保存済み" : "保存して接続を確認";
   var badge = document.getElementById("rakutenBadge");
-  badge.textContent = cfg ? "設定済み ✓" : "未設定";
+  badge.textContent = cfg ? "設定済み" : "未設定";
   badge.classList.toggle("ok", !!cfg);
   document.getElementById("rakutenClearBtn").hidden = !cfg;
 }
@@ -936,7 +977,7 @@ document.getElementById("rakutenSaveBtn").addEventListener("click", function(){
   setRakutenStatus("");
   rakutenSearch("ビール", v, 1).then(function(){
     saveRakutenConfig(v);
-    setRakutenStatus("接続OK ✓ 保存しました。「追加」タブで銘柄名を入力すると候補が出ます", "ok");
+    setRakutenStatus("接続OK。保存しました。「追加」タブで銘柄名を入力すると候補が出ます", "ok");
     showToast("楽天の設定を保存しました");
   }).catch(function(err){
     var code = err && err.code;
@@ -944,7 +985,7 @@ document.getElementById("rakutenSaveBtn").addEventListener("click", function(){
       setRakutenStatus("アプリIDまたはアクセスキーが正しくありません。コピーし直してください(保存していません)", "err");
     } else {
       saveRakutenConfig(v);
-      setRakutenStatus("保存しました。ただし接続を確認できませんでした(通信状況をご確認ください)", "warn");
+      setRakutenStatus(isRakutenBlockedEnv() ? "保存しました。ただし、この画面は外部通信が制限されているため接続を確認できません。商品検索はGitHub Pages版(horikosu.github.io/drinklog)でお使いください" : "保存しました。ただし接続を確認できませんでした(通信状況をご確認ください)", "warn");
       showToast("楽天の設定を保存しました");
     }
   }).then(function(){ updateRakutenUI(); });
@@ -1057,7 +1098,7 @@ document.getElementById("addForm").addEventListener("submit", function(e){
 /* ---------- history ---------- */
 function renderHistoryFilter(){
   var el = document.getElementById("historyFilter");
-  var chips = [{id:"all", label:"すべて", icon:"🍹"}].concat(CATEGORIES.map(function(c){ return {id:c.id, label:c.label, icon:c.icon}; }));
+  var chips = [{id:"all", label:"すべて", icon:ICONS.all}].concat(CATEGORIES.map(function(c){ return {id:c.id, label:c.label, icon:c.icon}; }));
   el.innerHTML = chips.map(function(c){
     return '<button type="button" class="filter-chip'+(uiFilter===c.id?" active":"")+'" data-id="'+c.id+'">'+c.icon+' '+c.label+'</button>';
   }).join("");
@@ -1089,7 +1130,7 @@ function renderHistory(){
     .slice().sort(function(a,b){ return (b.date||"").localeCompare(a.date||"") || (b.createdAt||"").localeCompare(a.createdAt||""); });
   if(recs.length===0){
     var msg = q ? '「'+q+'」に一致する記録が見つかりません' : (uiFilter==="all" ? "「追加」タブから追加してみましょう" : "このカテゴリーの記録はまだありません");
-    el.innerHTML = emptyStateHtml("📭","記録がありません", msg);
+    el.innerHTML = emptyStateHtml(ICONS.inbox,"記録がありません", msg);
     return;
   }
   el.innerHTML = recs.map(function(r){
