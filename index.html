@@ -6,28 +6,28 @@
 <title>DrinkLog</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<meta name="theme-color" content="#14100d">
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#f8f7f4">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  color-scheme: dark;
-  --page:#14100d; --surface-1:#1c1713; --surface-raised:#231d17; --surface-input:#17120e;
-  --surface-dark:#2a2018; --text-on-dark:#f3e8d4;
-  --ink-1:#f3e8d4; --ink-2:#cbbba2; --ink-3:#9a8c78; --nav-muted:#a09280;
-  --hairline:#3a3027; --border:rgba(243,232,212,0.08);
-  --cat-sake:#7fb4f2; --cat-beer:#f0983f; --cat-shochu:#58d1a4; --cat-wine:#ea6b8a;
-  --cat-sake-soft:#1b2634; --cat-beer-soft:#33241a; --cat-shochu-soft:#16302a; --cat-wine-soft:#35202a;
-  --star:#f2bd4b; --accent:#d9ab5f; --accent-soft:rgba(217,171,95,0.16); --on-accent:#1a1209;
-  --danger:#f28b7d; --danger-soft:#3a201d;
+  color-scheme: light;
+  --page:#f8f7f4; --surface-1:#ffffff; --surface-raised:#ffffff; --surface-input:#f6f4ef;
+  --surface-dark:#2a2018; --text-on-dark:#f3e8d4; --on-dark-2:#cbbba2; --gold:#e0b56a; --on-gold:#1a1209;
+  --ink-1:#1f1a14; --ink-2:#5a5045; --ink-3:#7d7264; --nav-muted:#7d7264;
+  --hairline:#e7e1d6; --border:rgba(31,26,20,0.09);
+  --cat-sake:#2f6fc2; --cat-beer:#c2701a; --cat-shochu:#14966a; --cat-wine:#c23b5a;
+  --cat-sake-soft:#e8f0fb; --cat-beer-soft:#fbf0e0; --cat-shochu-soft:#e3f5ee; --cat-wine-soft:#fbe7ec;
+  --star:#e0a21f; --accent:#9a6a17; --accent-soft:rgba(154,106,23,0.12); --on-accent:#ffffff;
+  --danger:#c23b3b; --danger-soft:#fbeceb;
   --radius:14px; --radius-sm:10px; --r-pill:10px;
-  --serif:'Shippori Mincho B1','Hiragino Mincho ProN','Yu Mincho',serif;
-  --shadow:0 10px 28px rgba(0,0,0,0.38); --shadow-dark:0 16px 36px rgba(0,0,0,0.5);
+  --serif:'M PLUS Rounded 1c',-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif;
+  --shadow:0 8px 22px rgba(60,45,20,0.08); --shadow-dark:0 14px 30px rgba(42,33,24,0.28);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
 html{scroll-padding-bottom:110px}
 body{
-  font-family:'Zen Kaku Gothic New',-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif;
+  font-family:'M PLUS Rounded 1c',-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif;
   background:var(--page); color:var(--ink-1); -webkit-font-smoothing:antialiased;
   font-size:15px; line-height:1.6;
   padding-bottom:calc(80px + env(safe-area-inset-bottom));
@@ -42,17 +42,17 @@ header.app-header{ margin:calc(14px + env(safe-area-inset-top)) 16px 6px; paddin
 header.app-header .wrap{max-width:608px; margin:0 auto; padding:0}
 .brand{display:flex; align-items:center; gap:10px}
 .brand .logo{font-size:26px}
-.brand h1{font-size:21px; letter-spacing:.08em; color:var(--accent)}
-.brand .tagline{margin:3px 0 0; font-size:12px; color:var(--ink-2)}
+.brand h1{font-size:21px; letter-spacing:.08em; color:var(--gold)}
+.brand .tagline{margin:3px 0 0; font-size:12px; color:var(--on-dark-2)}
 
 /* hero card */
-.hero-card{background:radial-gradient(120% 140% at 100% 0%,rgba(217,171,95,0.16) 0%,transparent 55%),linear-gradient(135deg,#2a2018,#1c1510); border:1px solid rgba(217,171,95,0.22); box-shadow:var(--shadow-dark); display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap}
+.card.hero-card{background:radial-gradient(120% 140% at 100% 0%,rgba(217,171,95,0.16) 0%,transparent 55%),linear-gradient(135deg,#2a2018,#1c1510); border:1px solid rgba(217,171,95,0.22); box-shadow:var(--shadow-dark); display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap}
 .hero-info{flex:1; min-width:150px}
-.hero-info .hero-lbl{font-size:12px; font-weight:700; color:var(--ink-2); margin-bottom:6px}
+.hero-info .hero-lbl{font-size:12px; font-weight:700; color:var(--on-dark-2); margin-bottom:6px}
 .hero-info .hero-val{font-family:var(--serif); font-size:34px; font-weight:800; color:var(--text-on-dark); font-variant-numeric:tabular-nums}
-.hero-info .hero-val small{font-size:13px; font-weight:700; color:var(--ink-2); margin-left:2px}
-.hero-info .hero-sub{margin-top:6px; font-size:12px; color:var(--ink-2)}
-.hero-add-btn{flex:0 0 auto; border:0; background:var(--accent); color:var(--on-accent); font-weight:800; font-size:13.5px; padding:12px 20px; border-radius:var(--r-pill); cursor:pointer; box-shadow:0 6px 18px rgba(217,171,95,0.28)}
+.hero-info .hero-val small{font-size:13px; font-weight:700; color:var(--on-dark-2); margin-left:2px}
+.hero-info .hero-sub{margin-top:6px; font-size:12px; color:var(--on-dark-2)}
+.hero-add-btn{flex:0 0 auto; border:0; background:var(--gold); color:var(--on-gold); font-weight:800; font-size:13.5px; padding:12px 20px; border-radius:var(--r-pill); cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,0.3)}
 
 /* cards */
 main{max-width:640px; margin:0 auto; padding:16px; display:flex; flex-direction:column; gap:22px}
@@ -137,7 +137,7 @@ main{max-width:640px; margin:0 auto; padding:16px; display:flex; flex-direction:
 .tab-panel > .card + .card{margin-top:16px}
 .two-col{display:grid; grid-template-columns:1fr 1fr; gap:10px}
 .star-input{display:flex; gap:6px}
-.star-input button{border:0; background:none; font-size:28px; line-height:1; padding:2px; cursor:pointer; color:#4a3f33}
+.star-input button{border:0; background:none; font-size:28px; line-height:1; padding:2px; cursor:pointer; color:#d9d2c4}
 .star-input button.on{color:var(--star)}
 .photo-row{display:flex; align-items:center; gap:12px}
 .photo-preview{width:64px; height:64px; border-radius:12px; background:var(--page); border:1.5px dashed var(--hairline); flex:0 0 auto; display:flex; align-items:center; justify-content:center; overflow:hidden; font-size:22px; color:var(--ink-3)}
@@ -147,7 +147,7 @@ main{max-width:640px; margin:0 auto; padding:16px; display:flex; flex-direction:
 .btn-file input{display:none}
 .chip-row{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
 .chip{background:var(--page); border:1px solid var(--hairline); border-radius:var(--r-pill); padding:4px 10px; font-size:11.5px; color:var(--ink-2); font-weight:700}
-.btn-primary{width:100%; margin-top:18px; border:0; background:var(--accent); color:var(--on-accent); font-weight:800; font-size:15px; padding:13px; border-radius:var(--r-pill); cursor:pointer; box-shadow:0 6px 18px rgba(217,171,95,0.24)}
+.btn-primary{width:100%; margin-top:18px; border:0; background:var(--accent); color:var(--on-accent); font-weight:800; font-size:15px; padding:13px; border-radius:var(--r-pill); cursor:pointer; box-shadow:0 6px 16px rgba(154,106,23,0.22)}
 .btn-secondary{width:100%; margin-top:8px; border:1.5px solid var(--hairline); background:var(--surface-raised); color:var(--ink-2); font-weight:700; font-size:13.5px; padding:10px; border-radius:var(--r-pill); cursor:pointer}
 .form-status{font-size:12.5px; font-weight:700; margin-top:10px; text-align:center; min-height:16px}
 .form-status.ok{color:var(--cat-shochu)}
@@ -166,7 +166,7 @@ main{max-width:640px; margin:0 auto; padding:16px; display:flex; flex-direction:
 .rec-top{display:flex; align-items:center; justify-content:space-between; gap:8px}
 .rec-badge{font-size:10.5px; font-weight:800; color:var(--cat-c); background:var(--cat-soft); border-radius:var(--r-pill); padding:2px 8px}
 .rec-date{font-size:11px; color:var(--ink-3); font-weight:700; white-space:nowrap}
-.rec-name{font-family:var(--serif); font-size:15.5px; font-weight:700; margin-top:4px; overflow-wrap:anywhere}
+.rec-name{font-family:var(--serif); font-size:15px; font-weight:800; margin-top:4px; overflow-wrap:anywhere}
 .rec-stars{font-size:12px; color:var(--star); margin-top:2px; letter-spacing:1px}
 .rec-meta{font-size:12px; color:var(--ink-2); margin-top:3px}
 .rec-memo{font-size:12px; color:var(--ink-3); margin-top:4px}
