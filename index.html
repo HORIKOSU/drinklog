@@ -107,7 +107,10 @@ main{max-width:640px; margin:0 auto; padding:16px; display:flex; flex-direction:
 .rank-row:last-child{border-bottom:0}
 .rank-num{flex:0 0 20px; font-size:13px; font-weight:800; color:var(--ink-3); text-align:center}
 .rank-dot{width:9px; height:9px; border-radius:50%; flex:0 0 auto}
-.rank-name{flex:1; font-size:13.5px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.rank-main{flex:1; min-width:0}
+.rank-name{font-size:13.5px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.rank-origin{display:flex; align-items:center; gap:3px; margin-top:2px; font-size:11.5px; font-weight:700; color:var(--ink-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.rank-origin .ic{width:12px; height:12px; flex:0 0 auto; color:var(--accent)}
 .rank-stars{flex:0 0 auto; font-size:12px; color:var(--star); letter-spacing:1px}
 
 /* category picker (add form) */
@@ -133,8 +136,8 @@ main{max-width:640px; margin:0 auto; padding:16px; display:flex; flex-direction:
 .field .hint{font-size:11px; color:var(--ink-3); margin-top:5px}
 .rakuten-results{margin-top:8px; display:flex; flex-direction:column; gap:6px; max-height:260px; overflow-y:auto}
 .rakuten-item{display:flex; align-items:center; gap:10px; border:1px solid var(--hairline); background:var(--page); border-radius:var(--radius-sm); padding:7px 9px; cursor:pointer; text-align:left; width:100%; font-family:inherit}
-.rakuten-item img{width:40px; height:40px; border-radius:8px; object-fit:cover; flex:0 0 auto; background:var(--surface-1)}
-.rakuten-item .ri-thumb-fallback{width:40px; height:40px; border-radius:8px; flex:0 0 auto; background:var(--surface-1); display:flex; align-items:center; justify-content:center; font-size:18px}
+.rakuten-item img{width:56px; height:56px; border-radius:8px; object-fit:contain; background:#fff; flex:0 0 auto; background:var(--surface-1)}
+.rakuten-item .ri-thumb-fallback{width:56px; height:56px; border-radius:8px; flex:0 0 auto; background:var(--surface-1); display:flex; align-items:center; justify-content:center; font-size:18px}
 .rakuten-item .ri-text{flex:1; min-width:0}
 .rakuten-item .ri-name{font-size:12px; font-weight:700; color:var(--ink-1); overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical}
 .rakuten-item .ri-shop{font-size:10.5px; color:var(--ink-3); margin-top:2px}
@@ -151,7 +154,11 @@ main{max-width:640px; margin:0 auto; padding:16px; display:flex; flex-direction:
 .link-danger{display:block; margin:2px auto 0; border:0; background:none; color:var(--danger); font-size:12px; font-weight:700; padding:8px 12px; cursor:pointer}
 .rakuten-setup-note a, .data-note a, .field a{color:var(--cat-sake)}
 .tab-panel > .card + .card{margin-top:16px}
-.two-col{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.two-col{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px}
+.two-col > .field{min-width:0}
+.field input[type=date]{display:block; min-width:0; max-width:100%; min-height:46px; -webkit-appearance:none; appearance:none; text-align:left}
+.field input[type=date]::-webkit-date-and-time-value{text-align:left; min-width:0}
+.field input[type=date]::-webkit-datetime-edit{padding:0}
 .star-input{display:flex; gap:6px}
 .star-input button{border:0; background:none; font-size:28px; line-height:1; padding:2px; cursor:pointer; color:#d9d2c4}
 .star-input button.on{color:var(--star)}
@@ -240,9 +247,37 @@ input:not([type=range]):not([type=file]),select,textarea{font-size:16px !importa
 .filter-chip{flex:0 0 auto; border:1.5px solid var(--hairline); background:var(--surface-raised); border-radius:var(--r-pill); padding:7px 14px; font-size:12.5px; font-weight:700; color:var(--ink-2); cursor:pointer; white-space:nowrap}
 .filter-chip.active{background:var(--accent); color:var(--on-accent); border-color:var(--accent)}
 .rec-list{display:flex; flex-direction:column; gap:10px; margin-top:14px}
-.rec-card{display:flex; gap:12px; background:var(--surface-raised); border:1px solid var(--border); border-left:3px solid var(--cat-c); border-radius:var(--radius-sm); padding:12px; box-shadow:var(--shadow)}
-.rec-thumb{width:52px; height:52px; border-radius:10px; background:var(--cat-soft); flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:22px; overflow:hidden}
-.rec-thumb img{width:100%; height:100%; object-fit:cover}
+.rec-card{display:flex; gap:12px; background:var(--surface-raised); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; box-shadow:var(--shadow)}
+.rec-thumb{position:relative; width:60px; height:60px; border-radius:10px; background:var(--cat-soft); flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:22px; overflow:hidden}
+.rec-thumb img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+.rec-thumb img.prod{object-fit:contain; background:#fff; padding:3px}
+.photo-preview img.prod{object-fit:contain; background:#fff}
+.bf-card{margin-bottom:14px; padding:12px 14px; border-radius:var(--radius-sm); background:var(--surface-input); border:1px solid var(--hairline)}
+.bf-title{font-size:13.5px; font-weight:800; color:var(--ink-1)}
+.bf-text{font-size:12px; color:var(--ink-2); margin-top:4px; line-height:1.6}
+.bf-bar{height:6px; border-radius:3px; background:var(--hairline); margin-top:10px; overflow:hidden}
+.bf-bar > i{display:block; height:100%; background:var(--accent); transition:width .3s}
+.bf-btns{display:flex; gap:8px; align-items:center; margin-top:10px; flex-wrap:wrap}
+.bf-btn{border:0; background:var(--accent); color:var(--on-accent); font-family:inherit; font-size:13px; font-weight:800; padding:9px 16px; border-radius:var(--r-pill); cursor:pointer}
+.pick-modal{position:fixed; inset:0; z-index:85; background:rgba(20,15,10,0.6); display:flex; align-items:flex-end; justify-content:center}
+.pick-modal[hidden]{display:none}
+.pick-sheet{background:var(--page); width:100%; max-width:520px; max-height:92vh; overflow-y:auto; border-radius:20px 20px 0 0; padding:16px 16px calc(18px + env(safe-area-inset-bottom))}
+.pick-sheet .scan-head h2{font-size:16px; margin:0}
+.pick-sub{font-size:12px; color:var(--ink-3); margin:0 0 10px; overflow-wrap:anywhere}
+.pick-search{display:flex; gap:8px}
+.pick-search input{flex:1; min-width:0; border:1.5px solid var(--hairline); background:var(--surface-input); color:var(--ink-1); border-radius:var(--radius-sm); padding:10px 12px; font-size:16px; font-family:inherit}
+.pick-search button{flex:0 0 auto; border:0; background:var(--accent); color:var(--on-accent); font-family:inherit; font-size:13px; font-weight:800; padding:0 16px; border-radius:var(--radius-sm); cursor:pointer}
+.pick-status{font-size:12px; color:var(--ink-3); margin:10px 0 6px}
+.pick-list{display:flex; flex-direction:column; gap:8px}
+.pick-item{display:flex; align-items:center; gap:10px; border:1px solid var(--hairline); background:var(--surface-raised); border-radius:var(--radius-sm); padding:8px 10px; text-align:left; width:100%; font-family:inherit; cursor:pointer}
+.pick-item img{width:52px; height:52px; border-radius:8px; object-fit:contain; background:#fff; flex:0 0 auto}
+.pick-item .pk-ph{width:52px; height:52px; border-radius:8px; background:var(--surface-1); flex:0 0 auto}
+.pick-item .pk-body{flex:1; min-width:0}
+.pick-item .pk-name{font-size:13px; font-weight:700; color:var(--ink-1); overflow-wrap:anywhere}
+.pick-item .pk-chips{margin-top:4px; display:flex; gap:5px; flex-wrap:wrap; font-size:11px; font-weight:700; color:var(--ink-2)}
+.pick-item .pk-chips span{background:var(--surface-input); border:1px solid var(--hairline); border-radius:var(--r-pill); padding:1px 8px}
+.rec-actions .find{color:var(--accent)}
+.bf-btn.sub{background:none; color:var(--ink-3); padding:9px 6px; font-weight:700; text-decoration:underline}
 .rec-body{flex:1; min-width:0}
 .rec-top{display:flex; align-items:center; justify-content:space-between; gap:8px}
 .rec-badge{font-size:10.5px; font-weight:800; color:var(--cat-c); background:var(--cat-soft); border-radius:var(--r-pill); padding:2px 8px}
@@ -401,6 +436,7 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
             <button type="button" class="btn-file" id="photoClearBtn" style="border:0;background:none;padding:2px 4px;color:var(--ink-3);font-weight:700;font-size:11.5px" hidden>写真を削除</button>
           </div>
         </div>
+        <p class="hint" id="imageHint" hidden>商品情報の画像です。写真を選ぶと、そちらが優先されます。</p>
         <p class="hint">端末内にのみ保存されます。データ容量に配慮し自動で縮小されます。</p>
       </div>
 
@@ -423,6 +459,7 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
 
   <section id="tab-history" class="tab-panel" hidden>
     <div class="card">
+      <div class="bf-card" id="backfillCard" hidden></div>
       <div class="search-row">
         <span class="search-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.500"/><path d="M16 16l4.500 4.500"/></svg></span>
         <input type="text" id="historySearch" placeholder="銘柄名・タグ・メモで検索">
@@ -468,6 +505,16 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
   </section>
 
 </main>
+
+<div class="pick-modal" id="pickModal" hidden role="dialog" aria-modal="true" aria-label="商品情報を探す">
+  <div class="pick-sheet">
+    <div class="scan-head"><h2>商品情報を探す</h2><button type="button" id="pickClose" class="scan-close" aria-label="閉じる"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <p class="pick-sub" id="pickSub"></p>
+    <div class="pick-search"><input type="text" id="pickQuery" placeholder="商品名で検索" autocomplete="off" enterkeyhint="search"><button type="button" id="pickGo">探す</button></div>
+    <p class="pick-status" id="pickStatus"></p>
+    <div class="pick-list" id="pickList"></div>
+  </div>
+</div>
 
 <div class="scan-modal" id="scanModal" hidden role="dialog" aria-modal="true" aria-label="バーコードで味を調べる">
   <div class="scan-sheet">
@@ -554,6 +601,7 @@ var state = { records: [] };
 var uiFilter = "all";
 var uiSearch = "";
 var editingId = null;
+var pendingImage = null; // 楽天の商品画像URL(自動取得)
 var pendingPhoto = null; // dataURL staged from file input for the form currently open
 
 /* ---------- storage ---------- */
@@ -658,7 +706,9 @@ function renderDashboard(){
       return '<div class="rank-row">'
         + '<div class="rank-num">'+(i+1)+'</div>'
         + '<div class="rank-dot" style="background:var('+cat.c+')"></div>'
-        + '<div class="rank-name">'+escHtml(displayName(r.name))+'</div>'
+        + '<div class="rank-main"><div class="rank-name">'+escHtml(displayName(r.name))+'</div>'
+        + (r.origin ? '<div class="rank-origin">'+ICONS.pin+'<span>'+escHtml(r.origin)+'</span></div>' : '')
+        + '</div>'
         + '<div class="rank-stars">'+starsStr(r.rating)+'</div>'
         + '</div>';
     }).join("");
@@ -812,15 +862,26 @@ document.getElementById("fPhoto").addEventListener("change", function(e){
   reader.readAsDataURL(file);
 });
 document.getElementById("photoClearBtn").addEventListener("click", function(){
-  pendingPhoto = null;
+  if(pendingPhoto){ pendingPhoto = null; } else { pendingImage = null; }
   document.getElementById("fPhoto").value = "";
   updatePhotoPreview();
 });
 function updatePhotoPreview(){
   var el = document.getElementById("photoPreview");
   var clearBtn = document.getElementById("photoClearBtn");
-  if(pendingPhoto){ el.innerHTML = '<img src="'+pendingPhoto+'" alt="">'; clearBtn.hidden = false; }
-  else { el.innerHTML = ICONS.camera; clearBtn.hidden = true; }
+  var ih = document.getElementById("imageHint");
+  if(pendingPhoto){ el.innerHTML = '<img src="'+pendingPhoto+'" alt="">'; clearBtn.hidden = false; clearBtn.textContent = "写真を削除"; ih.hidden = true; }
+  else if(pendingImage){ el.innerHTML = '<img class="prod" src="'+escHtml(pendingImage)+'" alt="" onerror="this.style.display=\'none\'">'; clearBtn.hidden = false; clearBtn.textContent = "商品画像を外す"; ih.hidden = false; }
+  else { el.innerHTML = ICONS.camera; clearBtn.hidden = true; ih.hidden = true; }
+}
+/* 楽天の商品データから画像URLを取り出す */
+function itemImage(it){
+  var arr = (it && (it.mediumImageUrls || it.MediumImageUrls)) || [];
+  var u = arr[0] || "";
+  if(u && typeof u === "object") u = u.imageUrl || "";
+  u = String(u||"");
+  if(/^https?:\/\//.test(u)) return u.replace("_ex=128x128","_ex=200x200");
+  return "";
 }
 
 document.getElementById("fTags").addEventListener("input", renderTagsPreview);
@@ -1202,6 +1263,7 @@ document.getElementById("rakutenResults").addEventListener("click", function(e){
   document.getElementById("rakutenPanel").hidden = true;
   autoFillAbv(it, this._cat, this._cands);
   autoFillOrigin(it, this._cat, this._cands);
+  var im = itemImage(it); if(im){ pendingImage = im; updatePhotoPreview(); }
 });
 /* 選んだ商品の情報から度数を自動入力(入力済みの値は上書きしない) */
 function autoFillAbv(it, catId, cands){
@@ -1322,7 +1384,7 @@ function resetForm(){
   editingId = null;
   selectedCategory = null;
   selectedRating = 0;
-  pendingPhoto = null;
+  pendingPhoto = null; pendingImage = null;
   document.getElementById("addForm").reset();
   document.getElementById("fDate").value = todayStr();
   renderCatPicker();
@@ -1346,7 +1408,7 @@ function startEdit(id){
   editingId = id;
   selectedCategory = r.category;
   selectedRating = r.rating || 0;
-  pendingPhoto = r.photo || null;
+  pendingPhoto = r.photo || null; pendingImage = r.image || null;
   renderCatPicker();
   renderDetailFields(r.detail);
   renderStarInput();
@@ -1404,6 +1466,7 @@ document.getElementById("addForm").addEventListener("submit", function(e){
     taste: tasteSet ? { x:Number(document.getElementById("fTasteX").value), y:Number(document.getElementById("fTasteY").value) } : null,
     detail: detail,
     photo: pendingPhoto,
+    image: pendingImage || null,
     memo: document.getElementById("fMemo").value.trim(),
     tags: tags,
     updatedAt: new Date().toISOString()
@@ -1412,6 +1475,8 @@ document.getElementById("addForm").addEventListener("submit", function(e){
   if(editingId){
     var idx = state.records.findIndex(function(x){ return x.id===editingId; });
     rec.createdAt = state.records[idx].createdAt || rec.updatedAt;
+    if(state.records[idx].infoCheckedAt) rec.infoCheckedAt = state.records[idx].infoCheckedAt;
+    if(state.records[idx].infoPicked) rec.infoPicked = true;
     state.records[idx] = rec;
   } else {
     rec.createdAt = rec.updatedAt;
@@ -1747,7 +1812,7 @@ function renderScanResult(jan, item, cands){
   if(taste && (taste.x!==null || taste.y!==null)){
     est = { x: taste.x!==null ? taste.x : 50, y: taste.y!==null ? taste.y : 50 };
   }
-  scanState = { jan:jan, cat:cat, name:name, abv:abv, origin:origin, est:est };
+  scanState = { jan:jan, cat:cat, name:name, abv:abv, origin:origin, est:est, image:itemImage(item) };
   var imgs = item.mediumImageUrls || []; var img = imgs[0] || "";
   if(img && typeof img==="object" && img.imageUrl) img = img.imageUrl;
   var c = cat ? CAT_BY_ID[cat] : null;
@@ -1796,6 +1861,7 @@ function useScanResult(){
     setTasteUI({ x:st.est.x, y:st.est.y });
     document.getElementById("tasteHint").textContent = tasteWord(st.est.x, st.est.y) + "(商品説明からの予想。違う場合はスライダーで調整)";
   }
+  if(st.image){ pendingImage = st.image; updatePhotoPreview(); }
   switchTab("add");
   showToast("読み取った内容を入力しました。評価を付けて記録できます");
 }
@@ -1876,6 +1942,7 @@ function displayName(name){
 }
 function renderHistory(){
   renderHistoryFilter();
+  renderBackfill();
   var el = document.getElementById("historyList");
   var q = uiSearch.trim().toLowerCase();
   var recs = state.records.filter(function(r){ return (uiFilter==="all" || r.category===uiFilter) && recMatchesSearch(r, q); })
@@ -1893,7 +1960,7 @@ function renderHistory(){
     var detailParts = Object.keys(r.detail||{}).map(function(k){ return r.detail[k]; }).filter(Boolean);
     var metaLine = detailParts.concat(metaParts).join(" ・ ");
     return '<div class="rec-card" style="--cat-c:var('+cat.c+'); --cat-soft:var('+cat.soft+')">'
-      + '<div class="rec-thumb">'+(r.photo? '<img src="'+r.photo+'" alt="">' : cat.icon)+'</div>'
+      + '<div class="rec-thumb">'+cat.icon+(r.photo? '<img src="'+r.photo+'" alt="">' : (r.image? '<img class="prod" src="'+escHtml(r.image)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">' : ''))+'</div>'
       + '<div class="rec-body">'
       +   '<div class="rec-top"><span class="rec-badge">'+cat.icon+' '+cat.label+'</span><span class="rec-date">'+fmtDateShort(r.date)+'</span></div>'
       +   '<div class="rec-name">'+escHtml(displayName(r.name))+'</div>'
@@ -1902,7 +1969,7 @@ function renderHistory(){
       +   (metaLine? '<div class="rec-meta">'+escHtml(metaLine)+'</div>' : '')
       +   (r.tags && r.tags.length? '<div class="rec-tags">'+r.tags.map(function(t){return '<span class="chip" style="margin-right:4px">#'+escHtml(t)+'</span>';}).join("")+'</div>' : '')
       +   (r.memo? '<div class="rec-memo">'+escHtml(r.memo)+'</div>' : '')
-      +   '<div class="rec-actions"><button data-act="edit" data-id="'+r.id+'">編集</button><button data-act="delete" data-id="'+r.id+'" class="del">削除</button></div>'
+      +   '<div class="rec-actions"><button data-act="edit" data-id="'+r.id+'">編集</button>'+(bfNeeds(r) && !r.infoPicked && loadRakutenConfig() ? '<button data-act="find" data-id="'+r.id+'" class="find">情報を探す</button>' : '')+'<button data-act="delete" data-id="'+r.id+'" class="del">削除</button></div>'
       + '</div></div>';
   }).join("");
 }
@@ -1910,6 +1977,7 @@ document.getElementById("historyList").addEventListener("click", function(e){
   var b = e.target.closest("button[data-act]"); if(!b) return;
   var id = b.dataset.id;
   if(b.dataset.act==="edit"){ startEdit(id); }
+  else if(b.dataset.act==="find"){ openPick(id); }
   else if(b.dataset.act==="delete"){
     if(confirm("この記録を削除しますか？")){
       state.records = state.records.filter(function(r){ return r.id!==id; });
@@ -1918,6 +1986,195 @@ document.getElementById("historyList").addEventListener("click", function(e){
       showToast("削除しました");
     }
   }
+});
+
+
+/* ---------- 過去の記録に商品情報(産地・度数・画像)を取得 ---------- */
+var bf = { running:false, cancel:false, done:0, total:0, add:{origin:0, abv:0, image:0}, miss:0, msg:"" };
+function bfNeeds(r){
+  return !r.origin || r.abv==null || (!r.image && !r.photo);
+}
+function bfTargets(retry){
+  return state.records.filter(function(r){ return bfNeeds(r) && (retry ? !!r.infoCheckedAt : !r.infoCheckedAt); });
+}
+function bfNameMatches(r, it, queries){
+  var norm = function(x){ return String(x||"").normalize("NFKC").replace(/\s+/g,"").toLowerCase(); };
+  var cl = norm(cleanRakutenName(it.itemName)), raw = norm(it.itemName);
+  var qs = [r.name].concat(queries||[]).map(function(x){ return norm(displayName(x)); }).filter(function(x){ return x.length>=2; });
+  for(var i=0;i<qs.length;i++){ if(cl.indexOf(qs[i])>=0 || (cl.length>=2 && qs[i].indexOf(cl)>=0)) return true; }
+  var first = String(displayName(r.name)||"").normalize("NFKC").split(/\s+/)[0].toLowerCase();
+  return first.length>=2 && raw.indexOf(first)>=0;
+}
+/* 商品情報を記録に反映(入力済みの項目は変えない) */
+function applyItemToRecord(cur, it, cands){
+  var res = { origin:0, abv:0, image:0, changed:false };
+  if(!cur.origin){ var o = null; try{ o = pickOriginFor(it, cur.category, cands); }catch(e){} if(o){ cur.origin = o; res.origin = 1; res.changed = true; } }
+  if(cur.abv==null){ var a = null; try{ a = pickAbvFor(it, cur.category, cands); }catch(e){} if(a!==null && a!==undefined){ cur.abv = a; res.abv = 1; res.changed = true; } }
+  if(!cur.image){ var im = itemImage(it); if(im){ cur.image = im; res.image = cur.photo ? 0 : 1; res.changed = true; } }
+  return res;
+}
+/* 見つからなかった記録を、候補から自分で選んで補う */
+var pickState = { id:null, cat:null, items:[], cands:[], seq:0 };
+function openPick(id){
+  var r = state.records.find(function(x){ return x.id===id; }); if(!r) return;
+  var cat = CAT_BY_ID[r.category]; if(!cat) return;
+  pickState = { id:id, cat:cat, items:[], cands:[], seq:0 };
+  document.getElementById("pickSub").textContent = "「"+displayName(r.name)+"」に当てはまる商品を選ぶと、未入力の産地・度数・画像を補います";
+  document.getElementById("pickQuery").value = displayName(r.name);
+  document.getElementById("pickList").innerHTML = "";
+  document.getElementById("pickModal").hidden = false; document.body.style.overflow = "hidden";
+  runPickSearch();
+}
+function closePick(){ document.getElementById("pickModal").hidden = true; document.body.style.overflow = ""; pickState.seq++; }
+function runPickSearch(){
+  var q = document.getElementById("pickQuery").value.trim();
+  var st = document.getElementById("pickStatus"), list = document.getElementById("pickList");
+  if(q.length<1){ st.textContent = "商品名を入力してください"; return; }
+  var my = ++pickState.seq;
+  st.textContent = "検索中…"; list.innerHTML = "";
+  rakutenSearchWithVariants(q, pickState.cat.rakutenGenre).then(function(res){
+    if(my!==pickState.seq) return;
+    var raw = (res.data && (res.data.Items || res.data.items)) || [];
+    var seen = {}, items = [];
+    raw.forEach(function(it){
+      if(items.length>=8) return;
+      var nm = String(it.itemName||"").normalize("NFKC");
+      if(isNonLiquorItem(nm) || isExcludedRakutenItem(it)) return;
+      var c = cleanRakutenName(it.itemName); if(!c || seen[c]) return;
+      seen[c] = 1; items.push(it);
+    });
+    pickState.items = items; pickState.cands = raw;
+    if(items.length===0){ st.textContent = "候補が見つかりませんでした。名前を変えて探してみてください"; return; }
+    st.textContent = "当てはまる商品をタップ（違う場合は検索ワードを変えてください）";
+    var rec = state.records.find(function(x){ return x.id===pickState.id; }) || {};
+    list.innerHTML = items.map(function(it, i){
+      var im = itemImage(it), chips = [];
+      var o = null, a = null;
+      try{ o = pickOriginFor(it, rec.category, raw); }catch(e){} try{ a = pickAbvFor(it, rec.category, raw); }catch(e){}
+      if(o) chips.push("産地 "+o); if(a!==null && a!==undefined) chips.push("度数 "+a+"%");
+      return '<button type="button" class="pick-item" data-idx="'+i+'">'
+        + (im ? '<img src="'+escHtml(im)+'" alt="">' : '<span class="pk-ph"></span>')
+        + '<span class="pk-body"><span class="pk-name">'+escHtml(cleanRakutenName(it.itemName))+'</span>'
+        + (chips.length ? '<span class="pk-chips">'+chips.map(function(c){ return '<span>'+escHtml(c)+'</span>'; }).join("")+'</span>' : '')
+        + '</span></button>';
+    }).join("");
+  }).catch(function(err){
+    if(my!==pickState.seq) return;
+    var c = err && err.code;
+    st.textContent = c==="auth_error" ? "アプリID・アクセスキーが正しくない可能性があります" : "検索できませんでした。通信状況をご確認ください";
+  });
+}
+document.getElementById("pickGo").addEventListener("click", runPickSearch);
+document.getElementById("pickQuery").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); runPickSearch(); } });
+document.getElementById("pickClose").addEventListener("click", closePick);
+document.getElementById("pickModal").addEventListener("click", function(e){ if(e.target===this) closePick(); });
+document.getElementById("pickList").addEventListener("click", function(e){
+  var b = e.target.closest(".pick-item"); if(!b) return;
+  var it = pickState.items[parseInt(b.dataset.idx,10)];
+  var rec = state.records.find(function(x){ return x.id===pickState.id; });
+  if(!it || !rec) return;
+  var ap = applyItemToRecord(rec, it, pickState.cands);
+  rec.infoCheckedAt = new Date().toISOString(); rec.infoPicked = true;
+  saveState(); closePick(); renderAll();
+  var parts = [];
+  if(ap.origin) parts.push("産地"); if(ap.abv) parts.push("度数"); if(ap.image) parts.push("画像");
+  showToast(parts.length ? parts.join("・")+"を追加しました" : "追加できる情報がありませんでした");
+});
+function renderBackfill(){
+  var el = document.getElementById("backfillCard"); if(!el) return;
+  var hasKey = !!loadRakutenConfig();
+  var t = bfTargets(false), retry = bfTargets(true);
+  if(bf.running){
+    var pct = bf.total ? Math.round(bf.done*100/bf.total) : 0;
+    el.hidden = false;
+    el.innerHTML = '<div class="bf-title">商品情報を取得中… '+bf.done+' / '+bf.total+' 件</div>'
+      + '<div class="bf-bar"><i style="width:'+pct+'%"></i></div>'
+      + '<div class="bf-text">追加できた項目: 産地 '+bf.add.origin+' ・ 度数 '+bf.add.abv+' ・ 画像 '+bf.add.image+'<br>この画面を開いたままにしてください(1件ずつ検索します)</div>'
+      + '<div class="bf-btns"><button type="button" class="bf-btn sub" id="bfCancel">中止する</button></div>';
+    return;
+  }
+  if(bf.msg){
+    el.hidden = false;
+    el.innerHTML = '<div class="bf-title">商品情報の取得が終わりました</div><div class="bf-text">'+bf.msg+'</div>'
+      + '<div class="bf-btns"><button type="button" class="bf-btn sub" id="bfClose">閉じる</button></div>';
+    return;
+  }
+  if(!hasKey){
+    var need = state.records.filter(bfNeeds).length;
+    if(need===0){ el.hidden = true; return; }
+    el.hidden = false;
+    el.innerHTML = '<div class="bf-title">産地・度数・画像が未入力の記録が '+need+' 件あります</div><div class="bf-text">「データ」タブで楽天のアプリID・アクセスキーを設定すると、商品情報から自動で補えます。</div>';
+    return;
+  }
+  if(t.length===0 && retry.length===0){ el.hidden = true; return; }
+  el.hidden = false;
+  var h = '';
+  if(t.length>0){
+    h += '<div class="bf-title">産地・度数・画像が未入力の記録が '+t.length+' 件あります</div>'
+      + '<div class="bf-text">楽天の商品情報から自動で補います。入力済みの項目は変えません。</div>'
+      + '<div class="bf-btns"><button type="button" class="bf-btn" id="bfStart">商品情報を取得する</button></div>';
+  } else {
+    h += '<div class="bf-title">商品が見つからなかった記録が '+retry.length+' 件あります</div>'
+      + '<div class="bf-text">各記録の「情報を探す」から候補を選ぶか、名前を直してもう一度取得できます。</div>'
+      + '<div class="bf-btns"><button type="button" class="bf-btn" id="bfRetry">もう一度取得する</button></div>';
+  }
+  el.innerHTML = h;
+}
+function bfSleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+function runBackfill(retry){
+  if(bf.running) return;
+  var list = bfTargets(!!retry);
+  if(list.length===0) return;
+  bf = { running:true, cancel:false, done:0, total:list.length, add:{origin:0, abv:0, image:0}, miss:0, msg:"" };
+  renderBackfill();
+  var errs = 0, fatal = "";
+  function finish(){
+    bf.running = false;
+    var m = '産地 '+bf.add.origin+' 件 ・ 度数 '+bf.add.abv+' 件 ・ 画像 '+bf.add.image+' 件を追加しました。';
+    if(bf.miss>0) m += '<br>商品が見つからなかった記録: '+bf.miss+' 件<br>各記録の「情報を探す」から、候補を選んで補えます。';
+    if(bf.cancel) m = '中止しました。<br>' + m;
+    if(fatal) m = fatal + '<br>' + m;
+    bf.msg = m;
+    renderAll();
+  }
+  function step(i){
+    if(bf.cancel || fatal || i>=list.length){ finish(); return; }
+    var r = state.records.find(function(x){ return x.id===list[i].id; });
+    var cat = r ? CAT_BY_ID[r.category] : null;
+    if(!r || !cat){ bf.done++; return step(i+1); }
+    rakutenSearchWithVariants(r.name, cat.rakutenGenre).then(function(res){
+      errs = 0;
+      var raw = (res.data && (res.data.Items || res.data.items)) || [];
+      var it = pickRakutenItem(raw, res.query);
+      var cur = state.records.find(function(x){ return x.id===r.id; });
+      if(cur){
+        cur.infoCheckedAt = new Date().toISOString();
+        if(it && bfNameMatches(cur, it, [res.query])){
+          var ap = applyItemToRecord(cur, it, raw);
+          bf.add.origin += ap.origin; bf.add.abv += ap.abv; bf.add.image += ap.image;
+          if(!ap.changed) bf.miss++;
+        } else { bf.miss++; }
+        saveState();
+      }
+    }).catch(function(err){
+      var code = err && err.code;
+      if(code==="auth_error"){ fatal = "アプリID・アクセスキーが正しくない可能性があります。"; }
+      else if(code==="no_key"){ fatal = "楽天の設定がありません。"; }
+      else { errs++; if(errs>=3) fatal = "通信できませんでした。しばらくしてからもう一度お試しください。"; }
+    }).then(function(){
+      bf.done++;
+      renderBackfill(); renderHistory();
+      return bfSleep(1300);
+    }).then(function(){ step(i+1); });
+  }
+  step(0);
+}
+document.getElementById("backfillCard").addEventListener("click", function(e){
+  var id = e.target && e.target.id;
+  if(id==="bfStart") runBackfill(false);
+  else if(id==="bfRetry"){ bfTargets(true).forEach(function(r){ r.infoCheckedAt = null; }); saveState(); runBackfill(false); }
+  else if(id==="bfCancel"){ bf.cancel = true; e.target.textContent = "中止しています…"; }
+  else if(id==="bfClose"){ bf.msg = ""; renderBackfill(); }
 });
 
 /* ---------- data tab ---------- */
