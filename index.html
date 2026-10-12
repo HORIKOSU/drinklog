@@ -277,6 +277,24 @@ input:not([type=range]):not([type=file]),select,textarea{font-size:16px !importa
 .pick-item .pk-chips{margin-top:4px; display:flex; gap:5px; flex-wrap:wrap; font-size:11px; font-weight:700; color:var(--ink-2)}
 .pick-item .pk-chips span{background:var(--surface-input); border:1px solid var(--hairline); border-radius:var(--r-pill); padding:1px 8px}
 .rec-actions .find{color:var(--accent)}
+.know-sec{border:1px solid var(--hairline); border-radius:var(--radius-sm); background:var(--surface-raised); margin-top:10px}
+.know-sec > summary{list-style:none; cursor:pointer; padding:13px 14px; font-size:14.5px; font-weight:800; color:var(--ink-1); display:flex; align-items:center; justify-content:space-between; gap:8px}
+.know-sec > summary::-webkit-details-marker{display:none}
+.know-sec > summary::after{content:""; width:8px; height:8px; border-right:2px solid var(--ink-3); border-bottom:2px solid var(--ink-3); transform:rotate(45deg); transition:transform .15s; flex:0 0 auto; margin-right:2px}
+.know-sec[open] > summary::after{transform:rotate(-135deg)}
+.know-body{padding:0 14px 14px}
+.know-lead{font-size:13px; color:var(--ink-2); line-height:1.7; margin:0 0 10px}
+.know-tablewrap{overflow-x:auto; margin:10px 0; border:1px solid var(--hairline); border-radius:var(--radius-sm)}
+.know-table{border-collapse:collapse; width:100%; font-size:12px; line-height:1.55}
+.know-table th{background:var(--surface-input); color:var(--ink-2); font-weight:800; text-align:left; padding:7px 10px; white-space:nowrap}
+.know-table td{padding:7px 10px; border-top:1px solid var(--hairline); color:var(--ink-1); vertical-align:top}
+.know-table td:first-child{font-weight:800; white-space:nowrap}
+.know-table td:not(:first-child){min-width:5.5em}
+.know-tips{margin:8px 0 0; padding-left:18px; font-size:12.5px; color:var(--ink-2); line-height:1.75}
+.know-tips li{margin-top:3px}
+.know-gloss-q{margin:4px 0 8px}
+.know-gloss-q input{width:100%; border:1.5px solid var(--hairline); background:var(--surface-input); color:var(--ink-1); border-radius:var(--r-pill); padding:9px 14px; font-size:16px; font-family:inherit}
+.know-note{font-size:11.5px; color:var(--ink-3); margin-top:12px; line-height:1.7}
 .bf-btn.sub{background:none; color:var(--ink-3); padding:9px 6px; font-weight:700; text-decoration:underline}
 .rec-body{flex:1; min-width:0}
 .rec-top{display:flex; align-items:center; justify-content:space-between; gap:8px}
@@ -469,6 +487,23 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
     </div>
   </section>
 
+  <section id="tab-know" class="tab-panel" hidden>
+    <div class="card">
+      <h2>お酒の基礎知識</h2>
+      <p class="card-sub">入門編。味のスライダーを決める時の目安にどうぞ。</p>
+      <div id="knowList"></div>
+      <details class="know-sec" id="knowGlossary">
+        <summary>用語集</summary>
+        <div class="know-body">
+          <p class="know-lead">商品説明によく出る言葉です。</p>
+          <div class="know-gloss-q"><input type="text" id="knowGlossQ" placeholder="用語を検索 (例: キレ、精米歩合)" autocomplete="off"></div>
+          <div class="know-tablewrap"><table class="know-table"><thead><tr><th>用語</th><th>意味</th><th>お酒</th></tr></thead><tbody id="knowGlossBody"></tbody></table></div>
+        </div>
+      </details>
+      <p class="know-note">一般的な目安をまとめたもので、銘柄によって大きく異なります。</p>
+    </div>
+  </section>
+
   <section id="tab-data" class="tab-panel" hidden>
     <div class="card">
       <h2>バックアップ・引き継ぎ</h2>
@@ -545,6 +580,10 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
   <button type="button" data-tab="add" aria-label="記録を追加">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v8M8 12h8"></path></svg>
     <span class="lbl">追加</span>
+  </button>
+  <button type="button" data-tab="know">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.500 1.500 0 0 1 5.500 4H11v15H5.500A1.500 1.500 0 0 0 4 20.500v-15zM20 5.500A1.500 1.500 0 0 0 18.500 4H13v15h5.500a1.500 1.500 0 0 1 1.500 1.500v-15z"></path></svg>
+    <span class="lbl">知識</span>
   </button>
   <button type="button" data-tab="data">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"></path></svg>
@@ -655,6 +694,7 @@ function switchTab(name){
   if(name==="home"){ renderDashboard(); }
   if(name==="history"){ renderHistory(); }
   if(name==="data"){ renderDataTab(); }
+  if(name==="know"){ renderKnow(); }
   window.scrollTo(0,0);
 }
 document.querySelectorAll(".bottom-nav button").forEach(function(b){
@@ -2176,6 +2216,32 @@ document.getElementById("backfillCard").addEventListener("click", function(e){
   else if(id==="bfCancel"){ bf.cancel = true; e.target.textContent = "中止しています…"; }
   else if(id==="bfClose"){ bf.msg = ""; renderBackfill(); }
 });
+
+var KNOW_SECTIONS = [{"id": "k-all", "title": "4種類のちがい", "lead": "原料と作り方で、味の方向と度数が決まります。", "tables": [{"head": ["", "ビール", "日本酒", "焼酎", "ワイン"], "rows": [["原料", "麦芽・ホップ", "米・米麹", "芋・麦・米など", "ぶどう"], ["分類", "醸造酒", "醸造酒", "蒸留酒", "醸造酒"], ["度数(%)", "4〜7", "15〜16", "20〜25(乙類は最大45)", "11〜14"], ["味の主役", "苦味・コク", "旨み・甘辛・香り", "原料の香り・キレ", "酸味・渋み"]]}], "tips": ["醸造酒は発酵させただけ、蒸留酒は発酵後に蒸留して度数を上げたお酒です。"]}, {"id": "k-beer", "title": "ビール", "lead": "まず「ラガー」と「エール」を見分けます。違いは酵母と発酵温度です。", "tables": [{"head": ["種類", "特徴", "スタイル例"], "rows": [["ラガー(下面発酵)", "スッキリでキレがあり、冷やして飲むのが向く", "ピルスナー、ボック、ダークラガー"], ["エール(上面発酵)", "香りが豊かで、苦味やコクが個性的", "ペールエール、IPA、スタウト、ヴァイツェン"]]}], "tips": ["IPAはホップの苦味と柑橘の香りが強め。苦手な人は少量から。", "スタウトは焼いた麦芽で黒く、コーヒーやチョコの香り。色の濃さと苦味の強さは一致しません。", "食事中ならラガー、味をじっくり楽しむならエール。", "ラベルのIBUは苦味の目安で、大きいほど苦い傾向です。"]}, {"id": "k-sake", "title": "日本酒", "lead": "名前は「米の磨き具合(精米歩合)」と「醸造アルコールの有無」で決まります。", "tables": [{"head": ["名称", "精米歩合", "酒精添加", "味の傾向"], "rows": [["純米大吟醸", "50%以下", "なし", "華やかな香りとなめらかさ"], ["大吟醸", "50%以下", "あり", "香り高く、軽快でスッキリ"], ["純米吟醸", "60%以下", "なし", "果実のような香りとやわらかい旨み"], ["吟醸", "60%以下", "あり", "香りが立ち、細身で軽やか"], ["純米酒", "規定なし", "なし", "米のコクと旨み。燗にも合う"], ["本醸造", "70%以下", "あり", "すっきりしてキレがよい"]]}], "tips": ["精米歩合は数字が小さいほどよく磨いています。", "日本酒度はプラスが辛口、マイナスが甘口の目安(約-3以下が甘口、+3以上が辛口)。酸度でも感じ方が変わります。", "生酒は加熱なしでフレッシュ(要冷蔵)、原酒は加水なしで度数高め、にごりは米の粒が残った甘さ、古酒は熟成でコクと香り。", "初めてなら純米吟醸、食事に合わせるなら純米酒や本醸造、デザート感覚なら純米大吟醸。"]}, {"id": "k-shochu", "title": "焼酎", "lead": "甲類と乙類は別物です。個性を楽しむなら乙類(本格焼酎)を選びます。", "tables": [{"head": ["種類", "蒸留", "度数", "特徴"], "rows": [["甲類", "連続式", "36%未満", "クセが少なく、チューハイのベース向き"], ["乙類(本格)", "単式", "45%以下", "原料の香りと旨みが残り、個性が強い"]]}, {"head": ["原料", "味の傾向", "合う飲み方"], "rows": [["芋", "甘い香りとコク。華やかなものもある", "お湯割り、ロック"], ["麦", "香ばしくてスッキリ。初心者向け", "水割り、ソーダ割り"], ["米", "やさしい甘みとフルーティーな香り", "ロック、水割り"], ["黒糖", "やわらかな甘い香り(奄美群島のみ)", "ロック、ソーダ割り"], ["泡盛", "沖縄の黒麹の酒。長期熟成の古酒はまろやか", "ロック、水割り"]]}], "tips": ["初めてなら、ソーダ割りや水割りが飲みやすいです。", "お湯割りは先にお湯を注いでから焼酎を加えると混ざりやすくなります。"]}, {"id": "k-wine", "title": "ワイン", "lead": "色とぶどう品種を見れば、味の方向が予想できます。", "tables": [{"head": ["タイプ", "作り方", "味の傾向"], "rows": [["赤", "黒ぶどうを皮ごと発酵", "渋み(タンニン)とコクがあり、重いものも多い"], ["白", "皮を除いて果汁を発酵", "酸味と果実感が主役でスッキリ"], ["ロゼ", "黒ぶどうを短時間だけ皮と一緒に発酵", "赤と白の中間。軽やか"], ["スパークリング", "炭酸ガスを含む", "泡が立ち、キレがある"]]}, {"head": ["品種", "色", "特徴", "産地の例"], "rows": [["カベルネ・ソーヴィニヨン", "赤", "渋みが強くフルボディ", "ボルドー、ナパ、チリ"], ["メルロー", "赤", "渋みがやわらかくまろやか", "ボルドー、日本"], ["ピノ・ノワール", "赤", "渋みが少なく繊細", "ブルゴーニュ、オレゴン"], ["シラー", "赤", "スパイシーで力強い", "ローヌ、オーストラリア"], ["シャルドネ", "白", "コクがあり、樽でバターの香り", "ブルゴーニュ、カリフォルニア"], ["ソーヴィニヨン・ブラン", "白", "酸味がシャープでハーブの香り", "ロワール、ニュージーランド"], ["リースリング", "白", "酸味と甘みのバランス", "ドイツ、アルザス"], ["甲州", "白", "やさしい果実味で和食に合う", "山梨県"]]}], "tips": ["初めてなら、軽めの白(ソーヴィニヨン・ブランや甲州)か、渋みの少ない赤(ピノ・ノワール)。", "「辛口」は甘さが少ないこと、「フルボディ」は重厚で渋いこと。", "フランスなど旧世界は産地名、アメリカやチリなど新世界は品種名で表示することが多いです。"]}, {"id": "k-drink", "title": "飲み方・相性・保存", "lead": "温度を変えるだけで、同じお酒の幅が広がります。", "tables": [{"head": ["お酒", "目安の温度", "ポイント"], "rows": [["ビール(ラガー)", "4〜8℃", "冷やしすぎると香りが感じにくい"], ["ビール(エール)", "8〜12℃", "やや高めで香りが開く"], ["日本酒(吟醸・生酒)", "5〜10℃", "果実の香りを活かす"], ["日本酒(純米・本醸造)", "常温〜ぬる燗(40〜45℃)", "旨みが増して甘く感じる"], ["焼酎", "お湯割り(約60℃)/ロック", "芋はお湯割りで香りが立つ"], ["白・ロゼワイン", "8〜12℃", "冷やしすぎない方が果実味が出る"], ["赤ワイン", "15〜18℃", "室温より少し低めで渋みが落ち着く"], ["スパークリング", "5〜8℃", "しっかり冷やすと泡が細かい"]]}, {"head": ["料理", "合わせやすいお酒"], "rows": [["揚げ物・肉料理", "ラガービール、ハイボール、赤ワイン"], ["刺身・白身魚", "純米吟醸、辛口の白ワイン"], ["焼き鳥・甘辛いタレ", "ラガービール、純米酒の燗"], ["チーズ", "赤ワイン、ロゼ、純米酒"], ["魚介のクセがある料理", "焼酎のソーダ割り、辛口の日本酒"], ["デザート", "甘口スパークリング、スタウト"]]}, {"head": ["お酒", "約20gになる量"], "rows": [["ビール(5%)", "500ml(中ジョッキ1杯)"], ["日本酒(15%)", "180ml(1合)"], ["ワイン(12%)", "200ml(グラス1〜2杯)"], ["焼酎(25%)", "100ml(お湯割り約2杯分)"]]}], "tips": ["ビールは薄手のグラスで泡をしっかり作るとキレが続きます。吟醸系の日本酒はワイングラスだと香りを感じやすくなります。", "保存は直射日光を避けて温度変化の少ない場所に。生酒・吟醸系は冷蔵庫で、開けたら早めに。ワインは開けたら冷蔵して数日以内に。焼酎は常温で長持ちします。", "生活習慣病のリスクを高める飲酒量は、1日あたり純アルコールで男性40g以上、女性20g以上が目安(厚生労働省)。水をこまめに飲み、休肝日を取りましょう。体調が悪い時や薬の服用中は避け、妊娠中・授乳中は飲まないでください。"]}];
+var KNOW_GLOSSARY = [["キレ", "飲み込んだあとに味がすっと消えること", "ビール・日本酒"], ["コク", "味の厚みと、余韻の長さ", "全般"], ["ボディ", "飲んだ時の重さ。ライト・ミディアム・フル", "ワイン"], ["ドライ・辛口", "甘さが少ない", "全般"], ["淡麗", "すっきりと軽い味わい", "日本酒"], ["濃醇", "味が濃厚でコクがある", "日本酒"], ["日本酒度", "甘辛の目安。プラスが辛口、マイナスが甘口", "日本酒"], ["精米歩合", "米を削って残った割合。小さいほどよく磨いている", "日本酒"], ["酸度", "酸味の目安。高いとキレがよく感じる", "日本酒"], ["吟醸香", "果実や花のような華やかな香り", "日本酒"], ["生酒", "加熱(火入れ)をしていない酒。フレッシュで要冷蔵", "日本酒"], ["原酒", "水を加えずに詰めた酒。度数が高め", "日本酒"], ["古酒・時空酒", "長期熟成した酒。色が濃くコクがある", "日本酒・焼酎"], ["本格焼酎", "乙類焼酎。単式蒸留で原料の風味が残る", "焼酎"], ["常圧・減圧蒸留", "常圧は香りとコクが強く、減圧は軽やかで飲みやすい", "焼酎"], ["黒麹・白麹", "焼酎の麹の種類。黒は力強く、白はやわらかい", "焼酎"], ["タンニン(渋み)", "赤ワインの、口がきゅっとする渋さ", "ワイン"], ["ヴィンテージ", "ぶどうを収穫した年", "ワイン"], ["テロワール", "土地や気候など、産地がもたらす個性", "ワイン"], ["ミネラル感", "石や海を思わせる引き締まった味", "白ワイン"], ["IBU", "ビールの苦味の指標。大きいほど苦い傾向", "ビール"], ["ホップ", "ビールの苦味と香りの元になる植物", "ビール"], ["発泡酒・新ジャンル", "麦芽の使用割合が低いか、使っていないビール風飲料", "ビール系"]];
+
+function renderKnow(){
+  var list = document.getElementById("knowList"); if(!list || list.dataset.done) return;
+  list.dataset.done = "1";
+  list.innerHTML = KNOW_SECTIONS.map(function(sec, si){
+    var tbls = (sec.tables||[]).map(function(t){
+      return '<div class="know-tablewrap"><table class="know-table"><thead><tr>'+t.head.map(function(h){ return '<th>'+escHtml(h)+'</th>'; }).join("")+'</tr></thead><tbody>'
+        + t.rows.map(function(r){ return '<tr>'+r.map(function(c){ return '<td>'+escHtml(c)+'</td>'; }).join("")+'</tr>'; }).join("")
+        + '</tbody></table></div>';
+    }).join("");
+    var tips = (sec.tips&&sec.tips.length) ? '<ul class="know-tips">'+sec.tips.map(function(t){ return '<li>'+escHtml(t)+'</li>'; }).join("")+'</ul>' : '';
+    return '<details class="know-sec"'+(si===0?' open':'')+'><summary>'+escHtml(sec.title)+'</summary><div class="know-body"><p class="know-lead">'+escHtml(sec.lead)+'</p>'+tbls+tips+'</div></details>';
+  }).join("");
+  renderGlossary("");
+}
+function renderGlossary(q){
+  var body = document.getElementById("knowGlossBody"); if(!body) return;
+  var k = String(q||"").trim().toLowerCase();
+  var rows = KNOW_GLOSSARY.filter(function(r){ return !k || r.join(" ").toLowerCase().indexOf(k) >= 0; });
+  body.innerHTML = rows.length ? rows.map(function(r){ return '<tr><td>'+escHtml(r[0])+'</td><td>'+escHtml(r[1])+'</td><td>'+escHtml(r[2])+'</td></tr>'; }).join("")
+    : '<tr><td colspan="3">一致する用語がありません</td></tr>';
+}
+document.getElementById("knowGlossQ").addEventListener("input", function(){ renderGlossary(this.value); });
 
 /* ---------- data tab ---------- */
 function renderDataTab(){
