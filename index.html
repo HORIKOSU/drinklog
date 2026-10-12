@@ -295,6 +295,18 @@ input:not([type=range]):not([type=file]),select,textarea{font-size:16px !importa
 .know-gloss-q{margin:4px 0 8px}
 .know-gloss-q input{width:100%; border:1.5px solid var(--hairline); background:var(--surface-input); color:var(--ink-1); border-radius:var(--r-pill); padding:9px 14px; font-size:16px; font-family:inherit}
 .know-note{font-size:11.5px; color:var(--ink-3); margin-top:12px; line-height:1.7}
+.taste-guide{margin-top:10px; border:1px solid var(--hairline); border-radius:var(--radius-sm); background:var(--surface-input)}
+.taste-guide > summary{list-style:none; cursor:pointer; padding:10px 12px; font-size:12.5px; font-weight:800; color:var(--ink-2); display:flex; align-items:center; justify-content:space-between}
+.taste-guide > summary::-webkit-details-marker{display:none}
+.taste-guide > summary::after{content:""; width:7px; height:7px; border-right:2px solid var(--ink-3); border-bottom:2px solid var(--ink-3); transform:rotate(45deg); transition:transform .15s}
+.taste-guide[open] > summary::after{transform:rotate(-135deg)}
+.tg-body{padding:0 12px 12px}
+.tg-label{font-size:11.5px; font-weight:800; color:var(--ink-3); margin:10px 0 6px}
+.tg-chips{display:flex; flex-wrap:wrap; gap:6px}
+.tg-chip{border:1.5px solid var(--hairline); background:var(--surface-raised); color:var(--ink-1); font-family:inherit; font-size:12.5px; font-weight:700; padding:6px 11px; border-radius:var(--r-pill); cursor:pointer}
+.tg-chip small{font-weight:700; color:var(--ink-3); margin-left:4px; font-size:10.5px}
+.tg-chip.on{border-color:var(--accent); background:var(--surface-input); box-shadow:inset 0 0 0 1px var(--accent)}
+.tg-note{font-size:11px; color:var(--ink-3); margin-top:10px; line-height:1.6}
 .bf-btn.sub{background:none; color:var(--ink-3); padding:9px 6px; font-weight:700; text-decoration:underline}
 .rec-body{flex:1; min-width:0}
 .rec-top{display:flex; align-items:center; justify-content:space-between; gap:8px}
@@ -441,6 +453,16 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
         <label>味(任意)</label>
         <div class="taste-row"><span>甘口</span><input type="range" class="taste-range" id="fTasteX" min="0" max="100" step="5" value="50" aria-label="甘口から辛口"><span>辛口</span></div>
         <div class="taste-row"><span>軽い</span><input type="range" class="taste-range" id="fTasteY" min="0" max="100" step="5" value="50" aria-label="軽いから重い"><span>重い</span></div>
+        <details class="taste-guide" id="tasteGuide">
+          <summary>目安から選ぶ(言葉・タイプ)</summary>
+          <div class="tg-body">
+            <div class="tg-label">言葉から(タップで位置を設定)</div>
+            <div class="tg-chips" id="tgWords"></div>
+            <div class="tg-label" id="tgTypeLabel" hidden>タイプから</div>
+            <div class="tg-chips" id="tgTypes"></div>
+            <p class="tg-note" id="tgNote">言葉・タイプを押すと、味スライダーが動きます。あとから自由に調整できます。目安なので、実際に飲んだ感覚を優先してください。</p>
+          </div>
+        </details>
         <p class="hint" id="tasteHint">スライダーを動かすと、ホームの「味マップ」に載ります</p>
         <button type="button" class="taste-clear" id="tasteClearBtn" hidden>味の入力をやめる</button>
       </div>
@@ -820,6 +842,7 @@ function updateCatHint(nudge){
 function renderCatPicker(){
   var el = document.getElementById("catPicker");
   updateCatHint();
+  if(typeof renderTastePresets==="function") renderTastePresets();
   el.innerHTML = CATEGORIES.map(function(cat){
     return '<button type="button" class="cat-btn'+(selectedCategory===cat.id?" active":"")+'" data-id="'+cat.id+'" '
       + 'style="--cat-c:var('+cat.c+'); --cat-soft:var('+cat.soft+')">'
@@ -1554,10 +1577,60 @@ function updateTasteHint(){
     tasteSet = true;
     document.getElementById("tasteField").classList.remove("taste-unset");
     document.getElementById("tasteClearBtn").hidden = false;
+    document.querySelectorAll("#tasteGuide .tg-chip.on").forEach(function(x){ x.classList.remove("on"); });
     updateTasteHint();
   });
 });
 document.getElementById("tasteClearBtn").addEventListener("click", function(){ setTasteUI(null); });
+
+/* ---- 味の目安(言葉・タイプ → スライダー位置) ---- */
+var GUIDE_WORDS = [
+  {l:"甘口", x:15}, {l:"やや甘口", x:30}, {l:"やや辛口", x:70}, {l:"辛口・ドライ", x:85},
+  {l:"淡麗・ライト", y:15}, {l:"すっきり", y:25}, {l:"ミディアム", y:50}, {l:"濃醇", y:80}, {l:"フルボディ", y:90},
+  {l:"淡麗辛口", x:85, y:15}, {l:"濃醇甘口", x:15, y:85}
+];
+var GUIDE_TYPES = {
+  beer:[{l:"ラガー",x:70,y:15},{l:"ヴァイツェン",x:35,y:40},{l:"ペールエール",x:65,y:45},{l:"IPA",x:70,y:70},{l:"スタウト",x:65,y:85}],
+  sake:[{l:"純米大吟醸",x:40,y:30},{l:"純米吟醸",x:45,y:35},{l:"本醸造",x:65,y:40},{l:"純米酒",x:60,y:55},{l:"にごり",x:20,y:60}],
+  shochu:[{l:"麦",x:70,y:25},{l:"米",x:45,y:40},{l:"黒糖",x:30,y:55},{l:"芋",x:50,y:70},{l:"泡盛",x:55,y:80}],
+  wine:[{l:"ソーヴィニヨン・ブラン",x:85,y:15},{l:"リースリング",x:35,y:30},{l:"ピノ・ノワール",x:70,y:40},{l:"シャルドネ",x:60,y:65},{l:"メルロー",x:70,y:65},{l:"シラー",x:85,y:85},{l:"カベルネ",x:85,y:90}]
+};
+function tgWord(x, y){
+  var parts = [];
+  if(typeof x==="number") parts.push(tasteWord(x, 50).split(" × ")[0]);
+  if(typeof y==="number") parts.push(tasteWord(50, y).split(" × ")[1]);
+  return parts.join("・");
+}
+function tgChipHtml(t, i, kind){
+  var sub = (typeof t.x==="number" && typeof t.y==="number") ? tgWord(t.x,t.y) : (typeof t.x==="number" ? tasteWord(t.x,50).split(" × ")[0] : tasteWord(50,t.y).split(" × ")[1]);
+  return '<button type="button" class="tg-chip" data-kind="'+kind+'" data-i="'+i+'">'+escHtml(t.l)+'<small>'+escHtml(sub)+'</small></button>';
+}
+function renderTastePresets(){
+  var w = document.getElementById("tgWords"); if(!w) return;
+  w.innerHTML = GUIDE_WORDS.map(function(t,i){ return tgChipHtml(t,i,"w"); }).join("");
+  var types = selectedCategory ? (GUIDE_TYPES[selectedCategory]||[]) : [];
+  document.getElementById("tgTypeLabel").hidden = types.length===0;
+  document.getElementById("tgTypes").innerHTML = types.map(function(t,i){ return tgChipHtml(t,i,"t"); }).join("");
+}
+function applyTastePreset(t){
+  var fx = document.getElementById("fTasteX"), fy = document.getElementById("fTasteY");
+  if(typeof t.x==="number") fx.value = t.x;
+  if(typeof t.y==="number") fy.value = t.y;
+  tasteSet = true;
+  document.getElementById("tasteField").classList.remove("taste-unset");
+  document.getElementById("tasteClearBtn").hidden = false;
+  updateTasteHint();
+}
+document.getElementById("tasteGuide").addEventListener("click", function(e){
+  var b = e.target.closest(".tg-chip"); if(!b) return;
+  var kind = b.dataset.kind, i = parseInt(b.dataset.i,10);
+  var t = kind==="w" ? GUIDE_WORDS[i] : ((GUIDE_TYPES[selectedCategory]||[])[i]);
+  if(!t) return;
+  applyTastePreset(t);
+  document.querySelectorAll("#tasteGuide .tg-chip.on").forEach(function(x){ x.classList.remove("on"); });
+  b.classList.add("on");
+});
+
 
 var uiMapFilter = "all", uiMapSel = null;
 function renderTasteMap(){
