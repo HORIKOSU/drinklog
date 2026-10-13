@@ -2316,6 +2316,22 @@ function renderGlossary(q){
 }
 document.getElementById("knowGlossQ").addEventListener("input", function(){ renderGlossary(this.value); });
 
+
+/* ---- ダブルタップ拡大の防止(iOS Safari対策。CSSのtouch-actionに加えて、短時間の2回目のタップを無効化) ---- */
+(function(){
+  var last = 0;
+  document.addEventListener("touchend", function(e){
+    var now = Date.now(), t = e.target;
+    var isForm = t && t.closest && t.closest("input,textarea,select,label");
+    if(now - last < 350 && !isForm){
+      e.preventDefault(); /* 2回目のタップによるズームを止める */
+      var btn = t && t.closest ? t.closest("button,a,summary,[role=button]") : null;
+      if(btn && !btn.disabled){ btn.click(); } /* preventDefaultで消える2回目のクリックを補う */
+    }
+    last = now;
+  }, { passive:false });
+})();
+
 /* ---------- data tab ---------- */
 function renderDataTab(){
   document.getElementById("dataCount").textContent = "現在 "+state.records.length+" 件の記録があります。";
