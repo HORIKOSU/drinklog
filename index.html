@@ -1326,8 +1326,24 @@ document.getElementById("rakutenResults").addEventListener("click", function(e){
   document.getElementById("rakutenPanel").hidden = true;
   autoFillAbv(it, this._cat, this._cands);
   autoFillOrigin(it, this._cat, this._cands);
+  autoFillTaste(it, this._cat, this._cands);
   var im = itemImage(it); if(im){ pendingImage = im; updatePhotoPreview(); }
 });
+/* 選んだ商品の説明から味の位置を予想して入れる(自分で動かした値は上書きしない) */
+function autoFillTaste(it, catId, cands){
+  var f = document.getElementById("tasteField");
+  if(tasteSet && f.dataset.auto !== "1") return;
+  var t = null;
+  try{ t = pickTasteFor(it, catId, cands); }catch(err){ t = null; }
+  if(!t || (t.x===null && t.y===null)){
+    if(f.dataset.auto === "1"){ setTasteUI(null); }
+    return;
+  }
+  var x = t.x!==null ? t.x : 50, y = t.y!==null ? t.y : 50;
+  setTasteUI({ x:x, y:y });
+  f.dataset.auto = "1";
+  document.getElementById("tasteHint").textContent = tasteWord(x, y) + "(商品説明からの予想。違う場合はスライダーで調整)";
+}
 /* 選んだ商品の情報から度数を自動入力(入力済みの値は上書きしない) */
 function autoFillAbv(it, catId, cands){
   var el = document.getElementById("fAbv"), hint = document.getElementById("abvHint");
@@ -1556,6 +1572,7 @@ var tasteSet = false;
 function setTasteUI(t){
   var fx = document.getElementById("fTasteX"), fy = document.getElementById("fTasteY");
   var f = document.getElementById("tasteField");
+  f.dataset.auto = "";
   tasteSet = !!(t && typeof t.x==="number" && typeof t.y==="number");
   fx.value = tasteSet ? t.x : 50; fy.value = tasteSet ? t.y : 50;
   f.classList.toggle("taste-unset", !tasteSet);
@@ -1578,6 +1595,7 @@ function updateTasteHint(){
     document.getElementById("tasteField").classList.remove("taste-unset");
     document.getElementById("tasteClearBtn").hidden = false;
     document.querySelectorAll("#tasteGuide .tg-chip.on").forEach(function(x){ x.classList.remove("on"); });
+    document.getElementById("tasteField").dataset.auto = "";
     updateTasteHint();
   });
 });
@@ -1617,6 +1635,7 @@ function applyTastePreset(t){
   if(typeof t.x==="number") fx.value = t.x;
   if(typeof t.y==="number") fy.value = t.y;
   tasteSet = true;
+  document.getElementById("tasteField").dataset.auto = "";
   document.getElementById("tasteField").classList.remove("taste-unset");
   document.getElementById("tasteClearBtn").hidden = false;
   updateTasteHint();
