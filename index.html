@@ -229,6 +229,14 @@ input:not([type=range]):not([type=file]),select,textarea{font-size:16px !importa
 .taste-row span:last-child{text-align:right}
 .taste-range{width:100%; accent-color:var(--accent); margin:0; height:28px}
 #tasteField.taste-unset .taste-range{accent-color:var(--ink-3); opacity:.5}
+.taste-z{margin-top:10px; padding-top:8px; border-top:1px dashed var(--hairline)}
+.taste-z-label{font-size:12px; font-weight:800; color:var(--ink-2)}
+.taste-z-label small{font-weight:700; color:var(--ink-3); margin-left:4px; font-size:10.5px}
+.taste-z .taste-row{grid-template-columns:58px 1fr 58px}
+#tasteZ.z-unset .taste-range{accent-color:var(--ink-3); opacity:.5}
+.map-view{display:flex; gap:6px; margin-bottom:10px}
+.map-view button{flex:1; border:1.5px solid var(--hairline); background:var(--surface-raised); color:var(--ink-2); font-family:inherit; font-size:12.5px; font-weight:800; padding:8px 6px; border-radius:var(--r-pill); cursor:pointer}
+.map-view button.active{background:var(--accent); color:var(--on-accent); border-color:var(--accent)}
 .taste-clear{border:0; background:none; padding:2px 0; color:var(--ink-3); font-weight:700; font-size:11.5px; font-family:inherit; cursor:pointer; text-decoration:underline}
 #tasteMapWrap{margin-top:12px}
 #tasteMapSvg{width:100%; height:auto; display:block; touch-action:manipulation}
@@ -379,6 +387,7 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
 
     <div class="card" id="cardTasteMap">
       <div class="card-head"><h2>味マップ</h2><span class="card-sub" id="tasteMapSub">点の大きさ＝評価</span></div>
+      <div class="map-view" id="tasteMapView"></div>
       <div class="filter-scroll" id="tasteMapFilter"></div>
       <div id="tasteMapWrap"></div>
       <div class="taste-info" id="tasteInfo"></div>
@@ -453,6 +462,11 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
         <label>味(任意)</label>
         <div class="taste-row"><span>甘口</span><input type="range" class="taste-range" id="fTasteX" min="0" max="100" step="5" value="50" aria-label="甘口から辛口"><span>辛口</span></div>
         <div class="taste-row"><span>軽い</span><input type="range" class="taste-range" id="fTasteY" min="0" max="100" step="5" value="50" aria-label="軽いから重い"><span>重い</span></div>
+        <div class="taste-z" id="tasteZ">
+          <div class="taste-z-label">口当たり<small>(酸味・苦味・渋み・キレの強さ)</small></div>
+          <div class="taste-row"><span>まろやか</span><input type="range" class="taste-range" id="fTasteZ" min="0" max="100" step="5" value="50" aria-label="まろやかからシャープ"><span>シャープ</span></div>
+          <button type="button" class="taste-clear" id="tasteZClearBtn" hidden>口当たりを未設定に戻す</button>
+        </div>
         <details class="taste-guide" id="tasteGuide">
           <summary>目安から選ぶ(言葉・タイプ)</summary>
           <div class="tg-body">
@@ -1151,6 +1165,13 @@ var TASTE_BODY = [
   [/淡麗/,20,1],[/ライトボディ|軽快|軽め|軽やか|ライト(?!ス)/,24,1],[/すっきり|スッキリ|さっぱり|爽快|爽やか|クリア/,34,.5],[/ミディアム|中程度|バランス(?:の|が|よ)/,50,1],
   [/フルボディ|濃醇|濃厚|重厚|リッチ|骨太|力強|ボリューム/,84,1],[/コク|しっかり|厚み|どっしり|深み|濃い/,72,.5],[/芳醇/,68,.5]
 ];
+var TASTE_SHARP = [
+  [/シャープ|キレッキレ|キレ味|切れ味|キレ(?:の|が|よ|良|あ)|キリッ|きりっ|引き締まっ|引き締まる/,82,1],
+  [/酸味|酸が|爽快|爽やか|フレッシュ|はつらつ|苦味|苦み|ほろ苦|ビター|渋み|タンニン/,68,.5]
+];
+var TASTE_MELLOW = [
+  [/まろやか|なめらか|滑らか|やわらか|柔らか|丸み|ふくよか|クリーミー|やさしい|優しい|とろ/,22,1]
+];
 var TASTE_WORDS = [
   ["香り",["フルーティ","華やか","芳醇","吟醸香","青リンゴ","バナナ","メロン","白桃","桃","柑橘","レモン","ライム","グレープフルーツ","オレンジ","フローラル","花の香","ハーブ","バニラ","スモーキー","樽","ナッツ","カラメル","黒糖","ベリー","チェリー","カシス","ミネラル","トロピカル","パイナップル","マスカット","洋梨","リンゴ"]],
   ["口当たり",["まろやか","なめらか","滑らか","シャープ","キレ","すっきり","さっぱり","爽快","爽やか","軽快","ジューシー","クリーミー","しっかり","コク","余韻","スパイシー","のど越し","フレッシュ"]],
@@ -1159,7 +1180,7 @@ var TASTE_WORDS = [
 function tasteFromText(text){
   if(!text) return null;
   var s = String(text).normalize("NFKC").replace(/[−‒–—ー－]/g, function(c){ return c==="ー" ? c : "-"; });
-  var sumX=0, wX=0, sumY=0, wY=0, ev=[];
+  var sumX=0, wX=0, sumY=0, wY=0, sumZ=0, wZ=0, ev=[];
   /* 日本酒度(+は辛口・-は甘口) */
   var nm = /日本酒度\s*[:：]?\s*(?:約)?\s*([+\-▲△]?)\s*(\d{1,2}(?:\.\d+)?)/.exec(s);
   if(nm){
@@ -1175,6 +1196,10 @@ function tasteFromText(text){
   TASTE_BODY.forEach(function(r){
     var m = r[0].exec(used); if(m){ sumY += r[1]*r[2]; wY += r[2]; ev.push(m[0]); used = used.replace(m[0], "　"); }
   });
+  used = s;
+  TASTE_SHARP.concat(TASTE_MELLOW).forEach(function(r){
+    var m = r[0].exec(used); if(m){ sumZ += r[1]*r[2]; wZ += r[2]; used = used.replace(m[0], "　"); }
+  });
   var groups = [], total = 0;
   TASTE_WORDS.forEach(function(g){
     var found = [];
@@ -1183,8 +1208,9 @@ function tasteFromText(text){
     });
     if(found.length){ groups.push({label:g[0], words:found.slice(0,6)}); total += found.length; }
   });
-  if(!groups.length && !wX && !wY) return null;
-  return { x: wX ? Math.round((50 + (sumX/wX-50)*Math.min(1,wX))/5)*5 : null, y: wY ? Math.round((50 + (sumY/wY-50)*Math.min(1,wY))/5)*5 : null, groups: groups, ev: ev };
+  if(!groups.length && !wX && !wY && !wZ) return null;
+  return { x: wX ? Math.round((50 + (sumX/wX-50)*Math.min(1,wX))/5)*5 : null, y: wY ? Math.round((50 + (sumY/wY-50)*Math.min(1,wY))/5)*5 : null,
+           z: wZ ? Math.round((50 + (sumZ/wZ-50)*Math.min(1,wZ))/5)*5 : null, groups: groups, ev: ev };
 }
 function pickTasteFor(item, catId, others){
   var t = tasteFromText((item.catchcopy||"")+" "+(item.itemName||"")+" "+(item.itemCaption||""));
@@ -1335,14 +1361,14 @@ function autoFillTaste(it, catId, cands){
   if(tasteSet && f.dataset.auto !== "1") return;
   var t = null;
   try{ t = pickTasteFor(it, catId, cands); }catch(err){ t = null; }
-  if(!t || (t.x===null && t.y===null)){
+  if(!t || (t.x===null && t.y===null && t.z===null)){
     if(f.dataset.auto === "1"){ setTasteUI(null); }
     return;
   }
-  var x = t.x!==null ? t.x : 50, y = t.y!==null ? t.y : 50;
-  setTasteUI({ x:x, y:y });
+  var x = t.x!==null ? t.x : 50, y = t.y!==null ? t.y : 50, z = (typeof t.z==="number") ? t.z : undefined;
+  setTasteUI({ x:x, y:y, z:z });
   f.dataset.auto = "1";
-  document.getElementById("tasteHint").textContent = tasteWord(x, y) + "(商品説明からの予想。違う場合はスライダーで調整)";
+  document.getElementById("tasteHint").textContent = tasteWord(x, y, z) + "(商品説明からの予想。違う場合はスライダーで調整)";
 }
 /* 選んだ商品の情報から度数を自動入力(入力済みの値は上書きしない) */
 function autoFillAbv(it, catId, cands){
@@ -1542,7 +1568,7 @@ document.getElementById("addForm").addEventListener("submit", function(e){
     rating: selectedRating,
     abv: abvVal===""? null : Number(abvVal),
     origin: document.getElementById("fOrigin").value.trim(),
-    taste: tasteSet ? { x:Number(document.getElementById("fTasteX").value), y:Number(document.getElementById("fTasteY").value) } : null,
+    taste: tasteSet ? { x:Number(document.getElementById("fTasteX").value), y:Number(document.getElementById("fTasteY").value), z: tasteZSet ? Number(document.getElementById("fTasteZ").value) : null } : null,
     detail: detail,
     photo: pendingPhoto,
     image: pendingImage || null,
@@ -1568,30 +1594,42 @@ document.getElementById("addForm").addEventListener("submit", function(e){
 });
 
 /* ---------- 味マップ ---------- */
-var tasteSet = false;
+var tasteSet = false, tasteZSet = false;
+function setTasteZUI(on){
+  tasteZSet = !!on;
+  document.getElementById("tasteZ").classList.toggle("z-unset", !tasteZSet);
+  document.getElementById("tasteZClearBtn").hidden = !tasteZSet;
+}
 function setTasteUI(t){
-  var fx = document.getElementById("fTasteX"), fy = document.getElementById("fTasteY");
+  var fx = document.getElementById("fTasteX"), fy = document.getElementById("fTasteY"), fz = document.getElementById("fTasteZ");
   var f = document.getElementById("tasteField");
   f.dataset.auto = "";
   tasteSet = !!(t && typeof t.x==="number" && typeof t.y==="number");
   fx.value = tasteSet ? t.x : 50; fy.value = tasteSet ? t.y : 50;
+  var hasZ = tasteSet && typeof t.z==="number";
+  fz.value = hasZ ? t.z : 50;
+  setTasteZUI(hasZ);
   f.classList.toggle("taste-unset", !tasteSet);
   document.getElementById("tasteClearBtn").hidden = !tasteSet;
   updateTasteHint();
 }
-function tasteWord(x, y){
+function sharpWord(z){
+  return z<20?"まろやか":z<40?"ややまろやか":z<=60?"口当たり中間":z<=80?"ややシャープ":"シャープ";
+}
+function tasteWord(x, y, z){
   var a = x<20?"甘口":x<40?"やや甘口":x<=60?"中間":x<=80?"やや辛口":"辛口";
   var b = y<20?"軽い":y<40?"やや軽め":y<=60?"ふつう":y<=80?"やや重め":"重い";
-  return a+" × "+b;
+  return a+" × "+b+(typeof z==="number" ? " × "+sharpWord(z) : "");
 }
 function updateTasteHint(){
   var h = document.getElementById("tasteHint");
   if(!tasteSet){ h.textContent = "スライダーを動かすと、ホームの「味マップ」に載ります"; return; }
-  h.textContent = tasteWord(Number(document.getElementById("fTasteX").value), Number(document.getElementById("fTasteY").value));
+  h.textContent = tasteWord(Number(document.getElementById("fTasteX").value), Number(document.getElementById("fTasteY").value), tasteZSet ? Number(document.getElementById("fTasteZ").value) : undefined);
 }
-["fTasteX","fTasteY"].forEach(function(id){
+["fTasteX","fTasteY","fTasteZ"].forEach(function(id){
   document.getElementById(id).addEventListener("input", function(){
     tasteSet = true;
+    if(id==="fTasteZ") setTasteZUI(true);
     document.getElementById("tasteField").classList.remove("taste-unset");
     document.getElementById("tasteClearBtn").hidden = false;
     document.querySelectorAll("#tasteGuide .tg-chip.on").forEach(function(x){ x.classList.remove("on"); });
@@ -1600,28 +1638,30 @@ function updateTasteHint(){
   });
 });
 document.getElementById("tasteClearBtn").addEventListener("click", function(){ setTasteUI(null); });
+document.getElementById("tasteZClearBtn").addEventListener("click", function(){ setTasteZUI(false); document.getElementById("fTasteZ").value = 50; updateTasteHint(); });
 
 /* ---- 味の目安(言葉・タイプ → スライダー位置) ---- */
 var GUIDE_WORDS = [
   {l:"甘口", x:15}, {l:"やや甘口", x:30}, {l:"やや辛口", x:70}, {l:"辛口・ドライ", x:85},
   {l:"淡麗・ライト", y:15}, {l:"すっきり", y:25}, {l:"ミディアム", y:50}, {l:"濃醇", y:80}, {l:"フルボディ", y:90},
-  {l:"淡麗辛口", x:85, y:15}, {l:"濃醇甘口", x:15, y:85}
+  {l:"シャープ・キレ", z:85}, {l:"酸味・苦味が立つ", z:75}, {l:"まろやか", z:15}, {l:"なめらか", z:25},
+  {l:"淡麗辛口", x:85, y:15, z:80}, {l:"濃醇甘口", x:15, y:85, z:20}
 ];
 var GUIDE_TYPES = {
-  beer:[{l:"ラガー",x:70,y:15},{l:"ヴァイツェン",x:35,y:40},{l:"ペールエール",x:65,y:45},{l:"IPA",x:70,y:70},{l:"スタウト",x:65,y:85}],
-  sake:[{l:"純米大吟醸",x:40,y:30},{l:"純米吟醸",x:45,y:35},{l:"本醸造",x:65,y:40},{l:"純米酒",x:60,y:55},{l:"にごり",x:20,y:60}],
-  shochu:[{l:"麦",x:70,y:25},{l:"米",x:45,y:40},{l:"黒糖",x:30,y:55},{l:"芋",x:50,y:70},{l:"泡盛",x:55,y:80}],
-  wine:[{l:"ソーヴィニヨン・ブラン",x:85,y:15},{l:"リースリング",x:35,y:30},{l:"ピノ・ノワール",x:70,y:40},{l:"シャルドネ",x:60,y:65},{l:"メルロー",x:70,y:65},{l:"シラー",x:85,y:85},{l:"カベルネ",x:85,y:90}]
+  beer:[{l:"ラガー",x:70,y:15,z:80},{l:"ヴァイツェン",x:35,y:40,z:30},{l:"ペールエール",x:65,y:45,z:60},{l:"IPA",x:70,y:70,z:85},{l:"スタウト",x:65,y:85,z:60}],
+  sake:[{l:"純米大吟醸",x:40,y:30,z:40},{l:"純米吟醸",x:45,y:35,z:45},{l:"本醸造",x:65,y:40,z:70},{l:"純米酒",x:60,y:55,z:35},{l:"にごり",x:20,y:60,z:25}],
+  shochu:[{l:"麦",x:70,y:25,z:65},{l:"米",x:45,y:40,z:35},{l:"黒糖",x:30,y:55,z:25},{l:"芋",x:50,y:70,z:40},{l:"泡盛",x:55,y:80,z:50}],
+  wine:[{l:"ソーヴィニヨン・ブラン",x:85,y:15,z:90},{l:"リースリング",x:35,y:30,z:75},{l:"ピノ・ノワール",x:70,y:40,z:55},{l:"シャルドネ",x:60,y:65,z:45},{l:"メルロー",x:70,y:65,z:30},{l:"シラー",x:85,y:85,z:55},{l:"カベルネ",x:85,y:90,z:65}]
 };
-function tgWord(x, y){
+function tgWord(t){
   var parts = [];
-  if(typeof x==="number") parts.push(tasteWord(x, 50).split(" × ")[0]);
-  if(typeof y==="number") parts.push(tasteWord(50, y).split(" × ")[1]);
+  if(typeof t.x==="number") parts.push(tasteWord(t.x, 50).split(" × ")[0]);
+  if(typeof t.y==="number") parts.push(tasteWord(50, t.y).split(" × ")[1]);
+  if(typeof t.z==="number") parts.push(sharpWord(t.z));
   return parts.join("・");
 }
 function tgChipHtml(t, i, kind){
-  var sub = (typeof t.x==="number" && typeof t.y==="number") ? tgWord(t.x,t.y) : (typeof t.x==="number" ? tasteWord(t.x,50).split(" × ")[0] : tasteWord(50,t.y).split(" × ")[1]);
-  return '<button type="button" class="tg-chip" data-kind="'+kind+'" data-i="'+i+'">'+escHtml(t.l)+'<small>'+escHtml(sub)+'</small></button>';
+  return '<button type="button" class="tg-chip" data-kind="'+kind+'" data-i="'+i+'">'+escHtml(t.l)+'<small>'+escHtml(tgWord(t))+'</small></button>';
 }
 function renderTastePresets(){
   var w = document.getElementById("tgWords"); if(!w) return;
@@ -1634,6 +1674,7 @@ function applyTastePreset(t){
   var fx = document.getElementById("fTasteX"), fy = document.getElementById("fTasteY");
   if(typeof t.x==="number") fx.value = t.x;
   if(typeof t.y==="number") fy.value = t.y;
+  if(typeof t.z==="number"){ document.getElementById("fTasteZ").value = t.z; setTasteZUI(true); }
   tasteSet = true;
   document.getElementById("tasteField").dataset.auto = "";
   document.getElementById("tasteField").classList.remove("taste-unset");
@@ -1651,34 +1692,42 @@ document.getElementById("tasteGuide").addEventListener("click", function(e){
 });
 
 
-var uiMapFilter = "all", uiMapSel = null;
+var uiMapFilter = "all", uiMapSel = null, uiMapView = "sweet";
 function renderTasteMap(){
   var chipsEl = document.getElementById("tasteMapFilter");
   var chips = [{id:"all", label:"すべて", icon:ICONS.all}].concat(CATEGORIES.map(function(c){ return {id:c.id, label:c.label, icon:c.icon}; }));
   chipsEl.innerHTML = chips.map(function(c){
     return '<button type="button" class="filter-chip'+(uiMapFilter===c.id?" active":"")+'" data-id="'+c.id+'">'+c.icon+' '+c.label+'</button>';
   }).join("");
+  var viewEl = document.getElementById("tasteMapView");
+  viewEl.innerHTML = [["sweet","甘辛 × 重さ"],["sharp","シャープ × 重さ"]].map(function(v){
+    return '<button type="button" class="'+(uiMapView===v[0]?"active":"")+'" data-v="'+v[0]+'">'+v[1]+'</button>';
+  }).join("");
+  var sharpView = (uiMapView==="sharp");
+  var axisKey = sharpView ? "z" : "x";
   var wrap = document.getElementById("tasteMapWrap"), info = document.getElementById("tasteInfo");
-  var all = state.records.filter(function(r){ return r.taste && typeof r.taste.x==="number" && typeof r.taste.y==="number"; });
+  var all = state.records.filter(function(r){ return r.taste && typeof r.taste[axisKey]==="number" && typeof r.taste.y==="number"; });
   var pts = all.filter(function(r){ return uiMapFilter==="all" || r.category===uiMapFilter; });
   document.getElementById("tasteMapSub").textContent = all.length ? ("点の大きさ＝評価 ・ "+pts.length+"件") : "点の大きさ＝評価";
   if(all.length===0){
-    wrap.innerHTML = emptyStateHtml(ICONS.chart,"味の記録がまだありません","記録の追加で「味」のスライダーを動かすと、ここに地図ができます");
+    wrap.innerHTML = sharpView
+      ? emptyStateHtml(ICONS.chart,"「シャープ↔まろやか」の記録がまだありません","記録の「味」で「口当たり」も入力すると、ここに地図ができます")
+      : emptyStateHtml(ICONS.chart,"味の記録がまだありません","記録の追加で「味」のスライダーを動かすと、ここに地図ができます");
     info.textContent = ""; return;
   }
   var L=36, T=12, W=270, H=250, B=T+H, R=L+W;
-  var s = '<svg id="tasteMapSvg" viewBox="0 0 320 292" role="img" aria-label="味マップ(横:甘口から辛口、縦:軽いから重い)">'
+  var s = '<svg id="tasteMapSvg" viewBox="0 0 320 292" role="img" aria-label="'+(sharpView?"味マップ(横:まろやかからシャープ、縦:軽いから重い)":"味マップ(横:甘口から辛口、縦:軽いから重い)")+'">'
     + '<rect class="tm-frame" x="'+L+'" y="'+T+'" width="'+W+'" height="'+H+'" rx="8"/>'
     + '<line class="tm-grid" x1="'+(L+W/2)+'" y1="'+T+'" x2="'+(L+W/2)+'" y2="'+B+'" stroke-dasharray="3 4"/>'
     + '<line class="tm-grid" x1="'+L+'" y1="'+(T+H/2)+'" x2="'+R+'" y2="'+(T+H/2)+'" stroke-dasharray="3 4"/>'
-    + '<text x="'+L+'" y="'+(B+16)+'" text-anchor="start">甘口</text>'
-    + '<text x="'+R+'" y="'+(B+16)+'" text-anchor="end">辛口</text>'
-    + '<text x="'+(L+W/2)+'" y="'+(B+16)+'" text-anchor="middle">甘さ・辛さ</text>'
+    + '<text x="'+L+'" y="'+(B+16)+'" text-anchor="start">'+(sharpView?"まろやか":"甘口")+'</text>'
+    + '<text x="'+R+'" y="'+(B+16)+'" text-anchor="end">'+(sharpView?"シャープ":"辛口")+'</text>'
+    + '<text x="'+(L+W/2)+'" y="'+(B+16)+'" text-anchor="middle">'+(sharpView?"口当たり":"甘さ・辛さ")+'</text>'
     + '<text x="'+(L-6)+'" y="'+(T+10)+'" text-anchor="end">重い</text>'
     + '<text x="'+(L-6)+'" y="'+(B-2)+'" text-anchor="end">軽い</text>';
   pts.slice().sort(function(a,b){ return (a.rating||0)-(b.rating||0); }).forEach(function(r){
     var cat = CAT_BY_ID[r.category] || CATEGORIES[0];
-    var cx = L + r.taste.x/100*W, cy = T + (100-r.taste.y)/100*H, rad = 4 + (r.rating||3)*0.9;
+    var cx = L + r.taste[axisKey]/100*W, cy = T + (100-r.taste.y)/100*H, rad = 4 + (r.rating||3)*0.9;
     var sel = (uiMapSel===r.id);
     s += '<g class="tm-dot" data-id="'+r.id+'">'
       + '<circle cx="'+cx+'" cy="'+cy+'" r="16" fill="transparent"/>'
@@ -1694,11 +1743,15 @@ function renderTasteMap(){
     var sc = CAT_BY_ID[sr.category] || CATEGORIES[0];
     info.innerHTML = '<b>'+escHtml(displayName(sr.name))+'</b> <span style="color:var('+sc.c+');font-weight:800">'+sc.label+'</span><br>'
       + (sr.origin? '<br><span class="origin-pill">'+ICONS.pin+escHtml(sr.origin)+'</span>' : '')
-      + '<br>'+starsStr(sr.rating)+' ・ '+tasteWord(sr.taste.x, sr.taste.y);
+      + '<br>'+starsStr(sr.rating)+' ・ '+tasteWord(sr.taste.x, sr.taste.y, sr.taste.z);
   } else {
     info.textContent = pts.length ? "点をタップすると銘柄が表示されます" : "このカテゴリーに味の記録はありません";
   }
 }
+document.getElementById("tasteMapView").addEventListener("click", function(e){
+  var b = e.target.closest("button"); if(!b) return;
+  uiMapView = b.dataset.v; uiMapSel = null; renderTasteMap();
+});
 document.getElementById("tasteMapFilter").addEventListener("click", function(e){
   var b = e.target.closest(".filter-chip"); if(!b) return;
   uiMapFilter = b.dataset.id; uiMapSel = null; renderTasteMap();
@@ -1712,10 +1765,11 @@ document.getElementById("tasteMapWrap").addEventListener("click", function(e){
 var SCAN_LIB_URL = "https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js";
 var scanner = null, scanBusy = false, scanState = null;
 
-function tasteAxisText(x, y){
+function tasteAxisText(x, y, z){
   var parts = [];
   if(x!==null && x!==undefined) parts.push(x<20?"甘口":x<40?"やや甘口":x<=60?"甘辛は中間":x<=80?"やや辛口":"辛口");
   if(y!==null && y!==undefined) parts.push(y<20?"軽い":y<40?"やや軽め":y<=60?"ボディはふつう":y<=80?"やや重め":"重い");
+  if(z!==null && z!==undefined) parts.push(sharpWord(z));
   return parts.join(" × ");
 }
 function isValidJan(code){
@@ -1942,7 +1996,7 @@ function renderScanResult(jan, item, cands){
   try{ taste = pickTasteFor(item, cat, cands); }catch(e){}
   var est = null;
   if(taste && (taste.x!==null || taste.y!==null)){
-    est = { x: taste.x!==null ? taste.x : 50, y: taste.y!==null ? taste.y : 50 };
+    est = { x: taste.x!==null ? taste.x : 50, y: taste.y!==null ? taste.y : 50, z: (typeof taste.z=="number") ? taste.z : undefined };
   }
   scanState = { jan:jan, cat:cat, name:name, abv:abv, origin:origin, est:est, image:itemImage(item) };
   var imgs = item.mediumImageUrls || []; var img = imgs[0] || "";
@@ -1958,8 +2012,8 @@ function renderScanResult(jan, item, cands){
     + '<div class="scan-jan">JAN '+escHtml(jan)+'</div></div></div>';
   h += '<div class="scan-taste"><h3>味の目安</h3>';
   if(taste){
-    if(est){
-      h += '<p class="scan-taste-sum">'+escHtml(tasteAxisText(taste.x, taste.y))+'<small>(予想)</small></p>';
+    if(est || typeof taste.z==="number"){
+      h += '<p class="scan-taste-sum">'+escHtml(tasteAxisText(taste.x, taste.y, taste.z))+'<small>(予想)</small></p>';
     }
     h += (taste.groups||[]).map(function(g){
       return '<div class="scan-taste-row"><span class="scan-taste-lbl">'+g.label+'</span>'
@@ -1990,8 +2044,8 @@ function useScanResult(){
   var orEl = document.getElementById("fOrigin");
   if(st.origin){ orEl.value = st.origin; orEl.dataset.auto = "1"; var oh = document.getElementById("originHint"); oh.textContent = "バーコードの商品情報から入力しました。違う場合は修正してください"; oh.hidden = false; }
   if(st.est){
-    setTasteUI({ x:st.est.x, y:st.est.y });
-    document.getElementById("tasteHint").textContent = tasteWord(st.est.x, st.est.y) + "(商品説明からの予想。違う場合はスライダーで調整)";
+    setTasteUI({ x:st.est.x, y:st.est.y, z:st.est.z });
+    document.getElementById("tasteHint").textContent = tasteWord(st.est.x, st.est.y, st.est.z) + "(商品説明からの予想。違う場合はスライダーで調整)";
   }
   if(st.image){ pendingImage = st.image; updatePhotoPreview(); }
   switchTab("add");
@@ -2088,7 +2142,7 @@ function renderHistory(){
     var cat = CAT_BY_ID[r.category] || CATEGORIES[0];
     var metaParts = [];
     if(r.abv!=null) metaParts.push("度数 "+r.abv+"%");
-    if(r.taste && typeof r.taste.x==="number") metaParts.push("味 "+tasteWord(r.taste.x, r.taste.y));
+    if(r.taste && typeof r.taste.x==="number") metaParts.push("味 "+tasteWord(r.taste.x, r.taste.y, r.taste.z));
     var detailParts = Object.keys(r.detail||{}).map(function(k){ return r.detail[k]; }).filter(Boolean);
     var metaLine = detailParts.concat(metaParts).join(" ・ ");
     return '<div class="rec-card" style="--cat-c:var('+cat.c+'); --cat-soft:var('+cat.soft+')">'
@@ -2309,8 +2363,8 @@ document.getElementById("backfillCard").addEventListener("click", function(e){
   else if(id==="bfClose"){ bf.msg = ""; renderBackfill(); }
 });
 
-var KNOW_SECTIONS = [{"id": "k-all", "title": "4種類のちがい", "lead": "原料と作り方で、味の方向と度数が決まります。", "tables": [{"head": ["", "ビール", "日本酒", "焼酎", "ワイン"], "rows": [["原料", "麦芽・ホップ", "米・米麹", "芋・麦・米など", "ぶどう"], ["分類", "醸造酒", "醸造酒", "蒸留酒", "醸造酒"], ["度数(%)", "4〜7", "15〜16", "20〜25(乙類は最大45)", "11〜14"], ["味の主役", "苦味・コク", "旨み・甘辛・香り", "原料の香り・キレ", "酸味・渋み"]]}], "tips": ["醸造酒は発酵させただけ、蒸留酒は発酵後に蒸留して度数を上げたお酒です。"]}, {"id": "k-beer", "title": "ビール", "lead": "まず「ラガー」と「エール」を見分けます。違いは酵母と発酵温度です。", "tables": [{"head": ["種類", "特徴", "スタイル例"], "rows": [["ラガー(下面発酵)", "スッキリでキレがあり、冷やして飲むのが向く", "ピルスナー、ボック、ダークラガー"], ["エール(上面発酵)", "香りが豊かで、苦味やコクが個性的", "ペールエール、IPA、スタウト、ヴァイツェン"]]}], "tips": ["IPAはホップの苦味と柑橘の香りが強め。苦手な人は少量から。", "スタウトは焼いた麦芽で黒く、コーヒーやチョコの香り。色の濃さと苦味の強さは一致しません。", "食事中ならラガー、味をじっくり楽しむならエール。", "ラベルのIBUは苦味の目安で、大きいほど苦い傾向です。"]}, {"id": "k-sake", "title": "日本酒", "lead": "名前は「米の磨き具合(精米歩合)」と「醸造アルコールの有無」で決まります。", "tables": [{"head": ["名称", "精米歩合", "酒精添加", "味の傾向"], "rows": [["純米大吟醸", "50%以下", "なし", "華やかな香りとなめらかさ"], ["大吟醸", "50%以下", "あり", "香り高く、軽快でスッキリ"], ["純米吟醸", "60%以下", "なし", "果実のような香りとやわらかい旨み"], ["吟醸", "60%以下", "あり", "香りが立ち、細身で軽やか"], ["純米酒", "規定なし", "なし", "米のコクと旨み。燗にも合う"], ["本醸造", "70%以下", "あり", "すっきりしてキレがよい"]]}], "tips": ["精米歩合は数字が小さいほどよく磨いています。", "日本酒度はプラスが辛口、マイナスが甘口の目安(約-3以下が甘口、+3以上が辛口)。酸度でも感じ方が変わります。", "生酒は加熱なしでフレッシュ(要冷蔵)、原酒は加水なしで度数高め、にごりは米の粒が残った甘さ、古酒は熟成でコクと香り。", "初めてなら純米吟醸、食事に合わせるなら純米酒や本醸造、デザート感覚なら純米大吟醸。"]}, {"id": "k-shochu", "title": "焼酎", "lead": "甲類と乙類は別物です。個性を楽しむなら乙類(本格焼酎)を選びます。", "tables": [{"head": ["種類", "蒸留", "度数", "特徴"], "rows": [["甲類", "連続式", "36%未満", "クセが少なく、チューハイのベース向き"], ["乙類(本格)", "単式", "45%以下", "原料の香りと旨みが残り、個性が強い"]]}, {"head": ["原料", "味の傾向", "合う飲み方"], "rows": [["芋", "甘い香りとコク。華やかなものもある", "お湯割り、ロック"], ["麦", "香ばしくてスッキリ。初心者向け", "水割り、ソーダ割り"], ["米", "やさしい甘みとフルーティーな香り", "ロック、水割り"], ["黒糖", "やわらかな甘い香り(奄美群島のみ)", "ロック、ソーダ割り"], ["泡盛", "沖縄の黒麹の酒。長期熟成の古酒はまろやか", "ロック、水割り"]]}], "tips": ["初めてなら、ソーダ割りや水割りが飲みやすいです。", "お湯割りは先にお湯を注いでから焼酎を加えると混ざりやすくなります。"]}, {"id": "k-wine", "title": "ワイン", "lead": "色とぶどう品種を見れば、味の方向が予想できます。", "tables": [{"head": ["タイプ", "作り方", "味の傾向"], "rows": [["赤", "黒ぶどうを皮ごと発酵", "渋み(タンニン)とコクがあり、重いものも多い"], ["白", "皮を除いて果汁を発酵", "酸味と果実感が主役でスッキリ"], ["ロゼ", "黒ぶどうを短時間だけ皮と一緒に発酵", "赤と白の中間。軽やか"], ["スパークリング", "炭酸ガスを含む", "泡が立ち、キレがある"]]}, {"head": ["品種", "色", "特徴", "産地の例"], "rows": [["カベルネ・ソーヴィニヨン", "赤", "渋みが強くフルボディ", "ボルドー、ナパ、チリ"], ["メルロー", "赤", "渋みがやわらかくまろやか", "ボルドー、日本"], ["ピノ・ノワール", "赤", "渋みが少なく繊細", "ブルゴーニュ、オレゴン"], ["シラー", "赤", "スパイシーで力強い", "ローヌ、オーストラリア"], ["シャルドネ", "白", "コクがあり、樽でバターの香り", "ブルゴーニュ、カリフォルニア"], ["ソーヴィニヨン・ブラン", "白", "酸味がシャープでハーブの香り", "ロワール、ニュージーランド"], ["リースリング", "白", "酸味と甘みのバランス", "ドイツ、アルザス"], ["甲州", "白", "やさしい果実味で和食に合う", "山梨県"]]}], "tips": ["初めてなら、軽めの白(ソーヴィニヨン・ブランや甲州)か、渋みの少ない赤(ピノ・ノワール)。", "「辛口」は甘さが少ないこと、「フルボディ」は重厚で渋いこと。", "フランスなど旧世界は産地名、アメリカやチリなど新世界は品種名で表示することが多いです。"]}, {"id": "k-drink", "title": "飲み方・相性・保存", "lead": "温度を変えるだけで、同じお酒の幅が広がります。", "tables": [{"head": ["お酒", "目安の温度", "ポイント"], "rows": [["ビール(ラガー)", "4〜8℃", "冷やしすぎると香りが感じにくい"], ["ビール(エール)", "8〜12℃", "やや高めで香りが開く"], ["日本酒(吟醸・生酒)", "5〜10℃", "果実の香りを活かす"], ["日本酒(純米・本醸造)", "常温〜ぬる燗(40〜45℃)", "旨みが増して甘く感じる"], ["焼酎", "お湯割り(約60℃)/ロック", "芋はお湯割りで香りが立つ"], ["白・ロゼワイン", "8〜12℃", "冷やしすぎない方が果実味が出る"], ["赤ワイン", "15〜18℃", "室温より少し低めで渋みが落ち着く"], ["スパークリング", "5〜8℃", "しっかり冷やすと泡が細かい"]]}, {"head": ["料理", "合わせやすいお酒"], "rows": [["揚げ物・肉料理", "ラガービール、ハイボール、赤ワイン"], ["刺身・白身魚", "純米吟醸、辛口の白ワイン"], ["焼き鳥・甘辛いタレ", "ラガービール、純米酒の燗"], ["チーズ", "赤ワイン、ロゼ、純米酒"], ["魚介のクセがある料理", "焼酎のソーダ割り、辛口の日本酒"], ["デザート", "甘口スパークリング、スタウト"]]}, {"head": ["お酒", "約20gになる量"], "rows": [["ビール(5%)", "500ml(中ジョッキ1杯)"], ["日本酒(15%)", "180ml(1合)"], ["ワイン(12%)", "200ml(グラス1〜2杯)"], ["焼酎(25%)", "100ml(お湯割り約2杯分)"]]}], "tips": ["ビールは薄手のグラスで泡をしっかり作るとキレが続きます。吟醸系の日本酒はワイングラスだと香りを感じやすくなります。", "保存は直射日光を避けて温度変化の少ない場所に。生酒・吟醸系は冷蔵庫で、開けたら早めに。ワインは開けたら冷蔵して数日以内に。焼酎は常温で長持ちします。", "生活習慣病のリスクを高める飲酒量は、1日あたり純アルコールで男性40g以上、女性20g以上が目安(厚生労働省)。水をこまめに飲み、休肝日を取りましょう。体調が悪い時や薬の服用中は避け、妊娠中・授乳中は飲まないでください。"]}];
-var KNOW_GLOSSARY = [["キレ", "飲み込んだあとに味がすっと消えること", "ビール・日本酒"], ["コク", "味の厚みと、余韻の長さ", "全般"], ["ボディ", "飲んだ時の重さ。ライト・ミディアム・フル", "ワイン"], ["ドライ・辛口", "甘さが少ない", "全般"], ["淡麗", "すっきりと軽い味わい", "日本酒"], ["濃醇", "味が濃厚でコクがある", "日本酒"], ["日本酒度", "甘辛の目安。プラスが辛口、マイナスが甘口", "日本酒"], ["精米歩合", "米を削って残った割合。小さいほどよく磨いている", "日本酒"], ["酸度", "酸味の目安。高いとキレがよく感じる", "日本酒"], ["吟醸香", "果実や花のような華やかな香り", "日本酒"], ["生酒", "加熱(火入れ)をしていない酒。フレッシュで要冷蔵", "日本酒"], ["原酒", "水を加えずに詰めた酒。度数が高め", "日本酒"], ["古酒・時空酒", "長期熟成した酒。色が濃くコクがある", "日本酒・焼酎"], ["本格焼酎", "乙類焼酎。単式蒸留で原料の風味が残る", "焼酎"], ["常圧・減圧蒸留", "常圧は香りとコクが強く、減圧は軽やかで飲みやすい", "焼酎"], ["黒麹・白麹", "焼酎の麹の種類。黒は力強く、白はやわらかい", "焼酎"], ["タンニン(渋み)", "赤ワインの、口がきゅっとする渋さ", "ワイン"], ["ヴィンテージ", "ぶどうを収穫した年", "ワイン"], ["テロワール", "土地や気候など、産地がもたらす個性", "ワイン"], ["ミネラル感", "石や海を思わせる引き締まった味", "白ワイン"], ["IBU", "ビールの苦味の指標。大きいほど苦い傾向", "ビール"], ["ホップ", "ビールの苦味と香りの元になる植物", "ビール"], ["発泡酒・新ジャンル", "麦芽の使用割合が低いか、使っていないビール風飲料", "ビール系"]];
+var KNOW_SECTIONS = [{"id": "k-all", "title": "4種類のちがい", "lead": "原料と作り方で、味の方向と度数が決まります。", "tables": [{"head": ["", "ビール", "日本酒", "焼酎", "ワイン"], "rows": [["原料", "麦芽・ホップ", "米・米麹", "芋・麦・米など", "ぶどう"], ["分類", "醸造酒", "醸造酒", "蒸留酒", "醸造酒"], ["度数(%)", "4〜7", "15〜16", "20〜25(乙類は最大45)", "11〜14"], ["味の主役", "苦味・コク", "旨み・甘辛・香り", "原料の香り・キレ", "酸味・渋み"]]}], "tips": ["醸造酒は発酵させただけ、蒸留酒は発酵後に蒸留して度数を上げたお酒です。", "味は「甘辛」「重さ」に加え、「シャープ(酸・苦・渋・キレ)↔まろやか」の3つで表すと違いが見えやすくなります。"]}, {"id": "k-beer", "title": "ビール", "lead": "まず「ラガー」と「エール」を見分けます。違いは酵母と発酵温度です。", "tables": [{"head": ["種類", "特徴", "スタイル例"], "rows": [["ラガー(下面発酵)", "スッキリでキレがあり、冷やして飲むのが向く", "ピルスナー、ボック、ダークラガー"], ["エール(上面発酵)", "香りが豊かで、苦味やコクが個性的", "ペールエール、IPA、スタウト、ヴァイツェン"]]}], "tips": ["IPAはホップの苦味と柑橘の香りが強め。苦手な人は少量から。", "スタウトは焼いた麦芽で黒く、コーヒーやチョコの香り。色の濃さと苦味の強さは一致しません。", "食事中ならラガー、味をじっくり楽しむならエール。", "ラベルのIBUは苦味の目安で、大きいほど苦い傾向です。"]}, {"id": "k-sake", "title": "日本酒", "lead": "名前は「米の磨き具合(精米歩合)」と「醸造アルコールの有無」で決まります。", "tables": [{"head": ["名称", "精米歩合", "酒精添加", "味の傾向"], "rows": [["純米大吟醸", "50%以下", "なし", "華やかな香りとなめらかさ"], ["大吟醸", "50%以下", "あり", "香り高く、軽快でスッキリ"], ["純米吟醸", "60%以下", "なし", "果実のような香りとやわらかい旨み"], ["吟醸", "60%以下", "あり", "香りが立ち、細身で軽やか"], ["純米酒", "規定なし", "なし", "米のコクと旨み。燗にも合う"], ["本醸造", "70%以下", "あり", "すっきりしてキレがよい"]]}], "tips": ["精米歩合は数字が小さいほどよく磨いています。", "日本酒度はプラスが辛口、マイナスが甘口の目安(約-3以下が甘口、+3以上が辛口)。酸度でも感じ方が変わります。", "生酒は加熱なしでフレッシュ(要冷蔵)、原酒は加水なしで度数高め、にごりは米の粒が残った甘さ、古酒は熟成でコクと香り。", "初めてなら純米吟醸、食事に合わせるなら純米酒や本醸造、デザート感覚なら純米大吟醸。"]}, {"id": "k-shochu", "title": "焼酎", "lead": "甲類と乙類は別物です。個性を楽しむなら乙類(本格焼酎)を選びます。", "tables": [{"head": ["種類", "蒸留", "度数", "特徴"], "rows": [["甲類", "連続式", "36%未満", "クセが少なく、チューハイのベース向き"], ["乙類(本格)", "単式", "45%以下", "原料の香りと旨みが残り、個性が強い"]]}, {"head": ["原料", "味の傾向", "合う飲み方"], "rows": [["芋", "甘い香りとコク。華やかなものもある", "お湯割り、ロック"], ["麦", "香ばしくてスッキリ。初心者向け", "水割り、ソーダ割り"], ["米", "やさしい甘みとフルーティーな香り", "ロック、水割り"], ["黒糖", "やわらかな甘い香り(奄美群島のみ)", "ロック、ソーダ割り"], ["泡盛", "沖縄の黒麹の酒。長期熟成の古酒はまろやか", "ロック、水割り"]]}], "tips": ["初めてなら、ソーダ割りや水割りが飲みやすいです。", "お湯割りは先にお湯を注いでから焼酎を加えると混ざりやすくなります。"]}, {"id": "k-wine", "title": "ワイン", "lead": "色とぶどう品種を見れば、味の方向が予想できます。", "tables": [{"head": ["タイプ", "作り方", "味の傾向"], "rows": [["赤", "黒ぶどうを皮ごと発酵", "渋み(タンニン)とコクがあり、重いものも多い"], ["白", "皮を除いて果汁を発酵", "酸味と果実感が主役でスッキリ"], ["ロゼ", "黒ぶどうを短時間だけ皮と一緒に発酵", "赤と白の中間。軽やか"], ["スパークリング", "炭酸ガスを含む", "泡が立ち、キレがある"]]}, {"head": ["品種", "色", "特徴", "産地の例"], "rows": [["カベルネ・ソーヴィニヨン", "赤", "渋みが強くフルボディ", "ボルドー、ナパ、チリ"], ["メルロー", "赤", "渋みがやわらかくまろやか", "ボルドー、日本"], ["ピノ・ノワール", "赤", "渋みが少なく繊細", "ブルゴーニュ、オレゴン"], ["シラー", "赤", "スパイシーで力強い", "ローヌ、オーストラリア"], ["シャルドネ", "白", "コクがあり、樽でバターの香り", "ブルゴーニュ、カリフォルニア"], ["ソーヴィニヨン・ブラン", "白", "酸味がシャープでハーブの香り", "ロワール、ニュージーランド"], ["リースリング", "白", "酸味と甘みのバランス", "ドイツ、アルザス"], ["甲州", "白", "やさしい果実味で和食に合う", "山梨県"]]}], "tips": ["初めてなら、軽めの白(ソーヴィニヨン・ブランや甲州)か、渋みの少ない赤(ピノ・ノワール)。", "「辛口」は甘さが少ないこと、「フルボディ」は重厚で渋いこと。", "フランスなど旧世界は産地名、アメリカやチリなど新世界は品種名で表示することが多いです。"]}, {"id": "k-drink", "title": "飲み方・相性・保存", "lead": "温度を変えるだけで、同じお酒の幅が広がります。", "tables": [{"head": ["お酒", "目安の温度", "ポイント"], "rows": [["ビール(ラガー)", "4〜8℃", "冷やしすぎると香りが感じにくい"], ["ビール(エール)", "8〜12℃", "やや高めで香りが開く"], ["日本酒(吟醸・生酒)", "5〜10℃", "果実の香りを活かす"], ["日本酒(純米・本醸造)", "常温〜ぬる燗(40〜45℃)", "旨みが増して甘く感じる"], ["焼酎", "お湯割り(約60℃)/ロック", "芋はお湯割りで香りが立つ"], ["白・ロゼワイン", "8〜12℃", "冷やしすぎない方が果実味が出る"], ["赤ワイン", "15〜18℃", "室温より少し低めで渋みが落ち着く"], ["スパークリング", "5〜8℃", "しっかり冷やすと泡が細かい"]]}, {"head": ["料理", "合わせやすいお酒"], "rows": [["揚げ物・肉料理", "ラガービール、ハイボール、赤ワイン"], ["刺身・白身魚", "純米吟醸、辛口の白ワイン"], ["焼き鳥・甘辛いタレ", "ラガービール、純米酒の燗"], ["チーズ", "赤ワイン、ロゼ、純米酒"], ["魚介のクセがある料理", "焼酎のソーダ割り、辛口の日本酒"], ["デザート", "甘口スパークリング、スタウト"]]}, {"head": ["お酒", "約20gになる量"], "rows": [["ビール(5%)", "500ml(中ジョッキ1杯)"], ["日本酒(15%)", "180ml(1合)"], ["ワイン(12%)", "200ml(グラス1〜2杯)"], ["焼酎(25%)", "100ml(お湯割り約2杯分)"]]}], "tips": ["ビールは薄手のグラスで泡をしっかり作るとキレが続きます。吟醸系の日本酒はワイングラスだと香りを感じやすくなります。", "保存は直射日光を避けて温度変化の少ない場所に。生酒・吟醸系は冷蔵庫で、開けたら早めに。ワインは開けたら冷蔵して数日以内に。焼酎は常温で長持ちします。", "生活習慣病のリスクを高める飲酒量は、1日あたり純アルコールで男性40g以上、女性20g以上が目安(厚生労働省)。水をこまめに飲み、休肝日を取りましょう。体調が悪い時や薬の服用中は避け、妊娠中・授乳中は飲まないでください。"]}];
+var KNOW_GLOSSARY = [["シャープ", "酸味・苦味・渋み・キレが強く、引き締まった口当たり。DrinkLogでは味の3つ目の軸(口当たり)", "全般"], ["まろやか", "角がなくなめらかで、丸みのある口当たり。シャープの反対側", "全般"], ["キレ", "飲み込んだあとに味がすっと消えること", "ビール・日本酒"], ["コク", "味の厚みと、余韻の長さ", "全般"], ["ボディ", "飲んだ時の重さ。ライト・ミディアム・フル", "ワイン"], ["ドライ・辛口", "甘さが少ない", "全般"], ["淡麗", "すっきりと軽い味わい", "日本酒"], ["濃醇", "味が濃厚でコクがある", "日本酒"], ["日本酒度", "甘辛の目安。プラスが辛口、マイナスが甘口", "日本酒"], ["精米歩合", "米を削って残った割合。小さいほどよく磨いている", "日本酒"], ["酸度", "酸味の目安。高いとキレがよく感じる", "日本酒"], ["吟醸香", "果実や花のような華やかな香り", "日本酒"], ["生酒", "加熱(火入れ)をしていない酒。フレッシュで要冷蔵", "日本酒"], ["原酒", "水を加えずに詰めた酒。度数が高め", "日本酒"], ["古酒・時空酒", "長期熟成した酒。色が濃くコクがある", "日本酒・焼酎"], ["本格焼酎", "乙類焼酎。単式蒸留で原料の風味が残る", "焼酎"], ["常圧・減圧蒸留", "常圧は香りとコクが強く、減圧は軽やかで飲みやすい", "焼酎"], ["黒麹・白麹", "焼酎の麹の種類。黒は力強く、白はやわらかい", "焼酎"], ["タンニン(渋み)", "赤ワインの、口がきゅっとする渋さ", "ワイン"], ["ヴィンテージ", "ぶどうを収穫した年", "ワイン"], ["テロワール", "土地や気候など、産地がもたらす個性", "ワイン"], ["ミネラル感", "石や海を思わせる引き締まった味", "白ワイン"], ["IBU", "ビールの苦味の指標。大きいほど苦い傾向", "ビール"], ["ホップ", "ビールの苦味と香りの元になる植物", "ビール"], ["発泡酒・新ジャンル", "麦芽の使用割合が低いか、使っていないビール風飲料", "ビール系"]];
 
 function renderKnow(){
   var list = document.getElementById("knowList"); if(!list || list.dataset.done) return;
@@ -2345,7 +2399,8 @@ document.getElementById("knowGlossQ").addEventListener("input", function(){ rend
     if(now - last < 350 && !isForm){
       e.preventDefault(); /* 2回目のタップによるズームを止める */
       var btn = t && t.closest ? t.closest("button,a,summary,[role=button]") : null;
-      if(btn && !btn.disabled){ btn.click(); } /* preventDefaultで消える2回目のクリックを補う */
+      if(btn){ if(!btn.disabled) btn.click(); } /* preventDefaultで消える2回目のクリックを補う */
+      else if(t && t.dispatchEvent){ t.dispatchEvent(new MouseEvent("click", {bubbles:true, cancelable:true})); } /* 味マップの点など、ボタン以外にも補う */
     }
     last = now;
   }, { passive:false });
