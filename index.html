@@ -238,10 +238,20 @@ input:not([type=range]):not([type=file]),select,textarea{font-size:16px !importa
 .map-view button.active{background:var(--accent); color:var(--on-accent); border-color:var(--accent)}
 .taste-clear{border:0; background:none; padding:2px 0; color:var(--ink-3); font-weight:700; font-size:11.5px; font-family:inherit; cursor:pointer; text-decoration:underline}
 #tasteMapWrap{margin-top:12px}
+.wish-h{font-size:12.5px; font-weight:800; color:var(--ink-2); margin:14px 0 4px}
+.wish-h small{font-weight:700; color:var(--ink-3); margin-left:6px; font-size:11px}
+#wishMapSvg{width:100%; height:auto; display:block; touch-action:manipulation}
+#wishMapSvg .tm-dot{cursor:pointer}
+.wish-info{font-size:12.5px; color:var(--ink-2); text-align:center; margin:8px 0 4px; min-height:18px}
+.rec-actions .drank{color:var(--accent)}
+.rec-actions .addwish{color:var(--accent)}
+.rec-want{display:inline-block; margin-left:6px; font-size:10.5px; font-weight:800; color:var(--accent); background:var(--accent-soft); border-radius:var(--r-pill); padding:1px 7px}
+#addModeSeg{margin:2px 0 12px}
+
 #tasteMapSvg{width:100%; height:auto; display:block; touch-action:manipulation}
-#tasteMapSvg text{fill:var(--ink-3); font-size:10px; font-weight:700; font-family:inherit}
-#tasteMapSvg .tm-grid{stroke:var(--hairline); stroke-width:1}
-#tasteMapSvg .tm-frame{fill:var(--surface-input); stroke:var(--hairline); stroke-width:1}
+#tasteMapSvg, #wishMapSvg text{fill:var(--ink-3); font-size:10px; font-weight:700; font-family:inherit}
+#tasteMapSvg, #wishMapSvg .tm-grid{stroke:var(--hairline); stroke-width:1}
+#tasteMapSvg, #wishMapSvg .tm-frame{fill:var(--surface-input); stroke:var(--hairline); stroke-width:1}
 #tasteMapSvg .tm-dot{cursor:pointer}
 .tm-legend{display:flex; flex-wrap:wrap; gap:4px 14px; justify-content:center; margin-top:6px; font-size:11px; font-weight:700; color:var(--ink-2)}
 .tm-legend i{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:-1px}
@@ -414,6 +424,7 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
   <section id="tab-add" class="tab-panel" hidden>
     <form class="card" id="addForm">
       <h2 id="formTitle">記録を追加</h2>
+      <div class="map-view" id="addModeSeg"><button type="button" data-m="rec" class="active">飲んだ記録</button><button type="button" data-m="wish">飲みたいに追加</button></div>
       <button type="button" class="scan-entry" id="formScanBtn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6v12M7 6v12M11 6v12M14 6v12M17 6v12M20 6v12"/></svg>バーコードで読み取る</button>
 
       <div class="field">
@@ -432,8 +443,8 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
         <p class="past-hint" id="pastHint" hidden></p>
       </div>
 
-      <div class="two-col">
-        <div class="field">
+      <div class="two-col" id="dateAbvRow">
+        <div class="field" id="dateField">
           <label>飲んだ日<span class="req">*</span></label>
           <input type="date" id="fDate" required>
         </div>
@@ -451,7 +462,7 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
         <p class="hint" id="originHint" hidden></p>
       </div>
 
-      <div class="field">
+      <div class="field" id="ratingField">
         <label>評価<span class="req">*</span></label>
         <div class="star-input" id="starInput">
           <button type="button" data-v="1">★</button>
@@ -502,14 +513,31 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
 
   <section id="tab-history" class="tab-panel" hidden>
     <div class="card">
+      <div class="map-view" id="histSeg"><button type="button" data-v="rec" class="active">飲んだ</button><button type="button" data-v="wish">飲みたい</button></div>
+      <div id="histRecordView">
+      <button type="button" class="scan-entry" id="addRecBtn" style="margin:0 0 12px">＋ 飲んだ記録を追加</button>
       <div class="bf-card" id="backfillCard" hidden></div>
-      <div class="bf-card" id="guessCard" hidden></div>
       <div class="search-row">
         <span class="search-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.500"/><path d="M16 16l4.500 4.500"/></svg></span>
         <input type="text" id="historySearch" placeholder="銘柄名・タグ・メモで検索">
       </div>
       <div class="filter-scroll" id="historyFilter"></div>
       <div class="rec-list" id="historyList"></div>
+      </div>
+      <div id="wishView" hidden>
+        <button type="button" class="scan-entry" id="addWishBtn" style="margin:0 0 4px">＋ 飲みたいお酒を追加</button>
+        <div class="wish-h">飲みたいお酒の分布<small id="wishCount"></small></div>
+        <div id="wishBars"></div>
+        <div class="filter-scroll" id="wishFilter"></div>
+        <div id="wishMapWrap"></div>
+        <div class="wish-info" id="wishInfo"></div>
+        <div class="wish-h">飲みたいリスト</div>
+        <div class="search-row">
+          <span class="search-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.500"/><path d="M16 16l4.500 4.500"/></svg></span>
+          <input type="text" id="wishSearch" placeholder="銘柄名・タグ・メモで検索">
+        </div>
+        <div class="rec-list" id="wishList"></div>
+      </div>
     </div>
   </section>
 
@@ -675,10 +703,10 @@ function loadState(){
     var raw = localStorage.getItem(STORAGE_KEY);
     if(raw){
       var parsed = JSON.parse(raw);
-      if(parsed && Array.isArray(parsed.records)) return parsed;
+      if(parsed && Array.isArray(parsed.records)){ if(!Array.isArray(parsed.wish)) parsed.wish = []; return parsed; }
     }
   }catch(e){}
-  return { records: [] };
+  return { records: [], wish: [] };
 }
 function saveState(){
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){
@@ -716,7 +744,7 @@ function showToast(msg){
 function switchTab(name){
   document.querySelectorAll(".tab-panel").forEach(function(el){ el.hidden = (el.id !== "tab-"+name); });
   document.querySelectorAll(".bottom-nav button").forEach(function(b){ b.classList.toggle("active", b.dataset.tab===name); });
-  if(name!=="add" && editingId!==null){ resetForm(); }
+  if(name!=="add" && (editingId!==null || convertWishId!==null || wishMode)){ resetForm(); }
   if(name==="home"){ renderDashboard(); }
   if(name==="history"){ renderHistory(); }
   if(name==="data"){ renderDataTab(); }
@@ -733,7 +761,7 @@ function renderHeader(){
   var ym = todayStr().slice(0,7);
   var thisMonth = state.records.filter(function(r){ return r.date && r.date.slice(0,7)===ym; });
   document.getElementById("heroMonthVal").innerHTML = thisMonth.length+"<small>件</small>";
-  document.getElementById("heroTotalVal").textContent = "総記録数 "+state.records.length+"件";
+  document.getElementById("heroTotalVal").textContent = "総記録数 "+state.records.length+"件"+(state.wish && state.wish.length ? " ・ 飲みたい "+state.wish.length+"件" : "");
 }
 
 /* ---------- dashboard ---------- */
@@ -1463,7 +1491,8 @@ document.getElementById("rakutenClearBtn").addEventListener("click", function(){
 });
 
 function resetForm(){
-  editingId = null;
+  editingId = null; convertWishId = null; editingWishId = null;
+  setWishMode(false);
   selectedCategory = null;
   selectedRating = 0;
   pendingPhoto = null; pendingImage = null;
@@ -1488,7 +1517,7 @@ function resetForm(){
 function startEdit(id){
   var r = state.records.find(function(x){ return x.id===id; });
   if(!r) return;
-  editingId = id;
+  editingId = id; convertWishId = null; editingWishId = null; setWishMode(false);
   selectedCategory = r.category;
   selectedRating = r.rating || 0;
   pendingPhoto = r.photo || null; pendingImage = r.image || null;
@@ -1508,6 +1537,7 @@ function startEdit(id){
   document.getElementById("fTags").value = (r.tags||[]).join(", ");
   renderTagsPreview();
   document.getElementById("formTitle").textContent = "記録を編集";
+  document.getElementById("addModeSeg").hidden = true;
   document.getElementById("submitBtn").textContent = "記録を更新";
   document.getElementById("cancelEditBtn").hidden = false;
   document.getElementById("formStatus").textContent = "";
@@ -1528,6 +1558,7 @@ document.getElementById("addForm").addEventListener("submit", function(e){
   if(!selectedCategory){ status.textContent = "カテゴリーを選択してください"; status.className="form-status"; return; }
   var name = document.getElementById("fName").value.trim();
   if(!name){ status.textContent = "銘柄名を入力してください"; status.className="form-status"; return; }
+  if(wishMode){ submitWish(name); return; }
   var date = document.getElementById("fDate").value;
   if(!date){ status.textContent = "日付を入力してください"; status.className="form-status"; return; }
   if(!selectedRating){ status.textContent = "評価(★)を選択してください"; status.className="form-status"; return; }
@@ -1571,10 +1602,262 @@ document.getElementById("addForm").addEventListener("submit", function(e){
     rec.createdAt = rec.updatedAt;
     state.records.push(rec);
   }
+  var removedWish = 0;
+  if(!editingId){
+    var rk = nameKey(rec), cw = convertWishId;
+    var before = state.wish.length;
+    state.wish = state.wish.filter(function(w){ return w.id!==cw && nameKey(w)!==rk; });
+    removedWish = before - state.wish.length;
+  }
   saveState();
-  showToast((editingId?"更新しました：":"記録しました：") + name);
+  showToast((editingId?"更新しました：":"記録しました：") + name + (removedWish ? "(飲みたいリストから外しました)" : ""));
   resetForm();
+  uiHistMode = "rec";
   switchTab("history");
+});
+
+/* ---------- 飲みたいリスト ---------- */
+var wishMode = false, convertWishId = null, editingWishId = null, uiWishSearch = "", uiHistMode = "rec", uiWishFilter = "all", uiWishSel = null;
+function setWishMode(on){
+  wishMode = !!on;
+  var q = function(id){ return document.getElementById(id); };
+  q("addModeSeg").hidden = false;
+  Array.prototype.forEach.call(q("addModeSeg").querySelectorAll("button"), function(b){ b.classList.toggle("active", (b.dataset.m==="wish") === wishMode); });
+  q("dateField").hidden = wishMode; q("ratingField").hidden = wishMode;
+  q("fDate").required = !wishMode;
+  q("dateAbvRow").style.gridTemplateColumns = wishMode ? "minmax(0,1fr)" : "";
+  if(editingId===null && convertWishId===null && editingWishId===null){
+    q("formTitle").textContent = wishMode ? "飲みたいに追加" : "記録を追加";
+    q("submitBtn").textContent = wishMode ? "飲みたいに追加" : "記録を追加";
+  }
+  updatePastHint();
+}
+document.getElementById("addModeSeg").addEventListener("click", function(e){
+  var b = e.target.closest("button[data-m]"); if(!b) return;
+  setWishMode(b.dataset.m==="wish");
+});
+function wishHas(cat, name){
+  var k = nameKey({category:cat, name:name});
+  return state.wish.some(function(w){ return nameKey(w)===k; });
+}
+function addWishItem(it){
+  if(wishHas(it.category, it.name)){ showToast("すでに飲みたいリストにあります："+displayName(it.name)); return false; }
+  it.id = uid(); it.createdAt = new Date().toISOString();
+  state.wish.push(it);
+  saveState();
+  return true;
+}
+function submitWish(name){
+  var detail = {};
+  document.querySelectorAll("#detailFields [data-detail-key]").forEach(function(el){ detail[el.dataset.detailKey] = el.value; });
+  var abvVal = document.getElementById("fAbv").value;
+  var tags = parseTags(document.getElementById("fTags").value);
+  var memoVal = document.getElementById("fMemo").value.trim();
+  var ft = tasteVal;
+  if(!ft || ft.est==="name"){ ft = guessTasteFor({ category:selectedCategory, name:name, detail:detail, memo:memoVal, tags:tags }); }
+  var item = {
+    category: selectedCategory, name: name,
+    abv: abvVal==="" ? null : Number(abvVal),
+    origin: document.getElementById("fOrigin").value.trim(),
+    taste: cleanTaste(ft), detail: detail,
+    image: pendingPhoto || pendingImage || null,
+    memo: memoVal, tags: tags
+  };
+  if(editingWishId){
+    var idx = state.wish.findIndex(function(x){ return x.id===editingWishId; });
+    if(idx<0){ resetForm(); return; }
+    var k = nameKey(item);
+    if(state.wish.some(function(w){ return w.id!==editingWishId && nameKey(w)===k; })){ showToast("すでに飲みたいリストにあります："+displayName(name)); return; }
+    item.id = editingWishId; item.createdAt = state.wish[idx].createdAt;
+    state.wish[idx] = item; saveState();
+    showToast("更新しました："+name);
+  } else {
+    if(!addWishItem(item)) return;
+    showToast("飲みたいに追加しました："+name);
+  }
+  resetForm();
+  uiHistMode = "wish"; uiWishFilter = "all"; uiWishSel = null;
+  switchTab("history");
+}
+function startEditWish(id){
+  var w = state.wish.find(function(x){ return x.id===id; }); if(!w) return;
+  resetForm();
+  setWishMode(true);
+  editingWishId = id;
+  selectedCategory = w.category;
+  pendingImage = w.image || null;
+  renderCatPicker();
+  renderDetailFields(w.detail);
+  renderStarInput();
+  updatePhotoPreview();
+  document.getElementById("fName").value = w.name || "";
+  document.getElementById("fAbv").value = w.abv != null ? w.abv : "";
+  document.getElementById("fOrigin").value = w.origin || "";
+  document.getElementById("fMemo").value = w.memo || "";
+  document.getElementById("fTags").value = (w.tags||[]).join(", ");
+  renderTagsPreview();
+  setTasteUI(w.taste);
+  updatePastHint();
+  document.getElementById("addModeSeg").hidden = true;
+  document.getElementById("formTitle").textContent = "飲みたいを編集";
+  document.getElementById("submitBtn").textContent = "飲みたいを更新";
+  document.getElementById("cancelEditBtn").hidden = false;
+  switchTabSilent("add");
+  window.scrollTo(0,0);
+}
+function addWishFromRecord(id){
+  var r = state.records.find(function(x){ return x.id===id; }); if(!r) return;
+  var ok = addWishItem({
+    category: r.category, name: r.name, abv: r.abv!=null ? r.abv : null, origin: r.origin || "",
+    taste: r.taste ? JSON.parse(JSON.stringify(r.taste)) : null, detail: JSON.parse(JSON.stringify(r.detail || {})),
+    image: r.image || null, memo: "", tags: []
+  });
+  if(ok){ showToast("飲みたいに追加しました："+displayName(r.name)); renderHistory(); }
+}
+function startConvertWish(id){
+  var w = state.wish.find(function(x){ return x.id===id; }); if(!w) return;
+  resetForm();
+  convertWishId = id;
+  selectedCategory = w.category;
+  pendingImage = w.image || null;
+  renderCatPicker();
+  renderDetailFields(w.detail);
+  renderStarInput();
+  updatePhotoPreview();
+  document.getElementById("fName").value = w.name || "";
+  document.getElementById("fAbv").value = w.abv != null ? w.abv : "";
+  document.getElementById("fOrigin").value = w.origin || "";
+  document.getElementById("fMemo").value = w.memo || "";
+  document.getElementById("fTags").value = (w.tags||[]).join(", ");
+  renderTagsPreview();
+  setTasteUI(w.taste);
+  updatePastHint();
+  document.getElementById("addModeSeg").hidden = true;
+  document.getElementById("formTitle").textContent = "飲んだ記録に追加";
+  document.getElementById("submitBtn").textContent = "記録を追加";
+  document.getElementById("cancelEditBtn").hidden = false;
+  switchTabSilent("add");
+  window.scrollTo(0,0);
+  showToast("日付と評価を入れて記録できます");
+}
+function renderHistSeg(){
+  var seg = document.getElementById("histSeg");
+  var a = seg.querySelector('[data-v="rec"]'), b = seg.querySelector('[data-v="wish"]');
+  a.textContent = "飲んだ "+state.records.length; b.textContent = "飲みたい "+state.wish.length;
+  a.classList.toggle("active", uiHistMode==="rec"); b.classList.toggle("active", uiHistMode==="wish");
+  document.getElementById("histRecordView").hidden = (uiHistMode!=="rec");
+  document.getElementById("wishView").hidden = (uiHistMode!=="wish");
+}
+document.getElementById("histSeg").addEventListener("click", function(e){
+  var b = e.target.closest("button[data-v]"); if(!b) return;
+  uiHistMode = b.dataset.v; renderHistory();
+});
+function renderWish(){
+  var list = state.wish;
+  document.getElementById("wishCount").textContent = list.length+"件";
+  /* 種類別の件数 */
+  var barsEl = document.getElementById("wishBars"), total = list.length;
+  barsEl.innerHTML = total===0 ? "" : CATEGORIES.map(function(cat){
+    var n = list.filter(function(w){ return w.category===cat.id; }).length;
+    var pct = total ? Math.round(n/total*100) : 0;
+    return '<div class="cat-bar-row"><div class="cb-label"><span>'+cat.icon+'</span><span>'+cat.label+'</span></div>'
+      + '<div class="cat-bar-track"><div class="cat-bar-fill" style="width:'+pct+'%; background:var('+cat.c+')"></div></div>'
+      + '<div class="cb-num">'+n+'件 '+pct+'%</div></div>';
+  }).join("");
+  var chipsEl = document.getElementById("wishFilter");
+  var chips = [{id:"all", label:"すべて", icon:ICONS.all}].concat(CATEGORIES.map(function(c){ return {id:c.id, label:c.label, icon:c.icon}; }));
+  chipsEl.innerHTML = total===0 ? "" : chips.map(function(c){
+    return '<button type="button" class="filter-chip'+(uiWishFilter===c.id?" active":"")+'" data-id="'+c.id+'">'+c.icon+' '+c.label+'</button>';
+  }).join("");
+  var wq = uiWishSearch.trim().toLowerCase();
+  var items = list.filter(function(w){ return (uiWishFilter==="all" || w.category===uiWishFilter) && recMatchesSearch(w, wq); })
+    .slice().sort(function(a,b){ return (b.createdAt||"").localeCompare(a.createdAt||""); });
+  renderWishMap(list.filter(function(w){ return uiWishFilter==="all" || w.category===uiWishFilter; }));
+  var el = document.getElementById("wishList");
+  if(total===0){
+    el.innerHTML = emptyStateHtml(ICONS.inbox,"飲みたいお酒はまだありません","「追加」タブの「飲みたいに追加」か、履歴の記録から追加できます");
+    return;
+  }
+  if(items.length===0){ el.innerHTML = emptyStateHtml(ICONS.inbox, wq ? "一致するものがありません" : "このカテゴリーはありません", wq ? "「"+escHtml(uiWishSearch.trim())+"」に一致する銘柄が見つかりません" : "別のカテゴリーを選んでください"); return; }
+  el.innerHTML = items.map(function(w){
+    var cat = CAT_BY_ID[w.category] || CATEGORIES[0];
+    var metaParts = [];
+    if(w.abv!=null) metaParts.push("度数 "+w.abv+"%");
+    if(hasAnyTaste(w.taste)) metaParts.push((w.taste.est ? (w.taste.low ? "味(予想・仮置き) " : "味(予想) ") : "味 ")+tasteText(w.taste));
+    var detailParts = Object.keys(w.detail||{}).map(function(k){ return w.detail[k]; }).filter(Boolean);
+    var metaLine = detailParts.concat(metaParts).join(" ・ ");
+    var pi = pastInfo(w.name, w.category, null);
+    var past = pi.exact.length ? '<span class="rec-nth">過去に'+pi.exact.length+'回記録あり</span>' : '';
+    return '<div class="rec-card" style="--cat-c:var('+cat.c+'); --cat-soft:var('+cat.soft+')">'
+      + '<div class="rec-thumb">'+cat.icon+(w.image? '<img class="prod" src="'+escHtml(w.image)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">' : '')+'</div>'
+      + '<div class="rec-body">'
+      +   '<div class="rec-top"><span class="rec-badge">'+cat.icon+' '+cat.label+'</span><span class="rec-date">'+fmtDateShort((w.createdAt||"").slice(0,10))+' 追加</span></div>'
+      +   '<div class="rec-name">'+escHtml(displayName(w.name))+past+'</div>'
+      +   (w.origin? '<div class="origin-pill">'+ICONS.pin+escHtml(w.origin)+'</div>' : '')
+      +   (metaLine? '<div class="rec-meta">'+escHtml(metaLine)+'</div>' : '')
+      +   (w.memo? '<div class="rec-memo">'+escHtml(w.memo)+'</div>' : '')
+      +   '<div class="rec-actions"><button data-act="wedit" data-id="'+w.id+'">編集</button><button data-act="drank" data-id="'+w.id+'" class="drank">飲んだ</button><button data-act="wdel" data-id="'+w.id+'" class="del">削除</button></div>'
+      + '</div></div>';
+  }).join("");
+}
+function renderWishMap(items){
+  var wrap = document.getElementById("wishMapWrap"), info = document.getElementById("wishInfo");
+  var ax = MAP_AXES[uiWishFilter] || MAP_AXES.all, hk = ax.h;
+  var okPt = function(r){ return r.taste && isNum(r.taste[hk]) && isNum(r.taste.y); };
+  var pts = items.filter(okPt);
+  if(state.wish.length===0){ wrap.innerHTML = ""; info.textContent = ""; return; }
+  var past = state.records.filter(function(r){ return (uiWishFilter==="all" || r.category===uiWishFilter) && okPt(r); });
+  var L=48, T=12, W=264, H=250, B=T+H, R=L+W;
+  var s = '<svg id="wishMapSvg" viewBox="0 0 320 292" role="img" aria-label="飲みたいお酒の味マップ(横:'+ax.title+'、縦:'+ax.vlo+'から'+ax.vhi+')">'
+    + '<rect class="tm-frame" x="'+L+'" y="'+T+'" width="'+W+'" height="'+H+'" rx="8"/>'
+    + '<line class="tm-grid" x1="'+(L+W/2)+'" y1="'+T+'" x2="'+(L+W/2)+'" y2="'+B+'" stroke-dasharray="3 4"/>'
+    + '<line class="tm-grid" x1="'+L+'" y1="'+(T+H/2)+'" x2="'+R+'" y2="'+(T+H/2)+'" stroke-dasharray="3 4"/>'
+    + '<text x="'+L+'" y="'+(B+16)+'" text-anchor="start">'+ax.lo+'</text>'
+    + '<text x="'+R+'" y="'+(B+16)+'" text-anchor="end">'+ax.hi+'</text>'
+    + '<text x="'+(L+W/2)+'" y="'+(B+16)+'" text-anchor="middle">'+ax.title+'</text>'
+    + '<text x="'+(L-6)+'" y="'+(T+10)+'" text-anchor="end">'+ax.vhi+'</text>'
+    + '<text x="'+(L-6)+'" y="'+(B-2)+'" text-anchor="end">'+ax.vlo+'</text>';
+  past.forEach(function(r){
+    var cat = CAT_BY_ID[r.category] || CATEGORIES[0];
+    var cx = L + r.taste[hk]/100*W, cy = T + (100-r.taste.y)/100*H;
+    s += '<circle class="wm-past" cx="'+cx+'" cy="'+cy+'" r="4.5" fill="var('+cat.c+')" fill-opacity="0.22" stroke="none"/>';
+  });
+  pts.forEach(function(w){
+    var cat = CAT_BY_ID[w.category] || CATEGORIES[0];
+    var cx = L + w.taste[hk]/100*W, cy = T + (100-w.taste.y)/100*H, sel = (uiWishSel===w.id);
+    s += '<g class="tm-dot" data-id="'+w.id+'"><circle cx="'+cx+'" cy="'+cy+'" r="16" fill="transparent"/>'
+      + (sel ? '<circle cx="'+cx+'" cy="'+cy+'" r="11" fill="none" stroke="var(--ink-1)" stroke-width="1.5"/>' : '')
+      + '<circle cx="'+cx+'" cy="'+cy+'" r="7" fill="var('+cat.c+')" fill-opacity="0.9" stroke="var(--surface-1)" stroke-width="1.5"/></g>';
+  });
+  s += '</svg>';
+  s += '<div class="tm-legend">'+CATEGORIES.map(function(cc){ return '<span><i style="background:var('+cc.c+')"></i>'+cc.label+'</span>'; }).join("")+'</div>';
+  s += '<div class="tm-note">'+ax.desc+' ・ 濃い点＝飲みたい / 薄い点＝これまでに飲んだ記録('+past.length+'件)</div>';
+  wrap.innerHTML = s;
+  var sw = pts.filter(function(w){ return w.id===uiWishSel; })[0];
+  info.innerHTML = sw ? '<b>'+escHtml(displayName(sw.name))+'</b> ・ '+escHtml(tasteText(sw.taste))+(sw.taste.est?(sw.taste.low?'(仮置き)':'(予想)'):'') : "濃い点をタップすると銘柄が表示されます";
+}
+document.getElementById("wishSearch").addEventListener("input", function(e){ uiWishSearch = e.target.value; renderWish(); });
+document.getElementById("addRecBtn").addEventListener("click", function(){ resetForm(); switchTab("add"); });
+document.getElementById("addWishBtn").addEventListener("click", function(){ resetForm(); setWishMode(true); switchTab("add"); });
+document.getElementById("wishFilter").addEventListener("click", function(e){
+  var b = e.target.closest(".filter-chip"); if(!b) return;
+  uiWishFilter = b.dataset.id; uiWishSel = null; renderWish();
+});
+document.getElementById("wishMapWrap").addEventListener("click", function(e){
+  var g = e.target.closest(".tm-dot"); if(!g) return;
+  uiWishSel = (uiWishSel===g.dataset.id) ? null : g.dataset.id; renderWish();
+});
+document.getElementById("wishList").addEventListener("click", function(e){
+  var b = e.target.closest("button[data-act]"); if(!b) return;
+  var id = b.dataset.id;
+  if(b.dataset.act==="drank"){ startConvertWish(id); }
+  else if(b.dataset.act==="wedit"){ startEditWish(id); }
+  else if(b.dataset.act==="wdel"){
+    if(confirm("飲みたいリストから削除しますか？")){
+      state.wish = state.wish.filter(function(w){ return w.id!==id; });
+      saveState(); renderAll(); showToast("削除しました");
+    }
+  }
 });
 
 /* ---------- 味(自動予想・手入力なし) ---------- */
@@ -1603,6 +1886,7 @@ function cleanTaste(t){
   var o = { x:isNum(t.x)?t.x:null, y:isNum(t.y)?t.y:null, z:isNum(t.z)?t.z:null };
   if(isNum(t.w)) o.w = t.w;
   o.est = t.est || null;
+  if(t.low) o.low = true;
   return o;
 }
 function mergeTaste(p, f){
@@ -1619,6 +1903,7 @@ function setTasteUI(t){
 function updateTasteHint(){
   var h = document.getElementById("tasteHint"); if(!h) return;
   if(!tasteVal){ h.textContent = "銘柄名・種類から、味を自動で予想します"; return; }
+  if(tasteVal.low){ h.innerHTML = escHtml(tasteText(tasteVal)) + '<small>(名前・種類に手掛かりがないため、標準の位置で仮置き)</small>'; return; }
   var src = tasteVal.est==="desc" ? "商品説明からの予想" : tasteVal.est==="fill" ? "入力済みの値+口当たりは予想" : tasteVal.est ? "銘柄名・種類からの予想" : "入力済みの値";
   h.innerHTML = escHtml(tasteText(tasteVal)) + '<small>('+src+')</small>';
 }
@@ -1631,6 +1916,14 @@ var TYPE_RULES = {
   wine:[[/カベルネ/,{x:85,y:90,z:65}],[/メルロー/,{x:70,y:65,z:30}],[/ピノ[・･]?ノワール|ピノノワール/,{x:70,y:40,z:55}],[/シラーズ|シラー/,{x:85,y:85,z:55}],[/シャルドネ/,{x:60,y:65,z:45}],[/ソーヴィニヨン[・･]?ブラン|ソーヴィニョン[・･]?ブラン/,{x:85,y:15,z:90}],[/リースリング/,{x:35,y:30,z:75}],[/甲州/,{x:65,y:25,z:50}]]
 };
 var WINE_COLOR_RULES = [[/スパークリング|シャンパン|シャンパーニュ|プロセッコ|カヴァ|スプマンテ/,{x:75,y:25,z:75}],[/ロゼ/,{x:55,y:35,z:60}],[/オレンジ/,{x:60,y:55,z:60}],[/赤/,{x:75,y:70,z:50}],[/白/,{x:65,y:30,z:70}]];
+/* 手掛かりが無い時の標準位置(仮置き)。すべての記録を味マップに載せるために使う */
+var TASTE_DEFAULT = { beer:{x:65,y:30,z:70}, sake:{x:55,y:40,z:50}, shochu:{x:50,y:60,z:50,w:55}, wine:{x:70,y:60,z:55} };
+function fillDefaults(m, cat){
+  var d = TASTE_DEFAULT[cat] || {x:50,y:50,z:50};
+  var o = { x:isNum(m && m.x)?m.x:d.x, y:isNum(m && m.y)?m.y:d.y, z:isNum(m && m.z)?m.z:d.z };
+  if(cat==="shochu") o.w = isNum(m && m.w) ? m.w : d.w;
+  return o;
+}
 var TASTE_KUSE_UP = /クセ(?:が|の)?(?:強|ある)|癖(?:が|の)?(?:強|ある)|個性的|個性が|香り高|華やか|フルーティ|独特/;
 var TASTE_KUSE_DOWN = /クセ(?:が|の)?(?:ない|なく|少な)|癖(?:が|の)?(?:ない|なく|少な)|飲みやすい|穏やか|マイルド/;
 function guessTasteFor(r){
@@ -1655,15 +1948,16 @@ function guessTasteFor(r){
   }
   var tx = null;
   try{ tx = tasteFromText(nameTxt+" "+extra); }catch(e){ tx = null; }
-  var m = mergeTaste(tx, base);
-  if(!m) return null;
+  var m = mergeTaste(tx, base), low = false;
+  if(!m){ m = {}; low = true; }
   if(cat==="shochu"){
     var kt = nameTxt+" "+extra;
     if(TASTE_KUSE_DOWN.test(kt)) m.w = 25; else if(TASTE_KUSE_UP.test(kt)) m.w = 75;
     else if(!isNum(m.w)) m.w = null;
   } else { delete m.w; }
-  m.est = "name";
-  return m;
+  var full = fillDefaults(m, cat);
+  full.est = "name"; if(low) full.low = true;
+  return full;
 }
 /* 商品説明の予想(あれば優先)と、銘柄名・種類の予想をあわせる */
 function descOrGuess(t, rec){
@@ -1672,7 +1966,8 @@ function descOrGuess(t, rec){
   if(d){
     var m = mergeTaste(d, g);
     if(rec && rec.category==="shochu" && g && isNum(g.w)) m.w = g.w; else if(!(rec && rec.category==="shochu")) delete m.w;
-    m.est = "desc"; return m;
+    var fm = fillDefaults(m, rec && rec.category);
+    fm.est = "desc"; return fm;
   }
   return g;
 }
@@ -1685,7 +1980,7 @@ function formRec(catId){
 /* 銘柄名・種類・メモが変わった時に予想を更新(商品説明の予想と、旧データの値は上書きしない) */
 function refreshTasteGuess(){
   if(tasteVal && tasteVal.est!=="name"){ updateTasteHint(); return; }
-  setTasteUI(selectedCategory ? guessTasteFor(formRec()) : null);
+  setTasteUI((selectedCategory && document.getElementById("fName").value.trim()) ? guessTasteFor(formRec()) : null);
 }
 function autoFillTaste(it, catId, cands, given){
   if(tasteVal && !tasteVal.est) return; /* 旧データの入力済みの値は変えない */
@@ -1725,6 +2020,7 @@ function updatePastHint(){
   if(name.length<2 || !selectedCategory){ el.hidden = true; return; }
   var pi = pastInfo(name, selectedCategory, editingId);
   var h = "";
+  var inWish = editingId===null && editingWishId===null && wishHas(selectedCategory, name);
   if(pi.exact.length){
     var l = pi.exact[0];
     h = '過去に'+pi.exact.length+'回記録あり<small>前回 '+fmtDateShort(l.date)+' '+starsStr(l.rating)+'</small>';
@@ -1732,6 +2028,7 @@ function updatePastHint(){
     var rl = pi.related[0];
     h = '似た名前の記録あり<small>'+escHtml(displayName(rl.name))+'(前回 '+fmtDateShort(rl.date)+' '+starsStr(rl.rating)+')</small>';
   }
+  if(inWish){ h += (h?'<br>':'') + (wishMode ? 'すでに飲みたいリストにあります' : '飲みたいリストにあります<small>記録すると、リストから外れます</small>'); }
   if(!h){ el.hidden = true; return; }
   el.innerHTML = h; el.hidden = false;
 }
@@ -1762,7 +2059,7 @@ function renderTasteMap(){
   var pts = state.records.filter(function(r){
     return (uiMapFilter==="all" || r.category===uiMapFilter) && r.taste && isNum(r.taste[hk]) && isNum(r.taste.y);
   });
-  var anyEst = pts.some(function(r){ return !!r.taste.est; });
+  var anyEst = pts.some(function(r){ return !!r.taste.est && !r.taste.low; }), anyLow = pts.some(function(r){ return !!r.taste.low; });
   document.getElementById("tasteMapSub").textContent = "点の大きさ＝評価 ・ "+pts.length+"件";
   if(pts.length===0){
     wrap.innerHTML = emptyStateHtml(ICONS.chart,"味の記録がまだありません","記録を追加すると、銘柄名・種類から味を予想してここに載せます。過去の記録は「履歴」タブから予想できます");
@@ -1781,23 +2078,23 @@ function renderTasteMap(){
   pts.slice().sort(function(a,b){ return (a.rating||0)-(b.rating||0); }).forEach(function(r){
     var cat = CAT_BY_ID[r.category] || CATEGORIES[0];
     var cx = L + r.taste[hk]/100*W, cy = T + (100-r.taste.y)/100*H, rad = 4 + (r.rating||3)*0.9;
-    var sel = (uiMapSel===r.id), est = !!r.taste.est;
+    var sel = (uiMapSel===r.id), est = !!r.taste.est, low = !!r.taste.low;
     s += '<g class="tm-dot" data-id="'+r.id+'">'
       + '<circle cx="'+cx+'" cy="'+cy+'" r="16" fill="transparent"/>'
       + (sel ? '<circle cx="'+cx+'" cy="'+cy+'" r="'+(rad+4)+'" fill="none" stroke="var(--ink-1)" stroke-width="1.5"/>' : '')
-      + '<circle cx="'+cx+'" cy="'+cy+'" r="'+rad+'" fill="var('+cat.c+')" fill-opacity="'+(est?0.5:0.85)+'" stroke="'+(est?'var('+cat.c+')':'var(--surface-1)')+'" stroke-width="1.5"'+(est?' stroke-dasharray="2.5 2"':'')+'/>'
+      + '<circle cx="'+cx+'" cy="'+cy+'" r="'+rad+'" fill="var('+cat.c+')" fill-opacity="'+(low?0.25:est?0.5:0.85)+'" stroke="'+(est?'var('+cat.c+')':'var(--surface-1)')+'" stroke-width="1.5"'+(low?' stroke-dasharray="1 3"':est?' stroke-dasharray="2.5 2"':'')+'/>'
       + '</g>';
   });
   s += '</svg>';
   s += '<div class="tm-legend">'+CATEGORIES.map(function(cc){ return '<span><i style="background:var('+cc.c+')"></i>'+cc.label+'</span>'; }).join("")+'</div>';
-  s += '<div class="tm-note">'+ax.desc+(anyEst?' ・ 破線の点は予想':'')+'</div>';
+  s += '<div class="tm-note">'+ax.desc+(anyEst?' ・ 破線の点は予想':'')+(anyLow?' ・ 点線の薄い点は仮置き(名前・種類に手掛かりがなく標準の位置)':'')+'</div>';
   wrap.innerHTML = s;
   var sr = pts.filter(function(r){ return r.id===uiMapSel; })[0];
   if(sr){
     var sc = CAT_BY_ID[sr.category] || CATEGORIES[0];
     info.innerHTML = '<b>'+escHtml(displayName(sr.name))+'</b> <span style="color:var('+sc.c+');font-weight:800">'+sc.label+'</span><br>'
       + (sr.origin? '<br><span class="origin-pill">'+ICONS.pin+escHtml(sr.origin)+'</span>' : '')
-      + '<br>'+starsStr(sr.rating)+' ・ '+escHtml(tasteText(sr.taste))+(sr.taste.est?'(予想)':'');
+      + '<br>'+starsStr(sr.rating)+' ・ '+escHtml(tasteText(sr.taste))+(sr.taste.est?(sr.taste.low?'(仮置き:手掛かりがなく標準の位置)':'(予想)'):'');
   } else {
     info.textContent = "点をタップすると銘柄が表示されます";
   }
@@ -2086,7 +2383,9 @@ function renderScanResult(jan, item, cands){
 function useScanResult(){
   var st = scanState; if(!st) return;
   closeScan();
+  var wm = wishMode;
   resetForm();
+  setWishMode(wm);
   if(st.cat){ selectedCategory = st.cat; renderCatPicker(); renderDetailFields(); updateCatHint(false); }
   document.getElementById("fName").value = st.name;
   var abvEl = document.getElementById("fAbv");
@@ -2097,7 +2396,7 @@ function useScanResult(){
   if(st.image){ pendingImage = st.image; updatePhotoPreview(); }
   updatePastHint();
   switchTab("add");
-  showToast("読み取った内容を入力しました。評価を付けて記録できます");
+  showToast(wishMode ? "読み取った内容を入力しました。飲みたいに追加できます" : "読み取った内容を入力しました。評価を付けて記録できます");
 }
 function shrinkToBitmap(file){
   if(!window.createImageBitmap) return Promise.reject(new Error("nobitmap"));
@@ -2137,7 +2436,7 @@ document.getElementById("scanModal").addEventListener("click", function(e){
   var b = e.target.closest("button"); if(!b) return;
   if(b.id==="scanUse"){ useScanResult(); }
   else if(b.id==="scanAgain"){ openScan(); }
-  else if(b.id==="scanToAdd"){ closeScan(); resetForm(); switchTab("add"); }
+  else if(b.id==="scanToAdd"){ var wm2 = wishMode; closeScan(); resetForm(); setWishMode(wm2); switchTab("add"); }
 });
 document.getElementById("scanGo").addEventListener("click", function(){
   var v = document.getElementById("scanJan").value.replace(/\D/g,"");
@@ -2175,9 +2474,10 @@ function displayName(name){
   try{ return cleanRakutenName(name) || name; }catch(e){ return name; }
 }
 function renderHistory(){
+  renderHistSeg();
+  if(uiHistMode==="wish"){ renderWish(); return; }
   renderHistoryFilter();
   renderBackfill();
-  renderGuessCard();
   var groups = groupByName();
   var el = document.getElementById("historyList");
   var q = uiSearch.trim().toLowerCase();
@@ -2192,7 +2492,7 @@ function renderHistory(){
     var cat = CAT_BY_ID[r.category] || CATEGORIES[0];
     var metaParts = [];
     if(r.abv!=null) metaParts.push("度数 "+r.abv+"%");
-    if(hasAnyTaste(r.taste)) metaParts.push((r.taste.est ? "味(予想) " : "味 ")+tasteText(r.taste));
+    if(hasAnyTaste(r.taste)) metaParts.push((r.taste.est ? (r.taste.low ? "味(予想・仮置き) " : "味(予想) ") : "味 ")+tasteText(r.taste));
     var detailParts = Object.keys(r.detail||{}).map(function(k){ return r.detail[k]; }).filter(Boolean);
     var metaLine = detailParts.concat(metaParts).join(" ・ ");
     var grp = groups[nameKey(r)] || [], nth = grp.indexOf(r) + 1;
@@ -2206,7 +2506,7 @@ function renderHistory(){
       +   (metaLine? '<div class="rec-meta">'+escHtml(metaLine)+'</div>' : '')
       +   (r.tags && r.tags.length? '<div class="rec-tags">'+r.tags.map(function(t){return '<span class="chip" style="margin-right:4px">#'+escHtml(t)+'</span>';}).join("")+'</div>' : '')
       +   (r.memo? '<div class="rec-memo">'+escHtml(r.memo)+'</div>' : '')
-      +   '<div class="rec-actions"><button data-act="edit" data-id="'+r.id+'">編集</button>'+(bfNeeds(r) && !r.infoPicked && loadRakutenConfig() ? '<button data-act="find" data-id="'+r.id+'" class="find">情報を探す</button>' : '')+'<button data-act="delete" data-id="'+r.id+'" class="del">削除</button></div>'
+      +   '<div class="rec-actions"><button data-act="edit" data-id="'+r.id+'">編集</button><button data-act="wish" data-id="'+r.id+'" class="addwish">飲みたいに追加</button>'+(bfNeeds(r) && !r.infoPicked && loadRakutenConfig() ? '<button data-act="find" data-id="'+r.id+'" class="find">情報を探す</button>' : '')+'<button data-act="delete" data-id="'+r.id+'" class="del">削除</button></div>'
       + '</div></div>';
   }).join("");
 }
@@ -2215,6 +2515,7 @@ document.getElementById("historyList").addEventListener("click", function(e){
   var id = b.dataset.id;
   if(b.dataset.act==="edit"){ startEdit(id); }
   else if(b.dataset.act==="find"){ openPick(id); }
+  else if(b.dataset.act==="wish"){ addWishFromRecord(id); }
   else if(b.dataset.act==="delete"){
     if(confirm("この記録を削除しますか？")){
       state.records = state.records.filter(function(r){ return r.id!==id; });
@@ -2421,69 +2722,6 @@ document.getElementById("backfillCard").addEventListener("click", function(e){
   else if(id==="bfClose"){ bf.msg = ""; renderBackfill(); }
 });
 
-/* ---------- 過去の記録に味を予想で入れる(通信なし) ---------- */
-var gs = { msg:"" };
-function gsTargets(){
-  var list = [], none = 0;
-  state.records.forEach(function(r){
-    var t = r.taste;
-    if(hasAnyTaste(t)){
-      if(!t.est && !isNum(t.z)){ var g = guessTasteFor(r); if(g && isNum(g.z)) list.push({ r:r, mode:"fill", g:g }); }
-      return;
-    }
-    var g2 = guessTasteFor(r);
-    if(g2) list.push({ r:r, mode:"new", g:g2 }); else none++;
-  });
-  return { list:list, none:none };
-}
-function renderGuessCard(){
-  var el = document.getElementById("guessCard"); if(!el) return;
-  if(gs.msg){
-    el.hidden = false;
-    el.innerHTML = '<div class="bf-title">味の予想を入れました</div><div class="bf-text">'+gs.msg+'</div>'
-      + '<div class="bf-btns"><button type="button" class="bf-btn sub" id="gsClose">閉じる</button><button type="button" class="bf-btn sub" id="gsUndo">予想をすべて取り消す</button></div>';
-    return;
-  }
-  var tg = gsTargets();
-  if(tg.list.length===0){ el.hidden = true; return; }
-  var nNew = tg.list.filter(function(x){ return x.mode==="new"; }).length, nFill = tg.list.length - nNew;
-  var t = [];
-  if(nNew) t.push('味が未設定の記録 '+nNew+' 件');
-  if(nFill) t.push('口当たりが未設定の記録 '+nFill+' 件');
-  el.hidden = false;
-  el.innerHTML = '<div class="bf-title">'+t.join('・')+'に、味を予想で入れられます</div>'
-    + '<div class="bf-text">銘柄名と種類(IPA・純米吟醸・芋など)から予想します。「予想」と表示され、あとで取り消せます。</div>'
-    + '<div class="bf-btns"><button type="button" class="bf-btn" id="gsStart">味を予想で入れる</button></div>';
-}
-document.getElementById("guessCard").addEventListener("click", function(e){
-  var id = e.target && e.target.id;
-  if(id==="gsStart"){
-    var tg = gsTargets(), nNew = 0, nFill = 0;
-    tg.list.forEach(function(x){
-      var r = x.r;
-      if(x.mode==="new"){ r.taste = cleanTaste(x.g); r.taste.est = "name"; nNew++; }
-      else { r.taste.z = x.g.z; if(isNum(x.g.w)) r.taste.w = x.g.w; r.taste.est = "fill"; nFill++; }
-    });
-    saveState();
-    var m = [];
-    if(nNew) m.push(nNew+' 件に味を入れました。');
-    if(nFill) m.push(nFill+' 件に口当たりを足しました。');
-    if(tg.none) m.push('<br>名前や種類から予想できなかった記録: '+tg.none+' 件(各記録の「情報を探す」で商品説明から補えます)');
-    gs.msg = m.join(' ');
-    renderAll();
-  }
-  else if(id==="gsClose"){ gs.msg = ""; renderGuessCard(); }
-  else if(id==="gsUndo"){
-    if(!confirm("予想で入れた味をすべて取り消しますか？(元から入力されていた値は残ります)")) return;
-    var n = 0;
-    state.records.forEach(function(r){
-      if(!r.taste) return;
-      if(r.taste.est==="name"){ r.taste = null; n++; }
-      else if(r.taste.est==="fill"){ r.taste.z = null; delete r.taste.w; r.taste.est = null; n++; }
-    });
-    saveState(); gs.msg = ""; renderAll(); showToast("予想を取り消しました："+n+"件");
-  }
-});
 
 var KNOW_SECTIONS = [{"id": "k-all", "title": "4種類のちがい", "lead": "原料と作り方で、味の方向と度数が決まります。", "tables": [{"head": ["", "ビール", "日本酒", "焼酎", "ワイン"], "rows": [["原料", "麦芽・ホップ", "米・米麹", "芋・麦・米など", "ぶどう"], ["分類", "醸造酒", "醸造酒", "蒸留酒", "醸造酒"], ["度数(%)", "4〜7", "15〜16", "20〜25(乙類は最大45)", "11〜14"], ["味の主役", "苦味・コク", "旨み・甘辛・香り", "原料の香り・キレ", "酸味・渋み"]]}], "tips": ["醸造酒は発酵させただけ、蒸留酒は発酵後に蒸留して度数を上げたお酒です。", "DrinkLogの味は「甘辛」「重さ」「シャープ(酸・苦・渋・キレ)↔まろやか」の3つで表します。味マップでは、種類ごとに見る軸を切り替えます(ビール=苦味×コク、日本酒=甘辛×淡麗濃醇、焼酎=クセ×力強さ、ワイン=酸味渋み×ボディ)。味は銘柄名・種類・商品説明からの予想で、実際とは違うことがあります。"]}, {"id": "k-beer", "title": "ビール", "lead": "まず「ラガー」と「エール」を見分けます。違いは酵母と発酵温度です。", "tables": [{"head": ["種類", "特徴", "スタイル例"], "rows": [["ラガー(下面発酵)", "スッキリでキレがあり、冷やして飲むのが向く", "ピルスナー、ボック、ダークラガー"], ["エール(上面発酵)", "香りが豊かで、苦味やコクが個性的", "ペールエール、IPA、スタウト、ヴァイツェン"]]}], "tips": ["IPAはホップの苦味と柑橘の香りが強め。苦手な人は少量から。", "スタウトは焼いた麦芽で黒く、コーヒーやチョコの香り。色の濃さと苦味の強さは一致しません。", "食事中ならラガー、味をじっくり楽しむならエール。", "ラベルのIBUは苦味の目安で、大きいほど苦い傾向です。"]}, {"id": "k-sake", "title": "日本酒", "lead": "名前は「米の磨き具合(精米歩合)」と「醸造アルコールの有無」で決まります。", "tables": [{"head": ["名称", "精米歩合", "酒精添加", "味の傾向"], "rows": [["純米大吟醸", "50%以下", "なし", "華やかな香りとなめらかさ"], ["大吟醸", "50%以下", "あり", "香り高く、軽快でスッキリ"], ["純米吟醸", "60%以下", "なし", "果実のような香りとやわらかい旨み"], ["吟醸", "60%以下", "あり", "香りが立ち、細身で軽やか"], ["純米酒", "規定なし", "なし", "米のコクと旨み。燗にも合う"], ["本醸造", "70%以下", "あり", "すっきりしてキレがよい"]]}], "tips": ["精米歩合は数字が小さいほどよく磨いています。", "日本酒度はプラスが辛口、マイナスが甘口の目安(約-3以下が甘口、+3以上が辛口)。酸度でも感じ方が変わります。", "生酒は加熱なしでフレッシュ(要冷蔵)、原酒は加水なしで度数高め、にごりは米の粒が残った甘さ、古酒は熟成でコクと香り。", "初めてなら純米吟醸、食事に合わせるなら純米酒や本醸造、デザート感覚なら純米大吟醸。"]}, {"id": "k-shochu", "title": "焼酎", "lead": "甲類と乙類は別物です。個性を楽しむなら乙類(本格焼酎)を選びます。", "tables": [{"head": ["種類", "蒸留", "度数", "特徴"], "rows": [["甲類", "連続式", "36%未満", "クセが少なく、チューハイのベース向き"], ["乙類(本格)", "単式", "45%以下", "原料の香りと旨みが残り、個性が強い"]]}, {"head": ["原料", "味の傾向", "合う飲み方"], "rows": [["芋", "甘い香りとコク。華やかなものもある", "お湯割り、ロック"], ["麦", "香ばしくてスッキリ。初心者向け", "水割り、ソーダ割り"], ["米", "やさしい甘みとフルーティーな香り", "ロック、水割り"], ["黒糖", "やわらかな甘い香り(奄美群島のみ)", "ロック、ソーダ割り"], ["泡盛", "沖縄の黒麹の酒。長期熟成の古酒はまろやか", "ロック、水割り"]]}], "tips": ["初めてなら、ソーダ割りや水割りが飲みやすいです。", "お湯割りは先にお湯を注いでから焼酎を加えると混ざりやすくなります。"]}, {"id": "k-wine", "title": "ワイン", "lead": "色とぶどう品種を見れば、味の方向が予想できます。", "tables": [{"head": ["タイプ", "作り方", "味の傾向"], "rows": [["赤", "黒ぶどうを皮ごと発酵", "渋み(タンニン)とコクがあり、重いものも多い"], ["白", "皮を除いて果汁を発酵", "酸味と果実感が主役でスッキリ"], ["ロゼ", "黒ぶどうを短時間だけ皮と一緒に発酵", "赤と白の中間。軽やか"], ["スパークリング", "炭酸ガスを含む", "泡が立ち、キレがある"]]}, {"head": ["品種", "色", "特徴", "産地の例"], "rows": [["カベルネ・ソーヴィニヨン", "赤", "渋みが強くフルボディ", "ボルドー、ナパ、チリ"], ["メルロー", "赤", "渋みがやわらかくまろやか", "ボルドー、日本"], ["ピノ・ノワール", "赤", "渋みが少なく繊細", "ブルゴーニュ、オレゴン"], ["シラー", "赤", "スパイシーで力強い", "ローヌ、オーストラリア"], ["シャルドネ", "白", "コクがあり、樽でバターの香り", "ブルゴーニュ、カリフォルニア"], ["ソーヴィニヨン・ブラン", "白", "酸味がシャープでハーブの香り", "ロワール、ニュージーランド"], ["リースリング", "白", "酸味と甘みのバランス", "ドイツ、アルザス"], ["甲州", "白", "やさしい果実味で和食に合う", "山梨県"]]}], "tips": ["初めてなら、軽めの白(ソーヴィニヨン・ブランや甲州)か、渋みの少ない赤(ピノ・ノワール)。", "「辛口」は甘さが少ないこと、「フルボディ」は重厚で渋いこと。", "フランスなど旧世界は産地名、アメリカやチリなど新世界は品種名で表示することが多いです。"]}, {"id": "k-drink", "title": "飲み方・相性・保存", "lead": "温度を変えるだけで、同じお酒の幅が広がります。", "tables": [{"head": ["お酒", "目安の温度", "ポイント"], "rows": [["ビール(ラガー)", "4〜8℃", "冷やしすぎると香りが感じにくい"], ["ビール(エール)", "8〜12℃", "やや高めで香りが開く"], ["日本酒(吟醸・生酒)", "5〜10℃", "果実の香りを活かす"], ["日本酒(純米・本醸造)", "常温〜ぬる燗(40〜45℃)", "旨みが増して甘く感じる"], ["焼酎", "お湯割り(約60℃)/ロック", "芋はお湯割りで香りが立つ"], ["白・ロゼワイン", "8〜12℃", "冷やしすぎない方が果実味が出る"], ["赤ワイン", "15〜18℃", "室温より少し低めで渋みが落ち着く"], ["スパークリング", "5〜8℃", "しっかり冷やすと泡が細かい"]]}, {"head": ["料理", "合わせやすいお酒"], "rows": [["揚げ物・肉料理", "ラガービール、ハイボール、赤ワイン"], ["刺身・白身魚", "純米吟醸、辛口の白ワイン"], ["焼き鳥・甘辛いタレ", "ラガービール、純米酒の燗"], ["チーズ", "赤ワイン、ロゼ、純米酒"], ["魚介のクセがある料理", "焼酎のソーダ割り、辛口の日本酒"], ["デザート", "甘口スパークリング、スタウト"]]}, {"head": ["お酒", "約20gになる量"], "rows": [["ビール(5%)", "500ml(中ジョッキ1杯)"], ["日本酒(15%)", "180ml(1合)"], ["ワイン(12%)", "200ml(グラス1〜2杯)"], ["焼酎(25%)", "100ml(お湯割り約2杯分)"]]}], "tips": ["ビールは薄手のグラスで泡をしっかり作るとキレが続きます。吟醸系の日本酒はワイングラスだと香りを感じやすくなります。", "保存は直射日光を避けて温度変化の少ない場所に。生酒・吟醸系は冷蔵庫で、開けたら早めに。ワインは開けたら冷蔵して数日以内に。焼酎は常温で長持ちします。", "生活習慣病のリスクを高める飲酒量は、1日あたり純アルコールで男性40g以上、女性20g以上が目安(厚生労働省)。水をこまめに飲み、休肝日を取りましょう。体調が悪い時や薬の服用中は避け、妊娠中・授乳中は飲まないでください。"]}];
 var KNOW_GLOSSARY = [["予想(マーク)", "名前・種類・商品説明から自動で推定した味。実際の味とは違うことがあります", "DrinkLog"], ["クセ", "原料や香りの個性の強さ。焼酎の味マップの軸", "焼酎"], ["シャープ", "酸味・苦味・渋み・キレが強く、引き締まった口当たり。DrinkLogでは味の3つ目の軸(口当たり)", "全般"], ["まろやか", "角がなくなめらかで、丸みのある口当たり。シャープの反対側", "全般"], ["キレ", "飲み込んだあとに味がすっと消えること", "ビール・日本酒"], ["コク", "味の厚みと、余韻の長さ", "全般"], ["ボディ", "飲んだ時の重さ。ライト・ミディアム・フル", "ワイン"], ["ドライ・辛口", "甘さが少ない", "全般"], ["淡麗", "すっきりと軽い味わい", "日本酒"], ["濃醇", "味が濃厚でコクがある", "日本酒"], ["日本酒度", "甘辛の目安。プラスが辛口、マイナスが甘口", "日本酒"], ["精米歩合", "米を削って残った割合。小さいほどよく磨いている", "日本酒"], ["酸度", "酸味の目安。高いとキレがよく感じる", "日本酒"], ["吟醸香", "果実や花のような華やかな香り", "日本酒"], ["生酒", "加熱(火入れ)をしていない酒。フレッシュで要冷蔵", "日本酒"], ["原酒", "水を加えずに詰めた酒。度数が高め", "日本酒"], ["古酒・時空酒", "長期熟成した酒。色が濃くコクがある", "日本酒・焼酎"], ["本格焼酎", "乙類焼酎。単式蒸留で原料の風味が残る", "焼酎"], ["常圧・減圧蒸留", "常圧は香りとコクが強く、減圧は軽やかで飲みやすい", "焼酎"], ["黒麹・白麹", "焼酎の麹の種類。黒は力強く、白はやわらかい", "焼酎"], ["タンニン(渋み)", "赤ワインの、口がきゅっとする渋さ", "ワイン"], ["ヴィンテージ", "ぶどうを収穫した年", "ワイン"], ["テロワール", "土地や気候など、産地がもたらす個性", "ワイン"], ["ミネラル感", "石や海を思わせる引き締まった味", "白ワイン"], ["IBU", "ビールの苦味の指標。大きいほど苦い傾向", "ビール"], ["ホップ", "ビールの苦味と香りの元になる植物", "ビール"], ["発泡酒・新ジャンル", "麦芽の使用割合が低いか、使っていないビール風飲料", "ビール系"]];
@@ -2567,10 +2805,10 @@ function importFromJsonString(str){
   try{
     var parsed = JSON.parse(str);
     if(!parsed || !Array.isArray(parsed.records)) throw new Error("invalid");
-    state = { records: parsed.records };
+    state = { records: parsed.records, wish: Array.isArray(parsed.wish) ? parsed.wish : ((state && state.wish) || []) };
     saveState();
     renderAll();
-    showToast("読み込みました："+state.records.length+"件");
+    showToast("読み込みました："+state.records.length+"件"+(state.wish.length?"・飲みたい"+state.wish.length+"件":""));
   }catch(e){
     showToast("読み込みに失敗しました。ファイル内容を確認してください。");
   }
@@ -2591,7 +2829,25 @@ document.getElementById("importPasteBtn").addEventListener("click", function(){
 });
 
 /* ---------- boot ---------- */
+function ensureAllTaste(){
+  var changed = false;
+  if(!Array.isArray(state.wish)){ state.wish = []; changed = true; }
+  state.records.concat(state.wish).forEach(function(r){
+    var t = r.taste, cat = r.category;
+    var need = !hasAnyTaste(t) || !isNum(t.x) || !isNum(t.y) || !isNum(t.z) || (cat==="shochu" && !isNum(t.w));
+    if(!need) return;
+    if(!hasAnyTaste(t)){ r.taste = cleanTaste(guessTasteFor(r)); }
+    else {
+      var g = guessTasteFor(r) || {};
+      var f = fillDefaults(mergeTaste(t, g), cat);
+      f.est = t.est || "fill"; r.taste = cleanTaste(f);
+    }
+    changed = true;
+  });
+  if(changed) saveState();
+}
 function renderAll(){
+  ensureAllTaste();
   renderHeader();
   renderDashboard();
   renderHistory();
