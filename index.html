@@ -355,6 +355,31 @@ input:not([type=range]):not([type=file]),select,textarea{font-size:16px !importa
 .rec-actions{display:flex; gap:8px; margin-top:8px}
 .rec-actions button{border:0; background:none; font-size:11.5px; font-weight:700; color:var(--ink-3); cursor:pointer; padding:2px 0}
 .rec-actions button.del{color:var(--danger)}
+/* コンパクト一覧(タップで詳細) */
+#addRecBtn, #addWishBtn{padding:7px 10px; font-size:12.5px; margin:0 0 8px !important}
+#histSeg{margin-bottom:8px}
+#histSeg button{padding:7px 6px}
+.rec-list{margin-top:10px}
+.rec-list{gap:7px}
+.rec-card.rc{display:block; padding:0; box-shadow:none}
+.rc-head{display:flex; align-items:center; gap:10px; padding:8px 10px; cursor:pointer; min-height:54px}
+.rc .rec-thumb{width:40px; height:40px; border-radius:9px; font-size:16px}
+.rc .rec-thumb .ic{width:20px; height:20px}
+.rc-main{flex:1; min-width:0}
+.rc-name{font-family:var(--serif); font-size:14px; font-weight:800; line-height:1.35; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.rc-sub{display:flex; align-items:center; gap:7px; margin-top:1px; font-size:11.5px; color:var(--ink-3); white-space:nowrap; overflow:hidden}
+.rc-stars{color:var(--star); letter-spacing:.5px; flex:0 0 auto; font-size:11.5px}
+.rc-o{display:inline-flex; align-items:center; gap:2px; min-width:0; overflow:hidden; text-overflow:ellipsis; font-weight:700; color:var(--ink-2)}
+.rc-o .ic{width:11px; height:11px; color:var(--accent); flex:0 0 auto}
+.rc-sub .rec-nth{margin-left:0; font-size:10px; padding:0 6px; vertical-align:0; flex:0 0 auto}
+.rc-right{flex:0 0 auto; display:flex; flex-direction:column; align-items:flex-end; gap:4px; font-size:11px; font-weight:700; color:var(--ink-3)}
+.rc-chev{width:7px; height:7px; border-right:2px solid var(--ink-3); border-bottom:2px solid var(--ink-3); transform:rotate(45deg); transition:transform .15s; margin-right:3px}
+.rc.open .rc-chev{transform:rotate(-135deg)}
+.rc-body{display:none; padding:2px 12px 12px; border-top:1px solid var(--hairline)}
+.rc.open .rc-body{display:block}
+.rc-body .rec-top{margin-top:8px; justify-content:flex-start}
+.rc-body .rec-meta{margin-top:6px}
+.rc-body .rec-stars{margin-top:6px; font-size:13px}
 
 /* data tab */
 .data-btn-row{display:flex; gap:8px; flex-wrap:wrap}
@@ -1628,6 +1653,13 @@ document.getElementById("addForm").addEventListener("submit", function(e){
 });
 
 /* ---------- 飲みたいリスト ---------- */
+var uiOpen = {};
+function toggleCard(head){
+  var card = head.closest(".rc"); if(!card) return;
+  var id = card.dataset.id, on = !card.classList.contains("open");
+  card.classList.toggle("open", on); head.setAttribute("aria-expanded", on ? "true" : "false");
+  if(on) uiOpen[id] = 1; else delete uiOpen[id];
+}
 var wishMode = false, convertWishId = null, editingWishId = null, uiWishSearch = "", uiHistMode = "rec", uiWishFilter = "all", uiWishSel = null;
 function setWishMode(on){
   wishMode = !!on;
@@ -1799,13 +1831,19 @@ function renderWish(){
     var metaLine = detailParts.concat(metaParts).join(" ・ ");
     var pi = pastInfo(w.name, w.category, null);
     var past = pi.exact.length ? '<span class="rec-nth">過去に'+pi.exact.length+'回記録あり</span>' : '';
-    return '<div class="rec-card" style="--cat-c:var('+cat.c+'); --cat-soft:var('+cat.soft+')">'
-      + '<div class="rec-thumb">'+cat.icon+(w.image? '<img class="prod" src="'+escHtml(w.image)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">' : '')+'</div>'
-      + '<div class="rec-body">'
-      +   '<div class="rec-top"><span class="rec-badge">'+cat.icon+' '+cat.label+'</span><span class="rec-date">'+fmtDateShort((w.createdAt||"").slice(0,10))+' 追加</span></div>'
-      +   '<div class="rec-name">'+escHtml(displayName(w.name))+past+'</div>'
-      +   (w.origin? '<div class="origin-pill">'+ICONS.pin+escHtml(w.origin)+'</div>' : '')
-      +   (metaLine? '<div class="rec-meta">'+escHtml(metaLine)+'</div>' : '')
+    var wopen = uiOpen[w.id] ? " open" : "";
+    return '<div class="rec-card rc'+wopen+'" data-id="'+w.id+'" style="--cat-c:var('+cat.c+'); --cat-soft:var('+cat.soft+')">'
+      + '<div class="rc-head" role="button" tabindex="0" aria-expanded="'+(wopen?'true':'false')+'">'
+      +   '<div class="rec-thumb">'+cat.icon+(w.image? '<img class="prod" src="'+escHtml(w.image)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">' : '')+'</div>'
+      +   '<div class="rc-main"><div class="rc-name">'+escHtml(displayName(w.name))+'</div>'
+      +     '<div class="rc-sub"><span style="color:var(--cat-c);font-weight:800">'+cat.label+'</span>'
+      +     (w.origin? '<span class="rc-o">'+ICONS.pin+escHtml(w.origin)+'</span>' : '')
+      +     (pi.exact.length ? '<span class="rec-nth">飲んだ'+pi.exact.length+'回</span>' : '')+'</div></div>'
+      +   '<div class="rc-right"><span>'+fmtDateShort((w.createdAt||"").slice(0,10))+'</span><span class="rc-chev"></span></div>'
+      + '</div>'
+      + '<div class="rc-body">'
+      +   (metaLine? '<div class="rec-meta">'+escHtml(metaLine)+'</div>' : '<div class="rec-meta">追加日 '+fmtDateShort((w.createdAt||"").slice(0,10))+'</div>')
+      +   (w.tags && w.tags.length? '<div class="rec-tags">'+w.tags.map(function(t){return '<span class="chip" style="margin-right:4px">#'+escHtml(t)+'</span>';}).join("")+'</div>' : '')
       +   (w.memo? '<div class="rec-memo">'+escHtml(w.memo)+'</div>' : '')
       +   '<div class="rec-actions"><button data-act="wedit" data-id="'+w.id+'">編集</button><button data-act="drank" data-id="'+w.id+'" class="drank">飲んだ</button><button data-act="wdel" data-id="'+w.id+'" class="del">削除</button></div>'
       + '</div></div>';
@@ -1830,6 +1868,12 @@ function renderWishMap(items){
 document.getElementById("wishMapWrap").addEventListener("click", function(e){
   if(e.target.closest("#goDrankMap")){ uiMapFilter = uiWishFilter; uiMapSel = null; switchTab("home"); }
 });
+["historyList","wishList"].forEach(function(id){
+  document.getElementById(id).addEventListener("keydown", function(e){
+    if(e.key!=="Enter" && e.key!==" ") return;
+    var hd = e.target.closest && e.target.closest(".rc-head"); if(hd && e.target===hd){ e.preventDefault(); toggleCard(hd); }
+  });
+});
 document.getElementById("wishSearch").addEventListener("input", function(e){ uiWishSearch = e.target.value; renderWish(); });
 document.getElementById("addRecBtn").addEventListener("click", function(){ resetForm(); switchTab("add"); });
 document.getElementById("addWishBtn").addEventListener("click", function(){ resetForm(); setWishMode(true); switchTab("add"); });
@@ -1842,7 +1886,8 @@ document.getElementById("wishMapWrap").addEventListener("click", function(e){
   uiWishSel = (uiWishSel===g.dataset.id) ? null : g.dataset.id; renderWish();
 });
 document.getElementById("wishList").addEventListener("click", function(e){
-  var b = e.target.closest("button[data-act]"); if(!b) return;
+  var b = e.target.closest("button[data-act]");
+  if(!b){ var hd = e.target.closest(".rc-head"); if(hd) toggleCard(hd); return; }
   var id = b.dataset.id;
   if(b.dataset.act==="drank"){ startConvertWish(id); }
   else if(b.dataset.act==="wedit"){ startEditWish(id); }
@@ -2553,13 +2598,18 @@ function renderHistory(){
     var detailParts = Object.keys(r.detail||{}).map(function(k){ return r.detail[k]; }).filter(Boolean);
     var metaLine = detailParts.concat(metaParts).join(" ・ ");
     var grp = groups[nameKey(r)] || [], nth = grp.indexOf(r) + 1;
-    return '<div class="rec-card" style="--cat-c:var('+cat.c+'); --cat-soft:var('+cat.soft+')">'
-      + '<div class="rec-thumb">'+cat.icon+(r.photo? '<img src="'+r.photo+'" alt="">' : (r.image? '<img class="prod" src="'+escHtml(r.image)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">' : ''))+'</div>'
-      + '<div class="rec-body">'
-      +   '<div class="rec-top"><span class="rec-badge">'+cat.icon+' '+cat.label+'</span><span class="rec-date">'+fmtDateShort(r.date)+'</span></div>'
-      +   '<div class="rec-name">'+escHtml(displayName(r.name))+(grp.length>=2 && nth>0 ? '<span class="rec-nth">'+nth+'回目 / 計'+grp.length+'回</span>' : '')+'</div>'
-      +   (r.origin? '<div class="origin-pill">'+ICONS.pin+escHtml(r.origin)+'</div>' : '')
-      +   '<div class="rec-stars">'+starsStr(r.rating)+'</div>'
+    var open = uiOpen[r.id] ? " open" : "";
+    return '<div class="rec-card rc'+open+'" data-id="'+r.id+'" style="--cat-c:var('+cat.c+'); --cat-soft:var('+cat.soft+')">'
+      + '<div class="rc-head" role="button" tabindex="0" aria-expanded="'+(open?'true':'false')+'">'
+      +   '<div class="rec-thumb">'+cat.icon+(r.photo? '<img src="'+r.photo+'" alt="">' : (r.image? '<img class="prod" src="'+escHtml(r.image)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">' : ''))+'</div>'
+      +   '<div class="rc-main"><div class="rc-name">'+escHtml(displayName(r.name))+'</div>'
+      +     '<div class="rc-sub"><span class="rc-stars">'+starsStr(r.rating)+'</span>'
+      +     (r.origin? '<span class="rc-o">'+ICONS.pin+escHtml(r.origin)+'</span>' : '')
+      +     (grp.length>=2 && nth>0 ? '<span class="rec-nth">'+nth+'回目</span>' : '')+'</div></div>'
+      +   '<div class="rc-right"><span>'+fmtDateShort(r.date)+'</span><span class="rc-chev"></span></div>'
+      + '</div>'
+      + '<div class="rc-body">'
+      +   '<div class="rec-top"><span class="rec-badge">'+cat.icon+' '+cat.label+'</span>'+(grp.length>=2 && nth>0 ? '<span class="rec-date">'+nth+'回目 / 計'+grp.length+'回</span>' : '')+'</div>'
       +   (metaLine? '<div class="rec-meta">'+escHtml(metaLine)+'</div>' : '')
       +   (r.tags && r.tags.length? '<div class="rec-tags">'+r.tags.map(function(t){return '<span class="chip" style="margin-right:4px">#'+escHtml(t)+'</span>';}).join("")+'</div>' : '')
       +   (r.memo? '<div class="rec-memo">'+escHtml(r.memo)+'</div>' : '')
@@ -2568,7 +2618,8 @@ function renderHistory(){
   }).join("");
 }
 document.getElementById("historyList").addEventListener("click", function(e){
-  var b = e.target.closest("button[data-act]"); if(!b) return;
+  var b = e.target.closest("button[data-act]");
+  if(!b){ var hd = e.target.closest(".rc-head"); if(hd) toggleCard(hd); return; }
   var id = b.dataset.id;
   if(b.dataset.act==="edit"){ startEdit(id); }
   else if(b.dataset.act==="find"){ openPick(id); }
