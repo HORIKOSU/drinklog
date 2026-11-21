@@ -2206,7 +2206,13 @@ function p_name(p){ return p.name || ""; }
 var uiMapMode = "drank", mapAnim = true;
 function renderTasteMap(){
   var chipsEl = document.getElementById("tasteMapFilter");
-  var chips = [{id:"all", label:"すべて", icon:ICONS.all}].concat(CATEGORIES.map(function(c){ return {id:c.id, label:c.label, icon:c.icon}; }));
+  /* 味マップは種類別のみ(「すべて」は廃止)。未選択なら記録が一番多い種類を開く */
+  if(uiMapFilter==="all" || !CAT_BY_ID[uiMapFilter]){
+    var bestC = CATEGORIES[0].id, bestN = -1;
+    CATEGORIES.forEach(function(c){ var n = state.records.concat(state.wish).filter(function(r){ return r.category===c.id; }).length; if(n>bestN){ bestN = n; bestC = c.id; } });
+    uiMapFilter = bestC;
+  }
+  var chips = CATEGORIES.map(function(c){ return {id:c.id, label:c.label, icon:c.icon}; });
   chipsEl.innerHTML = chips.map(function(c){
     return '<button type="button" class="filter-chip'+(uiMapFilter===c.id?" active":"")+'" data-id="'+c.id+'">'+c.icon+' '+c.label+'</button>';
   }).join("");
