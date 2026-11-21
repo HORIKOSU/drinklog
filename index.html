@@ -2166,11 +2166,26 @@ function drawTasteMap(o){
       + shape + '</g>';
   });
   if(selP){
-    var nm = String(p_name(selP)); if(nm.length>14) nm = nm.slice(0,13)+"…";
-    var w = Math.min(190, nm.length*12*(big?1.08:1)+16), bx = Math.min(R-w-2, Math.max(L+2, selP.x-w/2));
-    var by = selP.y - selP.r - 34; if(by < T+2) by = selP.y + selP.r + 10;
-    s += '<g pointer-events="none"><rect x="'+bx+'" y="'+by+'" width="'+w+'" height="'+(big?26:22)+'" rx="8" fill="var(--surface-1)" stroke="var(--hairline)"/>'
-      + '<text x="'+(bx+w/2)+'" y="'+(by+(big?17:15))+'" text-anchor="middle" style="fill:var(--ink-1);font-size:'+(big?12.5:11)+'px;font-weight:800">'+escHtml(nm)+'</text></g>';
+    /* 銘柄名は省略せず全文表示(長い名前は複数行に折り返す) */
+    var nm = String(p_name(selP)), fs = big?12.5:11, cw = fs*1.02, maxW = W-16, per = Math.max(6, Math.floor(maxW/cw));
+    var chars = Array.from(nm), lines = [], cur = "", curW = 0;
+    chars.forEach(function(ch){
+      var cwid = /[\u0020-\u007e\uff61-\uff9f]/.test(ch) ? cw*0.56 : cw;
+      if(curW+cwid > maxW && cur){ lines.push(cur); cur = ""; curW = 0; }
+      cur += ch; curW += cwid;
+    });
+    if(cur) lines.push(cur);
+    if(!lines.length) lines = [""];
+    var lw = 0; lines.forEach(function(l){ var t=0; Array.from(l).forEach(function(ch){ t += /[\u0020-\u007e\uff61-\uff9f]/.test(ch) ? cw*0.56 : cw; }); if(t>lw) lw=t; });
+    var w = Math.min(W-4, lw+18), lh = fs+4, bh = lines.length*lh+10;
+    var bx = Math.min(R-w-2, Math.max(L+2, selP.x-w/2));
+    var by = selP.y - selP.r - bh - 8; if(by < T+2) by = selP.y + selP.r + 10;
+    if(by+bh > B-2) by = Math.max(T+2, B-2-bh);
+    s += '<g class="tm-bubble" pointer-events="none"><rect x="'+bx+'" y="'+by+'" width="'+w+'" height="'+bh+'" rx="8" fill="var(--surface-1)" stroke="var(--hairline)"/>';
+    lines.forEach(function(l,i){
+      s += '<text x="'+(bx+w/2)+'" y="'+(by+5+lh*i+fs)+'" text-anchor="middle" style="fill:var(--ink-1);font-size:'+fs+'px;font-weight:800">'+escHtml(l)+'</text>';
+    });
+    s += '</g>';
   }
   s += '</svg>';
   var cnt = {}; o.pts.forEach(function(p){ cnt[p.cat] = (cnt[p.cat]||0)+1; });
@@ -2178,10 +2193,11 @@ function drawTasteMap(o){
   var sym = function(inner){ return '<svg viewBox="0 0 14 14" aria-hidden="true">'+inner+'</svg>'; };
   var keyParts = [];
   var cPts = o.pts.filter(function(p){ return p.shape!=="d"; }), dPts = o.pts.filter(function(p){ return p.shape==="d"; });
-  if(cPts.length) keyParts.push(sym('<circle cx="7" cy="7" r="5" fill="var(--ink-2)" fill-opacity=".9"/>')+'飲んだ記録');
-  if(dPts.length) keyParts.push(sym('<path d="M7 1.500L12.500 7L7 12.500L1.500 7Z" fill="var(--ink-2)" fill-opacity=".9" stroke="var(--wish)" stroke-width="1.600"/>')+'飲みたい');
-  if(cPts.some(function(p){ return p.t.est && !p.t.low; })) keyParts.push(sym('<circle cx="7" cy="7" r="5" fill="var(--ink-2)" fill-opacity=".55" stroke="var(--ink-2)" stroke-width="1.500" stroke-dasharray="2.500 2"/>')+'予想');
-  if(cPts.some(function(p){ return p.t.low; })) keyParts.push(sym('<circle cx="7" cy="7" r="5" fill="var(--ink-2)" fill-opacity=".2" stroke="var(--ink-2)" stroke-width="1.500" stroke-dasharray="1 3"/>')+'仮置き(名前・種類に手掛かりなし)');
+  var solidC = cPts.filter(function(p){ return !p.t.est; }), estC = cPts.filter(function(p){ return p.t.est && !p.t.low; }), lowC = cPts.filter(function(p){ return p.t.low; });
+  if(solidC.length) keyParts.push(sym('<circle cx="7" cy="7" r="5" fill="var(--ink-2)" fill-opacity=".9"/>')+'飲んだ記録');
+  if(estC.length) keyParts.push(sym('<circle cx="7" cy="7" r="5" fill="var(--ink-2)" fill-opacity=".55" stroke="var(--ink-2)" stroke-width="1.500" stroke-dasharray="2.500 2"/>')+(solidC.length?'飲んだ・予想':'飲んだ記録(味は予想)'));
+  if(lowC.length) keyParts.push(sym('<circle cx="7" cy="7" r="5" fill="var(--ink-2)" fill-opacity=".2" stroke="var(--ink-2)" stroke-width="1.500" stroke-dasharray="1 3"/>')+'飲んだ・仮置き(名前・種類に手掛かりなし)');
+  if(dPts.length) keyParts.push(sym('<path d="M7 1.500L12.500 7L7 12.500L1.500 7Z" fill="var(--ink-2)" fill-opacity=".92" stroke="var(--wish)" stroke-width="1.600"/>')+'飲みたい');
   var key = '<div class="tm-key">'+keyParts.map(function(k){ return '<span>'+k+'</span>'; }).join("")+'</div>';
   var note = '<div class="tm-note">'+ax.desc+(moved?' ・ 重なる点は少しずらして表示':'')+'</div>';
   return { svg:s, legend:legend, key:key, note:note };
@@ -2211,8 +2227,8 @@ function renderTasteMap(){
       : emptyStateHtml(ICONS.chart,"味の記録がまだありません","記録を追加すると、銘柄名・種類から味を予想してここに載せます");
     info.textContent = ""; return;
   }
-  var all = dr.map(function(r){ return { id:r.id, cat:r.category, t:r.taste, rating:r.rating||3, name:displayName(r.name), shape:"c", rec:r }; })
-    .concat(wi.map(function(w){ return { id:w.id, cat:w.category, t:w.taste, rating:0, name:displayName(w.name), shape:"d", rec:w }; }));
+  var all = dr.map(function(r){ return { id:r.id, cat:r.category, t:r.taste, rating:r.rating||3, name:String(r.name||""), shape:"c", rec:r }; })
+    .concat(wi.map(function(w){ return { id:w.id, cat:w.category, t:w.taste, rating:0, name:String(w.name||""), shape:"d", rec:w }; }));
   var m = drawTasteMap({ id:"tasteMapSvg", kind:mode, ax:ax, sel:uiMapSel, faint:[], pts:all, big:true, animate:mapAnim });
   mapAnim = false;
   var badges = (mode!=="wish" ? '<span class="tm-badge drank">● 飲んだ '+dr.length+'件</span>' : '') + (mode!=="drank" ? '<span class="tm-badge wish">◆ 飲みたい '+wi.length+'件</span>' : '');
@@ -2220,7 +2236,7 @@ function renderTasteMap(){
   var sp = all.filter(function(p){ return p.id===uiMapSel; })[0];
   if(sp){
     var sr = sp.rec, sc = CAT_BY_ID[sr.category] || CATEGORIES[0], isW = sp.shape==="d";
-    info.innerHTML = '<b>'+escHtml(displayName(sr.name))+'</b> <span style="color:var('+sc.c+');font-weight:800">'+sc.label+'</span>'+(isW ? ' <span class="tm-badge wish" style="padding:1px 9px;font-size:11px">◆ 飲みたい</span>' : '')+'<br>'
+    info.innerHTML = '<b>'+escHtml(String(sr.name||''))+'</b> <span style="color:var('+sc.c+');font-weight:800">'+sc.label+'</span>'+(isW ? ' <span class="tm-badge wish" style="padding:1px 9px;font-size:11px">◆ 飲みたい</span>' : '')+'<br>'
       + (sr.origin? '<br><span class="origin-pill">'+ICONS.pin+escHtml(sr.origin)+'</span>' : '')
       + '<br>'+(isW ? '' : starsStr(sr.rating)+' ・ ')+escHtml(tasteText(sr.taste))+(sr.taste.est?(sr.taste.low?'(仮置き:手掛かりがなく標準の位置)':'(予想)'):'');
   } else {
