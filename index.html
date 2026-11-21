@@ -375,11 +375,63 @@ input:not([type=range]):not([type=file]),select,textarea{font-size:16px !importa
 .rc-right{flex:0 0 auto; display:flex; flex-direction:column; align-items:flex-end; gap:4px; font-size:11px; font-weight:700; color:var(--ink-3)}
 .rc-chev{width:7px; height:7px; border-right:2px solid var(--ink-3); border-bottom:2px solid var(--ink-3); transform:rotate(45deg); transition:transform .15s; margin-right:3px}
 .rc.open .rc-chev{transform:rotate(-135deg)}
-.rc-body{display:none; padding:2px 12px 12px; border-top:1px solid var(--hairline)}
-.rc.open .rc-body{display:block}
 .rc-body .rec-top{margin-top:8px; justify-content:flex-start}
 .rc-body .rec-meta{margin-top:6px}
 .rc-body .rec-stars{margin-top:6px; font-size:13px}
+
+/* ホームの分布を大きく */
+#cardTasteMap{padding-left:8px; padding-right:8px}
+#cardTasteMap .card-head, #cardTasteMap .filter-scroll, #cardTasteMap .map-view, #cardTasteMap .taste-info, #cardTasteMap .tm-title, #cardTasteMap .tm-note{padding-left:10px; padding-right:10px}
+#cardTasteMap .filter-scroll{padding-bottom:6px}
+.tm-svg.big text{font-size:11.5px}
+.tm-svg.big .tm-ax{font-size:12px}
+.tm-svg.big .tm-q{font-size:11px}
+.tm-svg.big ~ .tm-legend{font-size:12.5px; gap:6px 16px}
+.tm-svg.big ~ .tm-legend i{width:11px; height:11px}
+.tm-svg.big ~ .tm-key{font-size:12px}
+#catBreakdownBody .cat-bar-row{padding:10px 0; gap:12px}
+#catBreakdownBody .cat-bar-row .cb-label{flex:0 0 112px; font-size:15px; color:var(--ink-1)}
+#catBreakdownBody .cat-bar-row .cb-label .ic{width:20px; height:20px}
+#catBreakdownBody .cat-bar-track{height:16px}
+#catBreakdownBody .cat-bar-row .cb-num{flex:0 0 86px; font-size:14.5px; color:var(--ink-1)}
+#catBreakdownBody .cat-bar-row .cb-num{font-weight:800}
+
+/* モーション */
+@keyframes tabIn{from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none}}
+@keyframes fadeIn{from{opacity:0} to{opacity:1}}
+@keyframes sheetUp{from{transform:translateY(40px); opacity:0} to{transform:none; opacity:1}}
+@keyframes barGrow{from{transform:scaleX(0)} to{transform:scaleX(1)}}
+@keyframes dotPop{0%{transform:scale(0); opacity:0} 70%{transform:scale(1.18); opacity:1} 100%{transform:scale(1); opacity:1}}
+@keyframes starPop{0%{transform:scale(1)} 45%{transform:scale(1.35)} 100%{transform:scale(1)}}
+@keyframes cardIn{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none}}
+.tab-panel:not([hidden]){animation:tabIn .3s ease both}
+#histRecordView:not([hidden]), #wishView:not([hidden]){animation:tabIn .26s ease both}
+.cat-bar-fill{transform-origin:left center; animation:barGrow .8s cubic-bezier(.2,.8,.2,1) both}
+.tm-svg .tm-dot.pop{transform-box:fill-box; transform-origin:center; animation:dotPop .5s cubic-bezier(.2,.9,.3,1) both}
+.scan-modal:not([hidden]), .pick-modal:not([hidden]){animation:fadeIn .2s ease both}
+.scan-modal:not([hidden]) .scan-sheet, .pick-modal:not([hidden]) .pick-sheet{animation:sheetUp .3s cubic-bezier(.2,.8,.2,1) both}
+.star-input button{transition:color .15s}
+.star-input button.on{animation:starPop .3s ease}
+.hero-card{animation:cardIn .4s ease both}
+.rec-list > .rec-card{animation:cardIn .32s ease both}
+.rec-list > .rec-card:nth-child(2){animation-delay:.03s}
+.rec-list > .rec-card:nth-child(3){animation-delay:.06s}
+.rec-list > .rec-card:nth-child(4){animation-delay:.09s}
+.rec-list > .rec-card:nth-child(5){animation-delay:.12s}
+.rec-list > .rec-card:nth-child(n+6){animation-delay:.15s}
+.filter-chip, .map-view button, .cat-btn{transition:background .18s, color .18s, border-color .18s, transform .12s}
+.btn-primary, .btn-secondary, .data-btn, .scan-entry, .hero-add-btn, .hero-scan-btn, .bf-btn{transition:transform .12s, box-shadow .15s, background .15s}
+.btn-primary:active, .btn-secondary:active, .data-btn:active, .scan-entry:active, .hero-add-btn:active, .hero-scan-btn:active, .bf-btn:active, .filter-chip:active, .map-view button:active, .cat-btn:active{transform:scale(.96)}
+.rc-head{transition:background .15s}
+.rc-head:active{background:var(--surface-input)}
+.rc-body{display:grid; grid-template-rows:0fr; padding:0; border-top:0; visibility:hidden; transition:grid-template-rows .28s ease, visibility 0s linear .28s}
+.rc.open .rc-body{grid-template-rows:1fr; visibility:visible; transition:grid-template-rows .28s ease, visibility 0s}
+.rc-in{overflow:hidden; min-height:0}
+.rc-pad{padding:2px 12px 12px; border-top:1px solid var(--hairline)}
+nav.bottom-nav button svg{transition:transform .2s}
+nav.bottom-nav button.active svg{transform:translateY(-2px) scale(1.08)}
+.toast{transition:opacity .25s, transform .3s cubic-bezier(.2,.9,.3,1.2)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none !important; transition:none !important}}
 
 /* data tab */
 .data-btn-row{display:flex; gap:8px; flex-wrap:wrap}
@@ -438,7 +490,8 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
     </div>
 
     <div class="card" id="cardTasteMap">
-      <div class="card-head"><h2>飲んだお酒の味マップ</h2><span class="card-sub" id="tasteMapSub">点の大きさ＝評価</span></div>
+      <div class="card-head"><h2>味マップ</h2><span class="card-sub" id="tasteMapSub">点の大きさ＝評価</span></div>
+      <div class="map-view" id="tasteModeSeg"></div>
       <div class="filter-scroll" id="tasteMapFilter"></div>
       <div id="tasteMapWrap"></div>
       <div class="taste-info" id="tasteInfo"></div>
@@ -565,8 +618,7 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
         <div class="wish-h">飲みたいお酒の分布<small id="wishCount"></small></div>
         <div id="wishBars"></div>
         <div class="filter-scroll" id="wishFilter"></div>
-        <div id="wishMapWrap"></div>
-        <div class="wish-info" id="wishInfo"></div>
+        <button type="button" class="tm-switch to-wish" id="goHomeMap" style="margin:6px auto 2px">◆ 味の位置はホームの「味マップ」で見られます →</button>
         <div class="wish-h">飲みたいリスト</div>
         <div class="search-row">
           <span class="search-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.500"/><path d="M16 16l4.500 4.500"/></svg></span>
@@ -781,7 +833,7 @@ function switchTab(name){
   document.querySelectorAll(".tab-panel").forEach(function(el){ el.hidden = (el.id !== "tab-"+name); });
   document.querySelectorAll(".bottom-nav button").forEach(function(b){ b.classList.toggle("active", b.dataset.tab===name); });
   if(name!=="add" && (editingId!==null || convertWishId!==null || wishMode)){ resetForm(); }
-  if(name==="home"){ renderDashboard(); }
+  if(name==="home"){ mapAnim = true; renderDashboard(); }
   if(name==="history"){ renderHistory(); }
   if(name==="data"){ renderDataTab(); }
   if(name==="know"){ renderKnow(); }
@@ -1815,7 +1867,6 @@ function renderWish(){
   var wq = uiWishSearch.trim().toLowerCase();
   var items = list.filter(function(w){ return (uiWishFilter==="all" || w.category===uiWishFilter) && recMatchesSearch(w, wq); })
     .slice().sort(function(a,b){ return (b.createdAt||"").localeCompare(a.createdAt||""); });
-  renderWishMap(list.filter(function(w){ return uiWishFilter==="all" || w.category===uiWishFilter; }));
   var el = document.getElementById("wishList");
   if(total===0){
     el.innerHTML = emptyStateHtml(ICONS.inbox,"飲みたいお酒はまだありません","「追加」タブの「飲みたいに追加」か、履歴の記録から追加できます");
@@ -1841,39 +1892,14 @@ function renderWish(){
       +     (pi.exact.length ? '<span class="rec-nth">飲んだ'+pi.exact.length+'回</span>' : '')+'</div></div>'
       +   '<div class="rc-right"><span>'+fmtDateShort((w.createdAt||"").slice(0,10))+'</span><span class="rc-chev"></span></div>'
       + '</div>'
-      + '<div class="rc-body">'
+      + '<div class="rc-body"><div class="rc-in"><div class="rc-pad">'
       +   (metaLine? '<div class="rec-meta">'+escHtml(metaLine)+'</div>' : '<div class="rec-meta">追加日 '+fmtDateShort((w.createdAt||"").slice(0,10))+'</div>')
       +   (w.tags && w.tags.length? '<div class="rec-tags">'+w.tags.map(function(t){return '<span class="chip" style="margin-right:4px">#'+escHtml(t)+'</span>';}).join("")+'</div>' : '')
       +   (w.memo? '<div class="rec-memo">'+escHtml(w.memo)+'</div>' : '')
       +   '<div class="rec-actions"><button data-act="wedit" data-id="'+w.id+'">編集</button><button data-act="drank" data-id="'+w.id+'" class="drank">飲んだ</button><button data-act="wdel" data-id="'+w.id+'" class="del">削除</button></div>'
-      + '</div></div>';
+      + '</div></div></div></div>';
   }).join("");
 }
-function renderWishMap(items){
-  var wrap = document.getElementById("wishMapWrap"), info = document.getElementById("wishInfo");
-  var ax = MAP_AXES[uiWishFilter] || MAP_AXES.all, hk = ax.h;
-  var okPt = function(r){ return r.taste && isNum(r.taste[hk]) && isNum(r.taste.y); };
-  var pts = items.filter(okPt);
-  if(state.wish.length===0){ wrap.innerHTML = ""; info.textContent = ""; return; }
-  var past = state.records.filter(function(r){ return (uiWishFilter==="all" || r.category===uiWishFilter) && okPt(r); });
-  var m = drawTasteMap({ id:"wishMapSvg", kind:"wish", ax:ax, sel:uiWishSel,
-    pts: pts.map(function(w){ return { id:w.id, cat:w.category, t:w.taste, rating:0, name:displayName(w.name) }; }),
-    faint: past.map(function(r){ return { cat:r.category, t:r.taste }; }) });
-  var head = '<div class="tm-title"><span class="tm-badge wish">◆ 飲みたい</span>'+pts.length+'件の味の位置(薄い丸は飲んだ記録'+past.length+'件)</div>';
-  var go = '<button type="button" class="tm-switch to-drank" id="goDrankMap">● 飲んだ記録の味マップはホームで見られます →</button>';
-  wrap.innerHTML = head + m.svg + m.legend + m.key + m.note + go;
-  var sw = pts.filter(function(w){ return w.id===uiWishSel; })[0];
-  info.innerHTML = sw ? '<b>'+escHtml(displayName(sw.name))+'</b> ・ '+escHtml(tasteText(sw.taste))+(sw.taste.est?(sw.taste.low?'(仮置き)':'(予想)'):'') : "◆ をタップすると銘柄が表示されます";
-}
-document.getElementById("wishMapWrap").addEventListener("click", function(e){
-  if(e.target.closest("#goDrankMap")){ uiMapFilter = uiWishFilter; uiMapSel = null; switchTab("home"); }
-});
-["historyList","wishList"].forEach(function(id){
-  document.getElementById(id).addEventListener("keydown", function(e){
-    if(e.key!=="Enter" && e.key!==" ") return;
-    var hd = e.target.closest && e.target.closest(".rc-head"); if(hd && e.target===hd){ e.preventDefault(); toggleCard(hd); }
-  });
-});
 document.getElementById("wishSearch").addEventListener("input", function(e){ uiWishSearch = e.target.value; renderWish(); });
 document.getElementById("addRecBtn").addEventListener("click", function(){ resetForm(); switchTab("add"); });
 document.getElementById("addWishBtn").addEventListener("click", function(){ resetForm(); setWishMode(true); switchTab("add"); });
@@ -1881,10 +1907,7 @@ document.getElementById("wishFilter").addEventListener("click", function(e){
   var b = e.target.closest(".filter-chip"); if(!b) return;
   uiWishFilter = b.dataset.id; uiWishSel = null; renderWish();
 });
-document.getElementById("wishMapWrap").addEventListener("click", function(e){
-  var g = e.target.closest(".tm-dot"); if(!g) return;
-  uiWishSel = (uiWishSel===g.dataset.id) ? null : g.dataset.id; renderWish();
-});
+document.getElementById("goHomeMap").addEventListener("click", function(){ uiMapMode = "wish"; uiMapFilter = uiWishFilter; uiMapSel = null; switchTab("home"); });
 document.getElementById("wishList").addEventListener("click", function(e){
   var b = e.target.closest("button[data-act]");
   if(!b){ var hd = e.target.closest(".rc-head"); if(hd) toggleCard(hd); return; }
@@ -2090,8 +2113,10 @@ var MAP_AXES = {
 /* 味マップの描画(ホーム=飲んだ / 飲みたいリスト=飲みたい で共通。見た目は kind で変える) */
 function drawTasteMap(o){
   var ax = o.ax, hk = ax.h, q = ax.q || {}, wish = (o.kind==="wish");
-  var L=50, T=14, W=258, H=244, B=T+H, R=L+W, gid = o.id+"G", tint = wish ? "--wish" : "--accent";
-  var s = '<svg id="'+o.id+'" class="tm-svg'+(wish?' wish':'')+'" viewBox="0 0 320 302" role="img" aria-label="'+(wish?'飲みたい':'飲んだ')+'お酒の味マップ(横:'+ax.title+'、縦:'+ax.vlo+'から'+ax.vhi+')">'
+  var nameKind = o.kind==="wish" ? "飲みたい" : o.kind==="both" ? "飲んだ・飲みたい" : "飲んだ";
+  var big = !!o.big, ks = big ? 1.3 : 1;
+  var L=big?54:50, T=14, W=big?262:258, H=big?300:244, B=T+H, R=L+W, gid = o.id+"G", tint = wish ? "--wish" : "--accent";
+  var s = '<svg id="'+o.id+'" class="tm-svg'+(wish?' wish':'')+(big?' big':'')+'" viewBox="0 0 320 '+(T+H+44)+'" role="img" aria-label="'+nameKind+'お酒の味マップ(横:'+ax.title+'、縦:'+ax.vlo+'から'+ax.vhi+')">'
     + '<defs><linearGradient id="'+gid+'" x1="0" y1="1" x2="1" y2="0"><stop offset="0" style="stop-color:var('+tint+')" stop-opacity="0"/><stop offset="1" style="stop-color:var('+tint+')" stop-opacity="0.15"/></linearGradient></defs>'
     + '<rect class="tm-frame" x="'+L+'" y="'+T+'" width="'+W+'" height="'+H+'" rx="10"/>'
     + '<rect x="'+L+'" y="'+T+'" width="'+W+'" height="'+H+'" rx="10" fill="url(#'+gid+')" pointer-events="none"/>'
@@ -2114,7 +2139,7 @@ function drawTasteMap(o){
   /* 同じ位置に重なる点は、少しずらして見えるようにする(評価の高い点を先に置く) */
   var placed = [], moved = false, byRate = o.pts.slice().sort(function(a,b){ return (b.rating||0)-(a.rating||0); });
   byRate.forEach(function(p){
-    var rad = wish ? 8 : 4 + (p.rating||3)*0.9;
+    var rad = (p.shape==="d" ? 8 : 4 + (p.rating||3)*0.9) * ks;
     var px = L + p.t[hk]/100*W, py = T + (100-p.t.y)/100*H, best = null;
     for(var k=0;k<70 && !best;k++){
       var ang = k*2.399963, d = k===0 ? 0 : 5.2*Math.sqrt(k);
@@ -2126,84 +2151,89 @@ function drawTasteMap(o){
     p.x = best.x; p.y = best.y; p.r = rad; placed.push({x:best.x, y:best.y, r:rad});
   });
   var selP = null;
-  byRate.slice().reverse().forEach(function(p){
+  byRate.slice().reverse().forEach(function(p, pi){
     var cat = CAT_BY_ID[p.cat] || CATEGORIES[0], est = !!p.t.est, low = !!p.t.low, sel = (o.sel===p.id), x = p.x, y = p.y, r = p.r;
     if(sel) selP = p;
     var fo = low ? 0.2 : est ? 0.55 : 0.9;
     var shape;
-    if(wish){
+    if(p.shape==="d"){
       shape = '<path d="M'+x+' '+(y-r)+' L'+(x+r)+' '+y+' L'+x+' '+(y+r)+' L'+(x-r)+' '+y+' Z" fill="var('+cat.c+')" fill-opacity="'+(low?0.45:0.92)+'" stroke="var(--wish)" stroke-width="1.8" stroke-linejoin="round"'+(low?' stroke-dasharray="2 2.5"':'')+'/>';
     } else {
       shape = '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="var('+cat.c+')" fill-opacity="'+fo+'" stroke="'+(est?'var('+cat.c+')':'var(--surface-1)')+'" stroke-width="1.5"'+(low?' stroke-dasharray="1 3"':est?' stroke-dasharray="2.5 2"':'')+'/>';
     }
-    s += '<g class="tm-dot" data-id="'+p.id+'"><circle cx="'+x+'" cy="'+y+'" r="'+Math.max(r+4, 12)+'" fill="transparent"/>'
+    s += '<g class="tm-dot'+(o.animate?' pop':'')+'" data-id="'+p.id+'"'+(o.animate?' style="animation-delay:'+Math.min(pi*40,640)+'ms"':'')+'><circle cx="'+x+'" cy="'+y+'" r="'+Math.max(r+4, 12)+'" fill="transparent"/>'
       + (sel ? '<circle cx="'+x+'" cy="'+y+'" r="'+(r+5)+'" fill="none" stroke="var(--ink-1)" stroke-width="1.5"/>' : '')
       + shape + '</g>';
   });
   if(selP){
     var nm = String(p_name(selP)); if(nm.length>14) nm = nm.slice(0,13)+"…";
-    var w = Math.min(170, nm.length*11+16), bx = Math.min(R-w-2, Math.max(L+2, selP.x-w/2));
-    var by = selP.y - selP.r - 32; if(by < T+2) by = selP.y + selP.r + 10;
-    s += '<g pointer-events="none"><rect x="'+bx+'" y="'+by+'" width="'+w+'" height="22" rx="7" fill="var(--surface-1)" stroke="var(--hairline)"/>'
-      + '<text x="'+(bx+w/2)+'" y="'+(by+15)+'" text-anchor="middle" style="fill:var(--ink-1);font-size:11px;font-weight:800">'+escHtml(nm)+'</text></g>';
+    var w = Math.min(190, nm.length*12*(big?1.08:1)+16), bx = Math.min(R-w-2, Math.max(L+2, selP.x-w/2));
+    var by = selP.y - selP.r - 34; if(by < T+2) by = selP.y + selP.r + 10;
+    s += '<g pointer-events="none"><rect x="'+bx+'" y="'+by+'" width="'+w+'" height="'+(big?26:22)+'" rx="8" fill="var(--surface-1)" stroke="var(--hairline)"/>'
+      + '<text x="'+(bx+w/2)+'" y="'+(by+(big?17:15))+'" text-anchor="middle" style="fill:var(--ink-1);font-size:'+(big?12.5:11)+'px;font-weight:800">'+escHtml(nm)+'</text></g>';
   }
   s += '</svg>';
   var cnt = {}; o.pts.forEach(function(p){ cnt[p.cat] = (cnt[p.cat]||0)+1; });
   var legend = '<div class="tm-legend">'+CATEGORIES.filter(function(cc){ return cnt[cc.id]; }).map(function(cc){ return '<span><i style="background:var('+cc.c+')"></i>'+cc.label+' '+cnt[cc.id]+'</span>'; }).join("")+'</div>';
   var sym = function(inner){ return '<svg viewBox="0 0 14 14" aria-hidden="true">'+inner+'</svg>'; };
   var keyParts = [];
-  if(wish){
-    keyParts.push(sym('<path d="M7 1.500L12.500 7L7 12.500L1.500 7Z" fill="var(--ink-2)" fill-opacity=".9" stroke="var(--wish)" stroke-width="1.600"/>')+'飲みたい');
-    if((o.faint||[]).length) keyParts.push(sym('<circle cx="7" cy="7" r="4" fill="var(--ink-2)" fill-opacity=".22"/>')+'飲んだ記録(薄い丸)');
-  } else {
-    var hasEst = o.pts.some(function(p){ return p.t.est && !p.t.low; }), hasLow = o.pts.some(function(p){ return p.t.low; });
-    keyParts.push(sym('<circle cx="7" cy="7" r="5" fill="var(--ink-2)" fill-opacity=".9"/>')+'記録');
-    if(hasEst) keyParts.push(sym('<circle cx="7" cy="7" r="5" fill="var(--ink-2)" fill-opacity=".55" stroke="var(--ink-2)" stroke-width="1.500" stroke-dasharray="2.500 2"/>')+'予想');
-    if(hasLow) keyParts.push(sym('<circle cx="7" cy="7" r="5" fill="var(--ink-2)" fill-opacity=".2" stroke="var(--ink-2)" stroke-width="1.500" stroke-dasharray="1 3"/>')+'仮置き(名前・種類に手掛かりなし)');
-  }
+  var cPts = o.pts.filter(function(p){ return p.shape!=="d"; }), dPts = o.pts.filter(function(p){ return p.shape==="d"; });
+  if(cPts.length) keyParts.push(sym('<circle cx="7" cy="7" r="5" fill="var(--ink-2)" fill-opacity=".9"/>')+'飲んだ記録');
+  if(dPts.length) keyParts.push(sym('<path d="M7 1.500L12.500 7L7 12.500L1.500 7Z" fill="var(--ink-2)" fill-opacity=".9" stroke="var(--wish)" stroke-width="1.600"/>')+'飲みたい');
+  if(cPts.some(function(p){ return p.t.est && !p.t.low; })) keyParts.push(sym('<circle cx="7" cy="7" r="5" fill="var(--ink-2)" fill-opacity=".55" stroke="var(--ink-2)" stroke-width="1.500" stroke-dasharray="2.500 2"/>')+'予想');
+  if(cPts.some(function(p){ return p.t.low; })) keyParts.push(sym('<circle cx="7" cy="7" r="5" fill="var(--ink-2)" fill-opacity=".2" stroke="var(--ink-2)" stroke-width="1.500" stroke-dasharray="1 3"/>')+'仮置き(名前・種類に手掛かりなし)');
   var key = '<div class="tm-key">'+keyParts.map(function(k){ return '<span>'+k+'</span>'; }).join("")+'</div>';
   var note = '<div class="tm-note">'+ax.desc+(moved?' ・ 重なる点は少しずらして表示':'')+'</div>';
   return { svg:s, legend:legend, key:key, note:note };
 }
 function p_name(p){ return p.name || ""; }
+var uiMapMode = "drank", mapAnim = true;
 function renderTasteMap(){
   var chipsEl = document.getElementById("tasteMapFilter");
   var chips = [{id:"all", label:"すべて", icon:ICONS.all}].concat(CATEGORIES.map(function(c){ return {id:c.id, label:c.label, icon:c.icon}; }));
   chipsEl.innerHTML = chips.map(function(c){
     return '<button type="button" class="filter-chip'+(uiMapFilter===c.id?" active":"")+'" data-id="'+c.id+'">'+c.icon+' '+c.label+'</button>';
   }).join("");
-  var ax = MAP_AXES[uiMapFilter] || MAP_AXES.all, hk = ax.h;
+  var modes = [["drank","● 飲んだ "+state.records.length],["wish","◆ 飲みたい "+state.wish.length],["both","両方"]];
+  document.getElementById("tasteModeSeg").innerHTML = modes.map(function(m){
+    return '<button type="button" data-m="'+m[0]+'" class="'+(uiMapMode===m[0]?"active":"")+'">'+m[1]+'</button>';
+  }).join("");
+  var ax = MAP_AXES[uiMapFilter] || MAP_AXES.all, hk = ax.h, mode = uiMapMode;
   var wrap = document.getElementById("tasteMapWrap"), info = document.getElementById("tasteInfo");
-  var pts = state.records.filter(function(r){
-    return (uiMapFilter==="all" || r.category===uiMapFilter) && r.taste && isNum(r.taste[hk]) && isNum(r.taste.y);
-  });
-  var anyEst = pts.some(function(r){ return !!r.taste.est && !r.taste.low; }), anyLow = pts.some(function(r){ return !!r.taste.low; });
-  document.getElementById("tasteMapSub").textContent = "点の大きさ＝評価 ・ "+pts.length+"件";
-  if(pts.length===0){
-    wrap.innerHTML = emptyStateHtml(ICONS.chart,"味の記録がまだありません","記録を追加すると、銘柄名・種類から味を予想してここに載せます。過去の記録は「履歴」タブから予想できます");
+  var okAx = function(r){ return r.taste && isNum(r.taste[hk]) && isNum(r.taste.y); };
+  var inCat = function(r){ return uiMapFilter==="all" || r.category===uiMapFilter; };
+  var dr = mode==="wish" ? [] : state.records.filter(inCat).filter(okAx);
+  var wi = mode==="drank" ? [] : state.wish.filter(inCat).filter(okAx);
+  document.getElementById("tasteMapSub").textContent = mode==="drank" ? "点の大きさ＝評価 ・ "+dr.length+"件" : mode==="wish" ? "◆ "+wi.length+"件" : "● "+dr.length+"件 ・ ◆ "+wi.length+"件";
+  if(dr.length+wi.length===0){
+    wrap.innerHTML = (mode==="wish" && state.wish.length===0)
+      ? emptyStateHtml(ICONS.chart,"飲みたいお酒がまだありません","「履歴」タブの「飲みたい」から追加すると、ここに載ります")
+      : emptyStateHtml(ICONS.chart,"味の記録がまだありません","記録を追加すると、銘柄名・種類から味を予想してここに載せます");
     info.textContent = ""; return;
   }
-  var m = drawTasteMap({ id:"tasteMapSvg", kind:"drank", ax:ax, sel:uiMapSel, faint:[],
-    pts: pts.map(function(r){ return { id:r.id, cat:r.category, t:r.taste, rating:r.rating||3, name:displayName(r.name) }; }) });
-  var head = '<div class="tm-title"><span class="tm-badge drank">● 飲んだ</span>記録した'+pts.length+'件の味の位置</div>';
-  var go = state.wish.length ? '<button type="button" class="tm-switch to-wish" id="goWishMap">◆ 飲みたいリスト('+state.wish.length+'件)の味マップを見る →</button>' : '';
-  wrap.innerHTML = head + m.svg + m.legend + m.key + m.note + go;
-  var sr = pts.filter(function(r){ return r.id===uiMapSel; })[0];
-  if(sr){
-    var sc = CAT_BY_ID[sr.category] || CATEGORIES[0];
-    info.innerHTML = '<b>'+escHtml(displayName(sr.name))+'</b> <span style="color:var('+sc.c+');font-weight:800">'+sc.label+'</span><br>'
+  var all = dr.map(function(r){ return { id:r.id, cat:r.category, t:r.taste, rating:r.rating||3, name:displayName(r.name), shape:"c", rec:r }; })
+    .concat(wi.map(function(w){ return { id:w.id, cat:w.category, t:w.taste, rating:0, name:displayName(w.name), shape:"d", rec:w }; }));
+  var m = drawTasteMap({ id:"tasteMapSvg", kind:mode, ax:ax, sel:uiMapSel, faint:[], pts:all, big:true, animate:mapAnim });
+  mapAnim = false;
+  var badges = (mode!=="wish" ? '<span class="tm-badge drank">● 飲んだ '+dr.length+'件</span>' : '') + (mode!=="drank" ? '<span class="tm-badge wish">◆ 飲みたい '+wi.length+'件</span>' : '');
+  wrap.innerHTML = '<div class="tm-title">'+badges+'</div>' + m.svg + m.legend + m.key + m.note;
+  var sp = all.filter(function(p){ return p.id===uiMapSel; })[0];
+  if(sp){
+    var sr = sp.rec, sc = CAT_BY_ID[sr.category] || CATEGORIES[0], isW = sp.shape==="d";
+    info.innerHTML = '<b>'+escHtml(displayName(sr.name))+'</b> <span style="color:var('+sc.c+');font-weight:800">'+sc.label+'</span>'+(isW ? ' <span class="tm-badge wish" style="padding:1px 9px;font-size:11px">◆ 飲みたい</span>' : '')+'<br>'
       + (sr.origin? '<br><span class="origin-pill">'+ICONS.pin+escHtml(sr.origin)+'</span>' : '')
-      + '<br>'+starsStr(sr.rating)+' ・ '+escHtml(tasteText(sr.taste))+(sr.taste.est?(sr.taste.low?'(仮置き:手掛かりがなく標準の位置)':'(予想)'):'');
+      + '<br>'+(isW ? '' : starsStr(sr.rating)+' ・ ')+escHtml(tasteText(sr.taste))+(sr.taste.est?(sr.taste.low?'(仮置き:手掛かりがなく標準の位置)':'(予想)'):'');
   } else {
-    info.textContent = "● をタップすると銘柄が表示されます";
+    info.textContent = "点をタップすると銘柄が表示されます";
   }
 }
-document.getElementById("tasteMapWrap").addEventListener("click", function(e){
-  if(e.target.closest("#goWishMap")){ uiHistMode = "wish"; uiWishFilter = uiMapFilter; uiWishSel = null; switchTab("history"); }
+document.getElementById("tasteModeSeg").addEventListener("click", function(e){
+  var b = e.target.closest("button[data-m]"); if(!b) return;
+  uiMapMode = b.dataset.m; uiMapSel = null; mapAnim = true; renderTasteMap();
 });
 document.getElementById("tasteMapFilter").addEventListener("click", function(e){
   var b = e.target.closest(".filter-chip"); if(!b) return;
-  uiMapFilter = b.dataset.id; uiMapSel = null; renderTasteMap();
+  uiMapFilter = b.dataset.id; uiMapSel = null; mapAnim = true; renderTasteMap();
 });
 document.getElementById("tasteMapWrap").addEventListener("click", function(e){
   var g = e.target.closest(".tm-dot"); if(!g) return;
@@ -2608,13 +2638,13 @@ function renderHistory(){
       +     (grp.length>=2 && nth>0 ? '<span class="rec-nth">'+nth+'回目</span>' : '')+'</div></div>'
       +   '<div class="rc-right"><span>'+fmtDateShort(r.date)+'</span><span class="rc-chev"></span></div>'
       + '</div>'
-      + '<div class="rc-body">'
+      + '<div class="rc-body"><div class="rc-in"><div class="rc-pad">'
       +   '<div class="rec-top"><span class="rec-badge">'+cat.icon+' '+cat.label+'</span>'+(grp.length>=2 && nth>0 ? '<span class="rec-date">'+nth+'回目 / 計'+grp.length+'回</span>' : '')+'</div>'
       +   (metaLine? '<div class="rec-meta">'+escHtml(metaLine)+'</div>' : '')
       +   (r.tags && r.tags.length? '<div class="rec-tags">'+r.tags.map(function(t){return '<span class="chip" style="margin-right:4px">#'+escHtml(t)+'</span>';}).join("")+'</div>' : '')
       +   (r.memo? '<div class="rec-memo">'+escHtml(r.memo)+'</div>' : '')
       +   '<div class="rec-actions"><button data-act="edit" data-id="'+r.id+'">編集</button><button data-act="wish" data-id="'+r.id+'" class="addwish">飲みたいに追加</button>'+(bfNeeds(r) && !r.infoPicked && loadRakutenConfig() ? '<button data-act="find" data-id="'+r.id+'" class="find">情報を探す</button>' : '')+'<button data-act="delete" data-id="'+r.id+'" class="del">削除</button></div>'
-      + '</div></div>';
+      + '</div></div></div></div>';
   }).join("");
 }
 document.getElementById("historyList").addEventListener("click", function(e){
