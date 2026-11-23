@@ -240,6 +240,8 @@ input:not([type=range]):not([type=file]),select,textarea{font-size:16px !importa
 .taste-clear{border:0; background:none; padding:2px 0; color:var(--ink-3); font-weight:700; font-size:11.5px; font-family:inherit; cursor:pointer; text-decoration:underline}
 #tasteMapWrap{margin-top:12px; position:relative}
 .tm-pop{position:absolute; z-index:5; background:var(--surface-1); border:1px solid var(--hairline); border-radius:14px; padding:10px 12px 11px; box-shadow:0 6px 22px rgba(0,0,0,.16); font-size:12px; color:var(--ink-2)}
+.tm-pop .tp-edit{display:block; width:100%; margin-top:10px; padding:8px 0; border:1.5px solid var(--accent); border-radius:var(--r-pill); background:var(--surface-1); color:var(--accent); font-family:inherit; font-size:12.5px; font-weight:800; cursor:pointer}
+.tm-pop .tp-edit:active{background:var(--accent); color:var(--on-accent)}
 .tm-pop .tp-close{position:absolute; top:2px; right:2px; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border:0; background:transparent; color:var(--ink-2); cursor:pointer; border-radius:50%}
 .tm-pop .tp-close svg{width:14px; height:14px}
 .tm-pop .tp-close:active{background:var(--surface-input)}
@@ -811,7 +813,7 @@ var CAT_BY_ID = {}; CATEGORIES.forEach(function(c){ CAT_BY_ID[c.id]=c; });
 var state = { records: [] };
 var uiFilter = "all";
 var uiSearch = "";
-var editingId = null;
+var editingId = null, editFromMap = false;
 var pendingImage = null; // 楽天の商品画像URL(自動取得)
 var pendingPhoto = null; // dataURL staged from file input for the form currently open
 
@@ -1608,7 +1610,7 @@ document.getElementById("rakutenClearBtn").addEventListener("click", function(){
 });
 
 function resetForm(){
-  editingId = null; convertWishId = null; editingWishId = null;
+  editFromMap = false; editingId = null; convertWishId = null; editingWishId = null;
   setWishMode(false);
   selectedCategory = null;
   selectedRating = 0;
@@ -1667,7 +1669,7 @@ function switchTabSilent(name){
   document.querySelectorAll(".bottom-nav button").forEach(function(b){ b.classList.toggle("active", b.dataset.tab===name); });
 }
 
-document.getElementById("cancelEditBtn").addEventListener("click", function(){ resetForm(); });
+document.getElementById("cancelEditBtn").addEventListener("click", function(){ var back = editFromMap; resetForm(); if(back) switchTab("home"); });
 
 document.getElementById("addForm").addEventListener("submit", function(e){
   e.preventDefault();
@@ -1728,9 +1730,10 @@ document.getElementById("addForm").addEventListener("submit", function(e){
   }
   saveState();
   showToast((editingId?"更新しました：":"記録しました：") + name + (removedWish ? "(飲みたいリストから外しました)" : ""));
+  var backHome = editFromMap;
   resetForm();
   uiHistMode = "rec";
-  switchTab("history");
+  switchTab(backHome ? "home" : "history");
 });
 
 /* ---------- 飲みたいリスト ---------- */
@@ -1799,9 +1802,10 @@ function submitWish(name){
     if(!addWishItem(item)) return;
     showToast("飲みたいに追加しました："+name);
   }
+  var backHomeW = editFromMap;
   resetForm();
   uiHistMode = "wish"; uiWishFilter = "all"; uiWishSel = null;
-  switchTab("history");
+  switchTab(backHomeW ? "home" : "history");
 }
 function startEditWish(id){
   var w = state.wish.find(function(x){ return x.id===id; }); if(!w) return;
@@ -2437,6 +2441,7 @@ function renderTasteMap(){
       + (skView
         ? snTags(sp0.t.sn)+'<div class="sn-rows">'+SAKE_LABELS.map(function(l,i){ var v = sp0.t.sn[i]; return '<div class="sn-row"><span>'+l+'</span><div class="sn-bar"><i style="width:'+Math.min(100,v/90*100)+'%"></i><b style="left:'+Math.min(100,SAKE_DB.mean[i]/90*100)+'%"></b></div><em>'+v+'</em></div>'; }).join('')+'</div><div class="sn-cap">黒い線は、さけのわ全銘柄の平均</div>'
         : '<div class="tp-taste">'+escHtml(tasteText(pr.taste))+'</div>'+(pr.taste && pr.taste.est ? '<div class="sn-cap">'+(pr.taste.low ? '仮置き(手掛かりがなく標準の位置)' : '予想(銘柄名・種類から)')+'</div>' : ''))
+      + '<button type="button" class="tp-edit" id="tmPopEdit" data-id="'+escHtml(String(pr.id))+'" data-wish="'+(pw ? 1 : 0)+'">編集する</button>'
       + '</div>';
   }
   wrap.innerHTML = '<div class="tm-title">'+badges+'</div>' + m.svg + m.legend + m.key + zoomNote + popHtml;
@@ -2467,6 +2472,8 @@ document.getElementById("tasteMapFilter").addEventListener("click", function(e){
   uiMapFilter = b.dataset.id; uiMapSel = null; mapAnim = true; renderTasteMap();
 });
 document.getElementById("tasteMapWrap").addEventListener("click", function(e){
+  var eb = e.target.closest("#tmPopEdit");
+  if(eb){ var eid = eb.dataset.id, ew = eb.dataset.wish==="1"; uiMapSel = null; if(ew) startEditWish(eid); else startEdit(eid); editFromMap = true; return; }
   if(e.target.closest("#tmPopClose")){ uiMapSel = null; renderTasteMap(); return; }
   if(e.target.closest("#tmPop")) return;
   if(e.target.closest("#tmZoomBtn")){ uiMapZoom = !uiMapZoom; uiMapSel = null; mapAnim = true; renderTasteMap(); return; }
