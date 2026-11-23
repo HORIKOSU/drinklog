@@ -566,6 +566,12 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
         <p class="past-hint" id="pastHint" hidden></p>
       </div>
 
+      <div class="field">
+        <label for="fDisp">マップに出す名前(任意)</label>
+        <input type="text" id="fDisp" placeholder="空欄なら自動で短くします" autocomplete="off" maxlength="30">
+        <p class="hint">味マップのラベルとポップに表示する短い名前です。長い名前や、蔵元・メーカー名が先頭の名前に使えます</p>
+      </div>
+
       <div class="two-col" id="dateAbvRow">
         <div class="field" id="dateField">
           <label>飲んだ日<span class="req">*</span></label>
@@ -1627,6 +1633,7 @@ function resetForm(){
   document.getElementById("formTitle").textContent = "記録を追加";
   document.getElementById("submitBtn").textContent = "記録を追加";
   document.getElementById("cancelEditBtn").hidden = true;
+  updateDispHint();
   document.getElementById("formStatus").textContent = "";
   document.getElementById("rakutenPanel").hidden = true;
   document.getElementById("fAbv").dataset.auto = ""; document.getElementById("abvHint").hidden = true;
@@ -1645,6 +1652,7 @@ function startEdit(id){
   renderStarInput();
   updatePhotoPreview();
   document.getElementById("fName").value = r.name || "";
+  document.getElementById("fDisp").value = r.disp || ""; updateDispHint();
   document.getElementById("fDate").value = r.date || todayStr();
   document.getElementById("fAbv").value = r.abv != null ? r.abv : "";
   setTasteUI(r.taste);
@@ -1698,6 +1706,7 @@ document.getElementById("addForm").addEventListener("submit", function(e){
     id: editingId || uid(),
     category: selectedCategory,
     name: name,
+    disp: document.getElementById("fDisp").value.trim(),
     date: date,
     rating: selectedRating,
     abv: abvVal===""? null : Number(abvVal),
@@ -1783,7 +1792,7 @@ function submitWish(name){
   var ft = tasteVal;
   if(!ft || ft.est==="name"){ ft = guessTasteFor({ category:selectedCategory, name:name, detail:detail, memo:memoVal, tags:tags }); }
   var item = {
-    category: selectedCategory, name: name,
+    category: selectedCategory, name: name, disp: document.getElementById("fDisp").value.trim(),
     abv: abvVal==="" ? null : Number(abvVal),
     origin: document.getElementById("fOrigin").value.trim(),
     taste: cleanTaste(ft), detail: detail,
@@ -1819,6 +1828,7 @@ function startEditWish(id){
   renderStarInput();
   updatePhotoPreview();
   document.getElementById("fName").value = w.name || "";
+  document.getElementById("fDisp").value = w.disp || ""; updateDispHint();
   document.getElementById("fAbv").value = w.abv != null ? w.abv : "";
   document.getElementById("fOrigin").value = w.origin || "";
   document.getElementById("fMemo").value = w.memo || "";
@@ -1836,7 +1846,7 @@ function startEditWish(id){
 function addWishFromRecord(id){
   var r = state.records.find(function(x){ return x.id===id; }); if(!r) return;
   var ok = addWishItem({
-    category: r.category, name: r.name, abv: r.abv!=null ? r.abv : null, origin: r.origin || "",
+    category: r.category, name: r.name, disp: r.disp || "", abv: r.abv!=null ? r.abv : null, origin: r.origin || "",
     taste: r.taste ? JSON.parse(JSON.stringify(r.taste)) : null, detail: JSON.parse(JSON.stringify(r.detail || {})),
     image: r.image || null, memo: "", tags: []
   });
@@ -1853,6 +1863,7 @@ function startConvertWish(id){
   renderStarInput();
   updatePhotoPreview();
   document.getElementById("fName").value = w.name || "";
+  document.getElementById("fDisp").value = w.disp || ""; updateDispHint();
   document.getElementById("fAbv").value = w.abv != null ? w.abv : "";
   document.getElementById("fOrigin").value = w.origin || "";
   document.getElementById("fMemo").value = w.memo || "";
@@ -2128,6 +2139,11 @@ function updatePastHint(){
   el.innerHTML = h; el.hidden = false;
 }
 function onFormIdentityChange(){ refreshTasteGuess(); updatePastHint(); }
+function updateDispHint(){
+  var el = document.getElementById("fDisp"), n = document.getElementById("fName").value.trim();
+  el.placeholder = n ? ("自動: "+shortName(n, selectedCategory)) : "空欄なら自動で短くします";
+}
+document.getElementById("fName").addEventListener("input", updateDispHint);
 document.getElementById("fName").addEventListener("input", onFormIdentityChange);
 document.getElementById("detailFields").addEventListener("change", onFormIdentityChange);
 document.getElementById("fMemo").addEventListener("input", refreshTasteGuess);
@@ -2219,7 +2235,7 @@ function drawTasteMap(o){
     var lwid = function(t){ var w = 0; Array.from(t).forEach(function(ch){ w += /[\u0020-\u007e\uff61-\uff9f]/.test(ch) ? lfs*0.58 : lfs; }); return w + 14; };
     byRate.forEach(function(p){
       if(selP && p===selP) return;
-      var lb = String(p.name||"").normalize("NFKC").replace(/[【\[(][^】\])]*[】\])]/g,"").trim().split(/[\s\u3000]+/)[0]; if(Array.from(lb).length>7) lb = Array.from(lb).slice(0,7).join("")+"…";
+      var lb = (p.rec && p.rec.disp && String(p.rec.disp).trim()) ? String(p.rec.disp).trim() : (p.cat==="sake" && SAKE_DB && sakeMatchInfo(p.name) && sakeMatchInfo(p.name).tok) ? sakeMatchInfo(p.name).tok : String(p.name||"").normalize("NFKC").replace(/[【\[(][^】\])]*[】\])]/g,"").trim().split(/[\s\u3000]+/)[0]; if(Array.from(lb).length>7) lb = Array.from(lb).slice(0,7).join("")+"…";
       var w = lwid(lb), cands = [], pick = null;
       [3, 11].forEach(function(g){
         var d = p.r+g;
@@ -2281,7 +2297,25 @@ function drawTasteMap(o){
 }
 function p_name(p){ return p.name || ""; }
 /* 長い商品名(ネット通販のタイトル等)は、銘柄名らしい先頭部分だけに短くする */
-function shortName(name){
+function shortName(name, cat, disp){
+  if(disp && String(disp).trim()) return String(disp).trim();
+  /* 日本酒は、さけのわの銘柄名(例: 久保田)が名前の途中にあれば、そこを中心に短くする(先頭が蔵元名のことが多いため) */
+  if(cat==="sake" && SAKE_DB){
+    var mi = sakeMatchInfo(name);
+    if(mi && mi.tok){
+      var ts = String(name||"").normalize("NFKC").split(/[\s\u3000]+/).filter(function(x){ return x; });
+      if(mi.idx>0){
+        var o2 = [ts[mi.idx]];
+        for(var k=mi.idx+1;k<ts.length;k++){
+          if(/^(\d+(\.\d+)?\s*(ml|l|ℓ|リットル|本|g|cm)|[!?]|.*(瓶|箱|送料|ギフト|化粧|ケース|入り|セット).*)$/i.test(ts[k])) break;
+          if(Array.from(o2.join(" ")+" "+ts[k]).length>12) break;
+          o2.push(ts[k]);
+        }
+        return o2.join(" ");
+      }
+      if(mi.idx<0) return mi.tok;
+    }
+  }
   var raw = String(name||"").trim(), t = raw.replace(/[【\[(（][^】\])）]*[】\])）]/g," ").replace(/[\u3000\s]+/g," ").trim() || raw;
   var toks = t.split(" "), out = [], stop = /^(\d+(\.\d+)?\s*(ml|ｍｌ|l|ℓ|リットル|本|g|cm)|[!！?？]|.*(瓶|箱|送料|ギフト|化粧|ケース|入り|セット).*)$/i;
   for(var i=0;i<toks.length;i++){
@@ -2332,19 +2366,20 @@ function loadSakenowa(){
     if(!document.getElementById("tab-home").hidden) renderTasteMap();
   }).catch(function(){ SAKE_DB = null; });
 }
-/* 記録名 → さけのわの銘柄(完全一致 → 先頭の語が一致 → 3文字以上の銘柄名が含まれる、の順) */
-function sakeMatch(name){
+function sakeMatchInfo(name){
   if(!SAKE_DB) return null;
   var raw = String(name||"").normalize("NFKC"), full = normSake(raw);
   if(!full) return null;
-  if(SAKE_DB.avg[full]) return SAKE_DB.avg[full];
-  var first = normSake(raw.split(/[\s　]+/)[0]);
-  if(first && SAKE_DB.avg[first]) return SAKE_DB.avg[first];
-  var toks = raw.split(/[\s\u3000]+/);
-  for(var t=1;t<toks.length;t++){ var tk = normSake(toks[t]); if(tk.length>=2 && SAKE_DB.avg[tk]) return SAKE_DB.avg[tk]; }
-  for(var i=0;i<SAKE_DB.keys.length;i++){ if(full.indexOf(SAKE_DB.keys[i])>=0) return SAKE_DB.avg[SAKE_DB.keys[i]]; }
+  var toks = raw.split(/[\s\u3000]+/).filter(function(x){ return x; });
+  if(SAKE_DB.avg[full]) return { v:SAKE_DB.avg[full], idx:0, tok:null };
+  var first = normSake(toks[0]||"");
+  if(first && SAKE_DB.avg[first]) return { v:SAKE_DB.avg[first], idx:0, tok:toks[0] };
+  for(var t=1;t<toks.length;t++){ var tk = normSake(toks[t]); if(tk.length>=2 && SAKE_DB.avg[tk]) return { v:SAKE_DB.avg[tk], idx:t, tok:toks[t] }; }
+  for(var i=0;i<SAKE_DB.keys.length;i++){ if(full.indexOf(SAKE_DB.keys[i])>=0) return { v:SAKE_DB.avg[SAKE_DB.keys[i]], idx:-1, tok:SAKE_DB.keys[i] }; }
   return null;
 }
+/* 記録名 → さけのわの銘柄(完全一致 → 先頭の語が一致 → 後ろの語が一致 → 3文字以上の銘柄名が含まれる、の順) */
+function sakeMatch(name){ var m = sakeMatchInfo(name); return m ? m.v : null; }
 function snTags(v){
   var d = v.map(function(x,i){ return {i:i, d:x-SAKE_DB.mean[i]}; }).filter(function(o){ return Math.abs(o.d)>=5; }).sort(function(a,b){ return Math.abs(b.d)-Math.abs(a.d); }).slice(0,2);
   if(!d.length) return '<div class="sn-tags"><span class="sn-tag dn">どの項目も平均なみ</span></div>';
@@ -2436,7 +2471,7 @@ function renderTasteMap(){
   var sp0 = all.filter(function(p){ return p.id===uiMapSel; })[0], popHtml = "";
   if(sp0 && m.selPos){
     var pr = sp0.rec, pc = CAT_BY_ID[pr.category] || CATEGORIES[0], pw = sp0.shape==="d";
-    popHtml = '<div class="tm-pop" id="tmPop"><button type="button" class="tp-close" id="tmPopClose" aria-label="閉じる"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 3 L11 11 M11 3 L3 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg></button><div class="tp-name">'+escHtml(shortName(pr.name))+'</div>'
+    popHtml = '<div class="tm-pop" id="tmPop"><button type="button" class="tp-close" id="tmPopClose" aria-label="閉じる"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 3 L11 11 M11 3 L3 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg></button><div class="tp-name">'+escHtml(shortName(pr.name, pr.category, pr.disp))+'</div>'
       + '<div class="tp-sub"><span style="color:var('+pc.c+')">'+pc.label+'</span>'+(pw ? '<span class="tp-wish">◆ 飲みたい</span>' : '<span class="tp-star">'+starsStr(pr.rating)+'</span>')+(pr.origin ? '<span>'+escHtml(pr.origin)+'</span>' : '')+'</div>'
       + (skView
         ? snTags(sp0.t.sn)+'<div class="sn-rows">'+SAKE_LABELS.map(function(l,i){ var v = sp0.t.sn[i]; return '<div class="sn-row"><span>'+l+'</span><div class="sn-bar"><i style="width:'+Math.min(100,v/90*100)+'%"></i><b style="left:'+Math.min(100,SAKE_DB.mean[i]/90*100)+'%"></b></div><em>'+v+'</em></div>'; }).join('')+'</div><div class="sn-cap">黒い線は、さけのわ全銘柄の平均</div>'
