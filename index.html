@@ -239,6 +239,10 @@ input:not([type=range]):not([type=file]),select,textarea{font-size:16px !importa
 .map-view button.active{background:var(--accent); color:var(--on-accent); border-color:var(--accent)}
 .taste-clear{border:0; background:none; padding:2px 0; color:var(--ink-3); font-weight:700; font-size:11.5px; font-family:inherit; cursor:pointer; text-decoration:underline}
 #tasteMapWrap{margin-top:12px}
+#sakeViewSeg{margin:8px 0 0}
+#sakeViewSeg button{font-size:12px; padding:7px 4px}
+.tm-note a{color:var(--accent); font-weight:700}
+.sn-vals{margin-top:6px; font-size:12px; color:var(--ink-2); line-height:1.7}
 .wish-h{font-size:12.5px; font-weight:800; color:var(--ink-2); margin:14px 0 4px}
 .wish-h small{font-weight:700; color:var(--ink-3); margin-left:6px; font-size:11px}
 .wish-info{font-size:12.5px; color:var(--ink-2); text-align:center; margin:8px 0 4px; min-height:18px}
@@ -493,6 +497,7 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
       <div class="card-head"><h2>味マップ</h2><span class="card-sub" id="tasteMapSub">点の大きさ＝評価</span></div>
       <div class="map-view" id="tasteModeSeg"></div>
       <div class="filter-scroll" id="tasteMapFilter"></div>
+      <div class="map-view" id="sakeViewSeg" hidden></div>
       <div id="tasteMapWrap"></div>
       <div class="taste-info" id="tasteInfo"></div>
     </div>
@@ -2204,6 +2209,54 @@ function drawTasteMap(o){
 }
 function p_name(p){ return p.name || ""; }
 var uiMapMode = "drank", mapAnim = true;
+
+/* ---------- さけのわデータ(同梱のsakenowa.json。日本酒の味マップ用) ---------- */
+var SAKE_DB = null, uiSakeView = "sk1";
+var SAKE_LABELS = ["華やか","芳醇","重厚","穏やか","ドライ","軽快"];
+function normSake(x){ return String(x||"").normalize("NFKC").toLowerCase().replace(/[\s　・･\-_\/／、,.。()（）【】「」『』\[\]]+/g,""); }
+function loadSakenowa(){
+  if(!/^https?:$/.test(location.protocol)) return;
+  fetch("./sakenowa.json").then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){
+    var map = {};
+    (j.rows||[]).forEach(function(r){
+      var k = normSake(r[0]); if(!k) return;
+      (map[k] = map[k] || []).push(r.slice(1,7));
+    });
+    var avg = {}, keys = Object.keys(map);
+    keys.forEach(function(k){
+      var a = map[k], o = [0,0,0,0,0,0];
+      a.forEach(function(v){ for(var i=0;i<6;i++) o[i] += v[i]; });
+      avg[k] = o.map(function(x){ return Math.round(x/a.length); });
+    });
+    /* 軸ごとに、全銘柄の5〜95%点を両端にして位置を決める(偏りが大きい項目も広がって見える) */
+    var rng = [];
+    for(var ai=0; ai<6; ai++){
+      var col = keys.map(function(k){ return avg[k][ai]; }).sort(function(a,b){ return a-b; });
+      var lo = col[Math.floor(col.length*0.05)], hi = col[Math.floor(col.length*0.95)];
+      rng.push(hi-lo >= 10 ? [lo,hi] : [10,70]);
+    }
+    SAKE_DB = { avg:avg, rng:rng, keys:keys.filter(function(k){ return k.length>=3; }).sort(function(a,b){ return b.length-a.length; }) };
+    if(!document.getElementById("tab-home").hidden) renderTasteMap();
+  }).catch(function(){ SAKE_DB = null; });
+}
+/* 記録名 → さけのわの銘柄(完全一致 → 先頭の語が一致 → 3文字以上の銘柄名が含まれる、の順) */
+function sakeMatch(name){
+  if(!SAKE_DB) return null;
+  var raw = String(name||"").normalize("NFKC"), full = normSake(raw);
+  if(!full) return null;
+  if(SAKE_DB.avg[full]) return SAKE_DB.avg[full];
+  var first = normSake(raw.split(/[\s　]+/)[0]);
+  if(first && SAKE_DB.avg[first]) return SAKE_DB.avg[first];
+  var toks = raw.split(/[\s\u3000]+/);
+  for(var t=1;t<toks.length;t++){ var tk = normSake(toks[t]); if(tk.length>=2 && SAKE_DB.avg[tk]) return SAKE_DB.avg[tk]; }
+  for(var i=0;i<SAKE_DB.keys.length;i++){ if(full.indexOf(SAKE_DB.keys[i])>=0) return SAKE_DB.avg[SAKE_DB.keys[i]]; }
+  return null;
+}
+function sakeScale(v, i){ var r = SAKE_DB.rng[i]; return Math.max(4, Math.min(96, (v-r[0])/(r[1]-r[0])*100)); }
+var SAKE_AXES = {
+  sk1: { h:"sk1", title:"香りの華やかさ", lo:"控えめ", hi:"華やか", vlo:"あっさり", vhi:"芳醇", desc:"さけのわ: 華やか × 芳醇", sn:{hx:0, vy:1}, q:{tl:"控えめで芳醇", tr:"華やかで芳醇", bl:"控えめであっさり", br:"華やかであっさり"} },
+  sk2: { h:"sk2", title:"辛さ", lo:"甘め寄り", hi:"ドライ", vlo:"軽め", vhi:"重厚", desc:"さけのわ: ドライ × 重厚", sn:{hx:4, vy:2}, q:{tl:"重厚で甘め寄り", tr:"重厚でドライ", bl:"軽く甘め寄り", br:"軽快でドライ"} }
+};
 function renderTasteMap(){
   var chipsEl = document.getElementById("tasteMapFilter");
   /* 味マップは種類別のみ(「すべて」は廃止)。未選択なら記録が一番多い種類を開く */
@@ -2220,31 +2273,55 @@ function renderTasteMap(){
   document.getElementById("tasteModeSeg").innerHTML = modes.map(function(m){
     return '<button type="button" data-m="'+m[0]+'" class="'+(uiMapMode===m[0]?"active":"")+'">'+m[1]+'</button>';
   }).join("");
-  var ax = MAP_AXES[uiMapFilter] || MAP_AXES.all, hk = ax.h, mode = uiMapMode;
+  var ax = MAP_AXES[uiMapFilter] || MAP_AXES.all, mode = uiMapMode;
+  /* 日本酒は、さけのわのデータ(同梱ファイルがある時)で見る切り替えを出す */
+  var skOn = (uiMapFilter==="sake" && !!SAKE_DB), skView = (skOn && uiSakeView!=="est") ? SAKE_AXES[uiSakeView] : null;
+  var segEl = document.getElementById("sakeViewSeg");
+  segEl.hidden = !skOn;
+  if(skOn){
+    var sv = [["sk1","華やか × 芳醇"],["sk2","ドライ × 重厚"],["est","予想の軸"]];
+    segEl.innerHTML = sv.map(function(o){ return '<button type="button" data-v="'+o[0]+'" class="'+(uiSakeView===o[0]?"active":"")+'">'+o[1]+'</button>'; }).join("");
+  }
+  if(skView) ax = skView;
+  var hk = ax.h;
   var wrap = document.getElementById("tasteMapWrap"), info = document.getElementById("tasteInfo");
-  var okAx = function(r){ return r.taste && isNum(r.taste[hk]) && isNum(r.taste.y); };
+  var tCache = {};
+  var tOf = function(r){
+    if(!skView) return r.taste;
+    if(!(r.id in tCache)){
+      var v = sakeMatch(r.name), t = null;
+      if(v){ t = { est:null, sn:v }; t[hk] = sakeScale(v[ax.sn.hx], ax.sn.hx); t.y = sakeScale(v[ax.sn.vy], ax.sn.vy); }
+      tCache[r.id] = t;
+    }
+    return tCache[r.id];
+  };
+  var okAx = function(r){ var t = tOf(r); return t && isNum(t[hk]) && isNum(t.y); };
   var inCat = function(r){ return uiMapFilter==="all" || r.category===uiMapFilter; };
-  var dr = mode==="wish" ? [] : state.records.filter(inCat).filter(okAx);
-  var wi = mode==="drank" ? [] : state.wish.filter(inCat).filter(okAx);
+  var drAll = mode==="wish" ? [] : state.records.filter(inCat), wiAll = mode==="drank" ? [] : state.wish.filter(inCat);
+  var dr = drAll.filter(okAx), wi = wiAll.filter(okAx);
+  var skMiss = skView ? (drAll.length-dr.length)+(wiAll.length-wi.length) : 0;
   document.getElementById("tasteMapSub").textContent = mode==="drank" ? "点の大きさ＝評価 ・ "+dr.length+"件" : mode==="wish" ? "◆ "+wi.length+"件" : "● "+dr.length+"件 ・ ◆ "+wi.length+"件";
   if(dr.length+wi.length===0){
     wrap.innerHTML = (mode==="wish" && state.wish.length===0)
       ? emptyStateHtml(ICONS.chart,"飲みたいお酒がまだありません","「履歴」タブの「飲みたい」から追加すると、ここに載ります")
+      : skView ? emptyStateHtml(ICONS.chart,"さけのわのデータと一致する銘柄がありません",(drAll.length+wiAll.length ? "名前が一致する銘柄だけ載せます。「予想(甘辛×濃淡)」なら、すべての記録を見られます" : "日本酒を記録すると、ここに載ります"))
       : emptyStateHtml(ICONS.chart,"味の記録がまだありません","記録を追加すると、銘柄名・種類から味を予想してここに載せます");
     info.textContent = ""; return;
   }
-  var all = dr.map(function(r){ return { id:r.id, cat:r.category, t:r.taste, rating:r.rating||3, name:String(r.name||""), shape:"c", rec:r }; })
-    .concat(wi.map(function(w){ return { id:w.id, cat:w.category, t:w.taste, rating:0, name:String(w.name||""), shape:"d", rec:w }; }));
+  var all = dr.map(function(r){ return { id:r.id, cat:r.category, t:tOf(r), rating:r.rating||3, name:String(r.name||""), shape:"c", rec:r }; })
+    .concat(wi.map(function(w){ return { id:w.id, cat:w.category, t:tOf(w), rating:0, name:String(w.name||""), shape:"d", rec:w }; }));
   var m = drawTasteMap({ id:"tasteMapSvg", kind:mode, ax:ax, sel:uiMapSel, faint:[], pts:all, big:true, animate:mapAnim });
   mapAnim = false;
   var badges = (mode!=="wish" ? '<span class="tm-badge drank">● 飲んだ '+dr.length+'件</span>' : '') + (mode!=="drank" ? '<span class="tm-badge wish">◆ 飲みたい '+wi.length+'件</span>' : '');
-  wrap.innerHTML = '<div class="tm-title">'+badges+'</div>' + m.svg + m.legend + m.key + m.note;
+  var snNote = skView ? '<div class="tm-note"><a href="https://sakenowa.com" target="_blank" rel="noopener">さけのわデータ</a>を利用しています'+(skMiss ? ' ・ 名前が一致しない'+skMiss+'件は表示していません' : '')+'</div>' : '';
+  wrap.innerHTML = '<div class="tm-title">'+badges+'</div>' + m.svg + m.legend + m.key + m.note + snNote;
   var sp = all.filter(function(p){ return p.id===uiMapSel; })[0];
   if(sp){
     var sr = sp.rec, sc = CAT_BY_ID[sr.category] || CATEGORIES[0], isW = sp.shape==="d";
     info.innerHTML = '<b>'+escHtml(String(sr.name||''))+'</b> <span style="color:var('+sc.c+');font-weight:800">'+sc.label+'</span>'+(isW ? ' <span class="tm-badge wish" style="padding:1px 9px;font-size:11px">◆ 飲みたい</span>' : '')+'<br>'
       + (sr.origin? '<br><span class="origin-pill">'+ICONS.pin+escHtml(sr.origin)+'</span>' : '')
-      + '<br>'+(isW ? '' : starsStr(sr.rating)+' ・ ')+escHtml(tasteText(sr.taste))+(sr.taste.est?(sr.taste.low?'(仮置き:手掛かりがなく標準の位置)':'(予想)'):'');
+      + (skView ? '<br>'+(isW ? '' : starsStr(sr.rating))+'<div class="sn-vals">'+SAKE_LABELS.map(function(l,i){ return l+' '+sp.t.sn[i]; }).join(' ・ ')+'(さけのわ)</div>'
+      : '<br>'+(isW ? '' : starsStr(sr.rating)+' ・ ')+escHtml(tasteText(sr.taste))+(sr.taste.est?(sr.taste.low?'(仮置き:手掛かりがなく標準の位置)':'(予想)'):''));
   } else {
     info.textContent = "点をタップすると銘柄が表示されます";
   }
@@ -2252,6 +2329,10 @@ function renderTasteMap(){
 document.getElementById("tasteModeSeg").addEventListener("click", function(e){
   var b = e.target.closest("button[data-m]"); if(!b) return;
   uiMapMode = b.dataset.m; uiMapSel = null; mapAnim = true; renderTasteMap();
+});
+document.getElementById("sakeViewSeg").addEventListener("click", function(e){
+  var b = e.target.closest("button[data-v]"); if(!b) return;
+  uiSakeView = b.dataset.v; uiMapSel = null; mapAnim = true; renderTasteMap();
 });
 document.getElementById("tasteMapFilter").addEventListener("click", function(e){
   var b = e.target.closest(".filter-chip"); if(!b) return;
@@ -3016,6 +3097,7 @@ function renderAll(){
 state = loadState();
 resetForm();
 renderAll();
+loadSakenowa();
 
 })();
 </script>
