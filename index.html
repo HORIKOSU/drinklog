@@ -2166,10 +2166,10 @@ function drawTasteMap(o){
   byRate.forEach(function(p){
     var rad = (p.shape==="d" ? 8 : 4 + (p.rating||3)*0.9) * ks;
     var px = L + p.t[hk]/100*W, py = T + (100-p.t.y)/100*H, best = null;
-    for(var k=0;k<70 && !best;k++){
+    for(var k=0;k<140 && !best;k++){
       var ang = k*2.399963, d = k===0 ? 0 : 5.2*Math.sqrt(k);
       var x = Math.min(R-rad-2, Math.max(L+rad+2, px+Math.cos(ang)*d)), y = Math.min(B-rad-2, Math.max(T+rad+2, py+Math.sin(ang)*d));
-      if(placed.every(function(c){ var dx=c.x-x, dy=c.y-y; return Math.sqrt(dx*dx+dy*dy) >= (c.r+rad)*0.85; })) best = {x:x, y:y};
+      if(placed.every(function(c){ var dx=c.x-x, dy=c.y-y; return Math.sqrt(dx*dx+dy*dy) >= (c.r+rad)*1.0; })) best = {x:x, y:y};
     }
     if(!best) best = {x:px, y:py};
     if(Math.abs(best.x-px)>0.6 || Math.abs(best.y-py)>0.6) moved = true;
@@ -2190,20 +2190,26 @@ function drawTasteMap(o){
       + (sel ? '<circle cx="'+x+'" cy="'+y+'" r="'+(r+5)+'" fill="none" stroke="var(--ink-1)" stroke-width="1.5"/>' : '')
       + shape + '</g>';
   });
+  var hiddenLabels = 0;
   if(o.labels){
     var lfs = big ? 10 : 9.5, lh = lfs+9, labs = [];
     var lwid = function(t){ var w = 0; Array.from(t).forEach(function(ch){ w += /[\u0020-\u007e\uff61-\uff9f]/.test(ch) ? lfs*0.58 : lfs; }); return w + 14; };
     byRate.forEach(function(p){
       if(selP && p===selP) return;
       var lb = String(p.name||"").normalize("NFKC").replace(/[【\[(][^】\])]*[】\])]/g,"").trim().split(/[\s\u3000]+/)[0]; if(Array.from(lb).length>7) lb = Array.from(lb).slice(0,7).join("")+"…";
-      var w = lwid(lb), cands = [[p.x+p.r+3, p.y-lh/2],[p.x-p.r-3-w, p.y-lh/2],[p.x-w/2, p.y-p.r-3-lh],[p.x-w/2, p.y+p.r+3],[p.x-p.r-3-w, p.y-p.r-lh],[p.x-p.r-3-w, p.y+p.r]], pick = null;
+      var w = lwid(lb), cands = [], pick = null;
+      [3, 11].forEach(function(g){
+        var d = p.r+g;
+        cands.push([p.x+d, p.y-lh/2],[p.x-d-w, p.y-lh/2],[p.x-w/2, p.y-d-lh],[p.x-w/2, p.y+d],[p.x+d*0.7, p.y-d*0.7-lh],[p.x-d*0.7-w, p.y-d*0.7-lh],[p.x+d*0.7, p.y+d*0.7],[p.x-d*0.7-w, p.y+d*0.7]);
+      });
       cands.forEach(function(c){
         if(pick) return;
-        var cx = Math.min(R-w-2, Math.max(L+2, c[0])), cy = Math.min(B-lh-2, Math.max(T+2, c[1]));
-        var onDot = byRate.some(function(d){ var nx = Math.max(cx, Math.min(d.x, cx+w)), ny = Math.max(cy, Math.min(d.y, cy+lh)); return Math.sqrt((nx-d.x)*(nx-d.x)+(ny-d.y)*(ny-d.y)) < d.r+1; });
-        if(!onDot && labs.every(function(l){ return !(cx<l.x+l.w && cx+w>l.x && cy<l.y+l.h && cy+lh>l.y); })) pick = [cx, cy];
+        var cx = c[0], cy = c[1];
+        if(cx < L+2 || cx+w > R-2 || cy < T+2 || cy+lh > B-2) return;
+        var onDot = byRate.some(function(d){ var nx = Math.max(cx, Math.min(d.x, cx+w)), ny = Math.max(cy, Math.min(d.y, cy+lh)); return Math.sqrt((nx-d.x)*(nx-d.x)+(ny-d.y)*(ny-d.y)) < d.r+1.5; });
+        if(!onDot && labs.every(function(l){ return !(cx<l.x+l.w+2 && cx+w>l.x-2 && cy<l.y+l.h+2 && cy+lh>l.y-2); })) pick = [cx, cy];
       });
-      if(!pick) pick = [Math.min(R-w-2, Math.max(L+2, cands[0][0])), Math.min(B-lh-2, Math.max(T+2, cands[0][1]))];
+      if(!pick){ hiddenLabels++; return; }
       labs.push({x:pick[0], y:pick[1], w:w, h:lh});
       s += '<g pointer-events="none"><rect x="'+pick[0].toFixed(1)+'" y="'+pick[1].toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+lh+'" rx="'+(lh/2)+'" fill="var(--surface-1)" fill-opacity=".93" stroke="var(--hairline)"/>'
         + '<text x="'+(pick[0]+w/2).toFixed(1)+'" y="'+(pick[1]+lh/2+lfs*0.36).toFixed(1)+'" text-anchor="middle" style="font-size:'+lfs+'px;font-weight:800;fill:var(--ink-1)">'+escHtml(lb)+'</text></g>';
@@ -2248,7 +2254,7 @@ function drawTasteMap(o){
   if(dPts.length) keyParts.push(sym('<path d="M7 1.500L12.500 7L7 12.500L1.500 7Z" fill="var(--ink-2)" fill-opacity=".92" stroke="var(--wish)" stroke-width="1.600"/>')+'飲みたい');
   var key = '<div class="tm-key">'+keyParts.map(function(k){ return '<span>'+k+'</span>'; }).join("")+'</div>';
   var note = '<div class="tm-note">'+ax.desc+(moved?' ・ 重なる点は少しずらして表示':'')+'</div>';
-  return { svg:s, legend:legend, key:key, note:note };
+  return { svg:s, legend:legend, key:key, note:note, hiddenLabels:hiddenLabels };
 }
 function p_name(p){ return p.name || ""; }
 var uiMapMode = "drank", mapAnim = true;
@@ -2373,7 +2379,7 @@ function renderTasteMap(){
   mapAnim = false;
   var badges = (mode!=="wish" ? '<span class="tm-badge drank">● 飲んだ '+dr.length+'件</span>' : '') + (mode!=="drank" ? '<span class="tm-badge wish">◆ 飲みたい '+wi.length+'件</span>' : '');
   var snNote = skView ? '<div class="tm-note"><a href="https://sakenowa.com" target="_blank" rel="noopener">さけのわデータ</a>を利用しています'+(skMiss ? ' ・ 名前が一致しない'+skMiss+'件は表示していません' : '')+'</div>' : '';
-  var refNote = '';
+  var refNote = m.hiddenLabels ? '<div class="tm-note">重なる銘柄の名前は省略しています。点をタップすると表示されます</div>' : '';
   wrap.innerHTML = '<div class="tm-title">'+badges+'</div>' + m.svg + m.legend + m.key + m.note + refNote + snNote;
   var sp = all.filter(function(p){ return p.id===uiMapSel; })[0];
   if(sp){
