@@ -2276,6 +2276,18 @@ function drawTasteMap(o){
   return { svg:s, legend:legend, key:key, note:note, hiddenLabels:hiddenLabels, moved:moved, selPos:(selP ? {x:selP.x, y:selP.y, r:selP.r} : null), vbH:(T+H+44) };
 }
 function p_name(p){ return p.name || ""; }
+/* 長い商品名(ネット通販のタイトル等)は、銘柄名らしい先頭部分だけに短くする */
+function shortName(name){
+  var raw = String(name||"").trim(), t = raw.replace(/[【\[(（][^】\])）]*[】\])）]/g," ").replace(/[\u3000\s]+/g," ").trim() || raw;
+  var toks = t.split(" "), out = [], stop = /^(\d+(\.\d+)?\s*(ml|ｍｌ|l|ℓ|リットル|本|g|cm)|[!！?？]|.*(瓶|箱|送料|ギフト|化粧|ケース|入り|セット).*)$/i;
+  for(var i=0;i<toks.length;i++){
+    if(i>0 && stop.test(toks[i])) break;
+    if(i>0 && Array.from(out.join(" ")+" "+toks[i]).length>12) break;
+    out.push(toks[i]);
+  }
+  var r = out.join(" ");
+  return Array.from(r).length>14 ? Array.from(r).slice(0,14).join("")+"…" : r;
+}
 var uiMapMode = "drank", mapAnim = true, uiMapZoom = true;
 /* 代表的なスタイルの目安位置(銘柄名・種類からの予想ルールの基準点。実測データではない) */
 var REF_NAMES = { beer:["IPA","スタウト","ヴァイツェン","エール","ラガー"], sake:["にごり","純米大吟醸","大吟醸","純米吟醸","吟醸","本醸造","普通酒","純米"],
@@ -2420,14 +2432,14 @@ function renderTasteMap(){
   var sp0 = all.filter(function(p){ return p.id===uiMapSel; })[0], popHtml = "";
   if(sp0 && m.selPos){
     var pr = sp0.rec, pc = CAT_BY_ID[pr.category] || CATEGORIES[0], pw = sp0.shape==="d";
-    popHtml = '<div class="tm-pop" id="tmPop"><button type="button" class="tp-close" id="tmPopClose" aria-label="閉じる"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 3 L11 11 M11 3 L3 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg></button><div class="tp-name">'+escHtml(String(pr.name||''))+'</div>'
+    popHtml = '<div class="tm-pop" id="tmPop"><button type="button" class="tp-close" id="tmPopClose" aria-label="閉じる"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 3 L11 11 M11 3 L3 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg></button><div class="tp-name">'+escHtml(shortName(pr.name))+'</div>'
       + '<div class="tp-sub"><span style="color:var('+pc.c+')">'+pc.label+'</span>'+(pw ? '<span class="tp-wish">◆ 飲みたい</span>' : '<span class="tp-star">'+starsStr(pr.rating)+'</span>')+(pr.origin ? '<span>'+escHtml(pr.origin)+'</span>' : '')+'</div>'
       + (skView
         ? snTags(sp0.t.sn)+'<div class="sn-rows">'+SAKE_LABELS.map(function(l,i){ var v = sp0.t.sn[i]; return '<div class="sn-row"><span>'+l+'</span><div class="sn-bar"><i style="width:'+Math.min(100,v/90*100)+'%"></i><b style="left:'+Math.min(100,SAKE_DB.mean[i]/90*100)+'%"></b></div><em>'+v+'</em></div>'; }).join('')+'</div><div class="sn-cap">黒い線は、さけのわ全銘柄の平均</div>'
         : '<div class="tp-taste">'+escHtml(tasteText(pr.taste))+'</div>'+(pr.taste && pr.taste.est ? '<div class="sn-cap">'+(pr.taste.low ? '仮置き(手掛かりがなく標準の位置)' : '予想(銘柄名・種類から)')+'</div>' : ''))
       + '</div>';
   }
-  wrap.innerHTML = '<div class="tm-title">'+badges+'</div>' + m.svg + m.legend + m.key + m.note + (popHtml ? '' : '<div class="tm-note">点をタップすると、味の詳細が表示されます</div>') + zoomNote + refNote + snNote + popHtml;
+  wrap.innerHTML = '<div class="tm-title">'+badges+'</div>' + m.svg + m.legend + m.key + zoomNote + popHtml;
   if(popHtml){
     var svgEl = document.getElementById("tasteMapSvg"), popEl = document.getElementById("tmPop");
     var wr = wrap.getBoundingClientRect(), sr0 = svgEl.getBoundingClientRect(), sw = sr0.width, shh = sr0.height, sl = sr0.left-wr.left, st = sr0.top-wr.top;
