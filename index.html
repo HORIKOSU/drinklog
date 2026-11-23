@@ -2297,11 +2297,11 @@ function renderTasteMap(){
   }).join("");
   var ax = MAP_AXES[uiMapFilter] || MAP_AXES.all, mode = uiMapMode;
   /* 日本酒は、さけのわのデータ(同梱ファイルがある時)で見る切り替えを出す */
-  var skOn = (uiMapFilter==="sake" && !!SAKE_DB), skView = (skOn && uiSakeView!=="est") ? SAKE_AXES[uiSakeView] : null;
+  var skOn = (uiMapFilter==="sake" && !!SAKE_DB); if(uiSakeView!=="sk1" && uiSakeView!=="sk2") uiSakeView = "sk1"; var skView = skOn ? SAKE_AXES[uiSakeView] : null;
   var segEl = document.getElementById("sakeViewSeg");
   segEl.hidden = !skOn;
   if(skOn){
-    var sv = [["sk1","華やか × 芳醇"],["sk2","ドライ × 重厚"],["est","予想の軸"]];
+    var sv = [["sk1","華やか × 芳醇"],["sk2","ドライ × 重厚"]];
     segEl.innerHTML = sv.map(function(o){ return '<button type="button" data-v="'+o[0]+'" class="'+(uiSakeView===o[0]?"active":"")+'">'+o[1]+'</button>'; }).join("");
   }
   if(skView) ax = skView;
@@ -2326,7 +2326,7 @@ function renderTasteMap(){
   if(dr.length+wi.length===0){
     wrap.innerHTML = (mode==="wish" && state.wish.length===0)
       ? emptyStateHtml(ICONS.chart,"飲みたいお酒がまだありません","「履歴」タブの「飲みたい」から追加すると、ここに載ります")
-      : skView ? emptyStateHtml(ICONS.chart,"さけのわのデータと一致する銘柄がありません",(drAll.length+wiAll.length ? "名前が一致する銘柄だけ載せます。「予想(甘辛×濃淡)」なら、すべての記録を見られます" : "日本酒を記録すると、ここに載ります"))
+      : skView ? emptyStateHtml(ICONS.chart,"さけのわのデータと一致する銘柄がありません",(drAll.length+wiAll.length ? "名前がさけのわの銘柄と一致する記録だけ載せます" : "日本酒を記録すると、ここに載ります"))
       : emptyStateHtml(ICONS.chart,"味の記録がまだありません","記録を追加すると、銘柄名・種類から味を予想してここに載せます");
     info.textContent = ""; return;
   }
