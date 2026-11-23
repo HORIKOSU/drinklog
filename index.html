@@ -238,7 +238,19 @@ input:not([type=range]):not([type=file]),select,textarea{font-size:16px !importa
 .map-view button{flex:1; border:1.5px solid var(--hairline); background:var(--surface-raised); color:var(--ink-2); font-family:inherit; font-size:12.5px; font-weight:800; padding:8px 6px; border-radius:var(--r-pill); cursor:pointer}
 .map-view button.active{background:var(--accent); color:var(--on-accent); border-color:var(--accent)}
 .taste-clear{border:0; background:none; padding:2px 0; color:var(--ink-3); font-weight:700; font-size:11.5px; font-family:inherit; cursor:pointer; text-decoration:underline}
-#tasteMapWrap{margin-top:12px}
+#tasteMapWrap{margin-top:12px; position:relative}
+.tm-pop{position:absolute; z-index:5; background:var(--surface-1); border:1px solid var(--hairline); border-radius:14px; padding:10px 12px 11px; box-shadow:0 6px 22px rgba(0,0,0,.16); font-size:12px; color:var(--ink-2); cursor:pointer}
+.tm-pop .tp-name{font-family:var(--serif); font-size:14px; font-weight:800; color:var(--ink-1); line-height:1.35; word-break:break-all}
+.tm-pop .tp-sub{display:flex; flex-wrap:wrap; gap:4px 10px; align-items:center; margin-top:3px; font-size:11.5px; font-weight:800}
+.tm-pop .tp-wish{color:var(--wish)}
+.tm-pop .tp-taste{margin-top:6px; font-weight:700; color:var(--ink-1); line-height:1.5}
+.tm-pop .sn-tags{margin-top:6px}
+.tm-pop .sn-tag{font-size:10.5px; padding:2px 8px}
+.tm-pop .sn-rows{margin-top:6px; gap:3px}
+.tm-pop .sn-row{font-size:10.5px; grid-template-columns:40px 1fr 22px; gap:6px}
+.tm-pop .sn-bar{height:7px}
+.tm-pop .sn-tags{gap:4px}
+.tm-pop .sn-cap{font-size:10px; margin-top:5px}
 #sakeViewSeg{margin:8px 0 0}
 #sakeViewSeg button{font-size:12px; padding:7px 4px}
 .tm-note a{color:var(--accent); font-weight:700}
@@ -2219,7 +2231,7 @@ function drawTasteMap(o){
         + '<text x="'+(pick[0]+w/2).toFixed(1)+'" y="'+(pick[1]+lh/2+lfs*0.36).toFixed(1)+'" text-anchor="middle" style="font-size:'+lfs+'px;font-weight:800;fill:var(--ink-1)">'+escHtml(lb)+'</text></g>';
     });
   }
-  if(selP){
+  if(selP && !o.popup){
     /* 銘柄名は省略せず全文表示(長い名前は複数行に折り返す) */
     var nm = String(p_name(selP)), fs = big?11:10, cw = fs*1.02, maxW = W-16, per = Math.max(6, Math.floor(maxW/cw));
     var chars = Array.from(nm), lines = [], cur = "", curW = 0;
@@ -2258,7 +2270,7 @@ function drawTasteMap(o){
   if(dPts.length) keyParts.push(sym('<path d="M7 1.500L12.500 7L7 12.500L1.500 7Z" fill="var(--ink-2)" fill-opacity=".92" stroke="var(--wish)" stroke-width="1.600"/>')+'飲みたい');
   var key = '<div class="tm-key">'+keyParts.map(function(k){ return '<span>'+k+'</span>'; }).join("")+'</div>';
   var note = '<div class="tm-note">'+ax.desc+(moved?' ・ 重なる点は少しずらして表示':'')+'</div>';
-  return { svg:s, legend:legend, key:key, note:note, hiddenLabels:hiddenLabels, moved:moved };
+  return { svg:s, legend:legend, key:key, note:note, hiddenLabels:hiddenLabels, moved:moved, selPos:(selP ? {x:selP.x, y:selP.y, r:selP.r} : null), vbH:(T+H+44) };
 }
 function p_name(p){ return p.name || ""; }
 var uiMapMode = "drank", mapAnim = true, uiMapZoom = true;
@@ -2396,13 +2408,34 @@ function renderTasteMap(){
     zoomView = {x0:xr[0], x1:xr[1], y0:yr[0], y1:yr[1]};
   })();
   var useZoom = !!zoomView && uiMapZoom;
-  var m = drawTasteMap({ id:"tasteMapSvg", view:(useZoom ? zoomView : null), kind:mode, ax:ax, sel:uiMapSel, faint:faintPts, faintR:2.3, faintLabel:"", cloudColor:(skView ? "var(--cat-sake)" : "var("+catC+")"), cloudR:(skView ? 8 : 24), cloudO:(skView ? 0.055 : 0.1), refLabels:false, labels:(all.length<=12), pts:all, big:true, animate:mapAnim });
+  var m = drawTasteMap({ id:"tasteMapSvg", popup:true, view:(useZoom ? zoomView : null), kind:mode, ax:ax, sel:uiMapSel, faint:faintPts, faintR:2.3, faintLabel:"", cloudColor:(skView ? "var(--cat-sake)" : "var("+catC+")"), cloudR:(skView ? 8 : 24), cloudO:(skView ? 0.055 : 0.1), refLabels:false, labels:(all.length<=12), pts:all, big:true, animate:mapAnim });
   mapAnim = false;
   var badges = (mode!=="wish" ? '<span class="tm-badge drank">● 飲んだ '+dr.length+'件</span>' : '') + (mode!=="drank" ? '<span class="tm-badge wish">◆ 飲みたい '+wi.length+'件</span>' : '');
   var snNote = skView ? '<div class="tm-note"><a href="https://sakenowa.com" target="_blank" rel="noopener">さけのわデータ</a>を利用しています'+(skMiss ? ' ・ 名前が一致しない'+skMiss+'件は表示していません' : '')+'</div>' : '';
   var zoomNote = zoomView ? '<div class="tm-note tm-zoomrow">'+(useZoom ? '自分の記録に合わせて拡大しています(全体の一部)' : '全体を表示しています')+' <button type="button" class="tm-zoombtn" id="tmZoomBtn">'+(useZoom ? '全体を見る' : '記録に合わせて拡大')+'</button></div>' : '';
   var refNote = m.hiddenLabels ? '<div class="tm-note">重なる銘柄の名前は省略しています。点をタップすると表示されます</div>' : '';
-  wrap.innerHTML = '<div class="tm-title">'+badges+'</div>' + m.svg + m.legend + m.key + m.note + zoomNote + refNote + snNote;
+  var sp0 = all.filter(function(p){ return p.id===uiMapSel; })[0], popHtml = "";
+  if(sp0 && m.selPos){
+    var pr = sp0.rec, pc = CAT_BY_ID[pr.category] || CATEGORIES[0], pw = sp0.shape==="d";
+    popHtml = '<div class="tm-pop" id="tmPop"><div class="tp-name">'+escHtml(String(pr.name||''))+'</div>'
+      + '<div class="tp-sub"><span style="color:var('+pc.c+')">'+pc.label+'</span>'+(pw ? '<span class="tp-wish">◆ 飲みたい</span>' : '<span class="tp-star">'+starsStr(pr.rating)+'</span>')+(pr.origin ? '<span>'+escHtml(pr.origin)+'</span>' : '')+'</div>'
+      + (skView
+        ? snTags(sp0.t.sn)+'<div class="sn-rows">'+SAKE_LABELS.map(function(l,i){ var v = sp0.t.sn[i]; return '<div class="sn-row"><span>'+l+'</span><div class="sn-bar"><i style="width:'+Math.min(100,v/90*100)+'%"></i><b style="left:'+Math.min(100,SAKE_DB.mean[i]/90*100)+'%"></b></div><em>'+v+'</em></div>'; }).join('')+'</div><div class="sn-cap">黒い線は、さけのわ全銘柄の平均</div>'
+        : '<div class="tp-taste">'+escHtml(tasteText(pr.taste))+'</div>'+(pr.taste && pr.taste.est ? '<div class="sn-cap">'+(pr.taste.low ? '仮置き(手掛かりがなく標準の位置)' : '予想(銘柄名・種類から)')+'</div>' : ''))
+      + '</div>';
+  }
+  wrap.innerHTML = '<div class="tm-title">'+badges+'</div>' + m.svg + m.legend + m.key + m.note + zoomNote + refNote + snNote + popHtml;
+  if(popHtml){
+    var svgEl = document.getElementById("tasteMapSvg"), popEl = document.getElementById("tmPop");
+    var wr = wrap.getBoundingClientRect(), sr0 = svgEl.getBoundingClientRect(), sw = sr0.width, shh = sr0.height, sl = sr0.left-wr.left, st = sr0.top-wr.top;
+    var pwid = Math.min(256, sw-8); popEl.style.width = pwid+"px";
+    var dx = sl + m.selPos.x/320*sw, dy = st + m.selPos.y/m.vbH*shh, dr = m.selPos.r/320*sw, ph = popEl.offsetHeight;
+    var pl = Math.max(sl+4, Math.min(sl+sw-pwid-4, dx-pwid/2));
+    var pt = dy-dr-10-ph, bMax = wr.height-2;
+    if(pt < st+2) pt = dy+dr+10;
+    if(pt+ph > bMax) pt = Math.max(st+2, bMax-ph);
+    popEl.style.left = pl+"px"; popEl.style.top = pt+"px";
+  }
   var sp = all.filter(function(p){ return p.id===uiMapSel; })[0];
   if(sp){
     var sr = sp.rec, sc = CAT_BY_ID[sr.category] || CATEGORIES[0], isW = sp.shape==="d";
@@ -2427,6 +2460,7 @@ document.getElementById("tasteMapFilter").addEventListener("click", function(e){
   uiMapFilter = b.dataset.id; uiMapSel = null; mapAnim = true; renderTasteMap();
 });
 document.getElementById("tasteMapWrap").addEventListener("click", function(e){
+  if(e.target.closest("#tmPop")){ uiMapSel = null; renderTasteMap(); return; }
   if(e.target.closest("#tmZoomBtn")){ uiMapZoom = !uiMapZoom; uiMapSel = null; mapAnim = true; renderTasteMap(); return; }
   var g = e.target.closest(".tm-dot"); if(!g) return;
   uiMapSel = (uiMapSel===g.dataset.id) ? null : g.dataset.id; renderTasteMap();
