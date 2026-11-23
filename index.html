@@ -239,8 +239,11 @@ input:not([type=range]):not([type=file]),select,textarea{font-size:16px !importa
 .map-view button.active{background:var(--accent); color:var(--on-accent); border-color:var(--accent)}
 .taste-clear{border:0; background:none; padding:2px 0; color:var(--ink-3); font-weight:700; font-size:11.5px; font-family:inherit; cursor:pointer; text-decoration:underline}
 #tasteMapWrap{margin-top:12px; position:relative}
-.tm-pop{position:absolute; z-index:5; background:var(--surface-1); border:1px solid var(--hairline); border-radius:14px; padding:10px 12px 11px; box-shadow:0 6px 22px rgba(0,0,0,.16); font-size:12px; color:var(--ink-2); cursor:pointer}
-.tm-pop .tp-name{font-family:var(--serif); font-size:14px; font-weight:800; color:var(--ink-1); line-height:1.35; word-break:break-all}
+.tm-pop{position:absolute; z-index:5; background:var(--surface-1); border:1px solid var(--hairline); border-radius:14px; padding:10px 12px 11px; box-shadow:0 6px 22px rgba(0,0,0,.16); font-size:12px; color:var(--ink-2)}
+.tm-pop .tp-close{position:absolute; top:2px; right:2px; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border:0; background:transparent; color:var(--ink-2); cursor:pointer; border-radius:50%}
+.tm-pop .tp-close svg{width:14px; height:14px}
+.tm-pop .tp-close:active{background:var(--surface-input)}
+.tm-pop .tp-name{padding-right:26px; font-family:var(--serif); font-size:14px; font-weight:800; color:var(--ink-1); line-height:1.35; word-break:break-all}
 .tm-pop .tp-sub{display:flex; flex-wrap:wrap; gap:4px 10px; align-items:center; margin-top:3px; font-size:11.5px; font-weight:800}
 .tm-pop .tp-wish{color:var(--wish)}
 .tm-pop .tp-taste{margin-top:6px; font-weight:700; color:var(--ink-1); line-height:1.5}
@@ -2385,7 +2388,7 @@ function renderTasteMap(){
       ? emptyStateHtml(ICONS.chart,"飲みたいお酒がまだありません","「履歴」タブの「飲みたい」から追加すると、ここに載ります")
       : skView ? emptyStateHtml(ICONS.chart,"さけのわのデータと一致する銘柄がありません",(drAll.length+wiAll.length ? "名前がさけのわの銘柄と一致する記録だけ載せます" : "日本酒を記録すると、ここに載ります"))
       : emptyStateHtml(ICONS.chart,"味の記録がまだありません","記録を追加すると、銘柄名・種類から味を予想してここに載せます");
-    info.textContent = ""; return;
+    info.textContent = ""; info.style.display = "none"; return;
   }
   var all = dr.map(function(r){ return { id:r.id, cat:r.category, t:tOf(r), rating:r.rating||3, name:String(r.name||""), shape:"c", rec:r }; })
     .concat(wi.map(function(w){ return { id:w.id, cat:w.category, t:tOf(w), rating:0, name:String(w.name||""), shape:"d", rec:w }; }));
@@ -2417,14 +2420,14 @@ function renderTasteMap(){
   var sp0 = all.filter(function(p){ return p.id===uiMapSel; })[0], popHtml = "";
   if(sp0 && m.selPos){
     var pr = sp0.rec, pc = CAT_BY_ID[pr.category] || CATEGORIES[0], pw = sp0.shape==="d";
-    popHtml = '<div class="tm-pop" id="tmPop"><div class="tp-name">'+escHtml(String(pr.name||''))+'</div>'
+    popHtml = '<div class="tm-pop" id="tmPop"><button type="button" class="tp-close" id="tmPopClose" aria-label="閉じる"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 3 L11 11 M11 3 L3 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg></button><div class="tp-name">'+escHtml(String(pr.name||''))+'</div>'
       + '<div class="tp-sub"><span style="color:var('+pc.c+')">'+pc.label+'</span>'+(pw ? '<span class="tp-wish">◆ 飲みたい</span>' : '<span class="tp-star">'+starsStr(pr.rating)+'</span>')+(pr.origin ? '<span>'+escHtml(pr.origin)+'</span>' : '')+'</div>'
       + (skView
         ? snTags(sp0.t.sn)+'<div class="sn-rows">'+SAKE_LABELS.map(function(l,i){ var v = sp0.t.sn[i]; return '<div class="sn-row"><span>'+l+'</span><div class="sn-bar"><i style="width:'+Math.min(100,v/90*100)+'%"></i><b style="left:'+Math.min(100,SAKE_DB.mean[i]/90*100)+'%"></b></div><em>'+v+'</em></div>'; }).join('')+'</div><div class="sn-cap">黒い線は、さけのわ全銘柄の平均</div>'
         : '<div class="tp-taste">'+escHtml(tasteText(pr.taste))+'</div>'+(pr.taste && pr.taste.est ? '<div class="sn-cap">'+(pr.taste.low ? '仮置き(手掛かりがなく標準の位置)' : '予想(銘柄名・種類から)')+'</div>' : ''))
       + '</div>';
   }
-  wrap.innerHTML = '<div class="tm-title">'+badges+'</div>' + m.svg + m.legend + m.key + m.note + zoomNote + refNote + snNote + popHtml;
+  wrap.innerHTML = '<div class="tm-title">'+badges+'</div>' + m.svg + m.legend + m.key + m.note + (popHtml ? '' : '<div class="tm-note">点をタップすると、味の詳細が表示されます</div>') + zoomNote + refNote + snNote + popHtml;
   if(popHtml){
     var svgEl = document.getElementById("tasteMapSvg"), popEl = document.getElementById("tmPop");
     var wr = wrap.getBoundingClientRect(), sr0 = svgEl.getBoundingClientRect(), sw = sr0.width, shh = sr0.height, sl = sr0.left-wr.left, st = sr0.top-wr.top;
@@ -2436,16 +2439,8 @@ function renderTasteMap(){
     if(pt+ph > bMax) pt = Math.max(st+2, bMax-ph);
     popEl.style.left = pl+"px"; popEl.style.top = pt+"px";
   }
-  var sp = all.filter(function(p){ return p.id===uiMapSel; })[0];
-  if(sp){
-    var sr = sp.rec, sc = CAT_BY_ID[sr.category] || CATEGORIES[0], isW = sp.shape==="d";
-    info.innerHTML = '<b>'+escHtml(String(sr.name||''))+'</b> <span style="color:var('+sc.c+');font-weight:800">'+sc.label+'</span>'+(isW ? ' <span class="tm-badge wish" style="padding:1px 9px;font-size:11px">◆ 飲みたい</span>' : '')+'<br>'
-      + (sr.origin? '<br><span class="origin-pill">'+ICONS.pin+escHtml(sr.origin)+'</span>' : '')
-      + (skView ? '<br>'+(isW ? '' : starsStr(sr.rating))+snTags(sp.t.sn)+'<div class="sn-rows">'+SAKE_LABELS.map(function(l,i){ var v = sp.t.sn[i]; return '<div class="sn-row"><span>'+l+'</span><div class="sn-bar"><i style="width:'+Math.min(100,v/90*100)+'%"></i><b style="left:'+Math.min(100,SAKE_DB.mean[i]/90*100)+'%"></b></div><em>'+v+'</em></div>'; }).join('')+'</div><div class="sn-cap">黒い線は、さけのわ全銘柄の平均です</div>'
-      : '<br>'+(isW ? '' : starsStr(sr.rating)+' ・ ')+escHtml(tasteText(sr.taste))+(sr.taste.est?(sr.taste.low?'(仮置き:手掛かりがなく標準の位置)':'(予想)'):''));
-  } else {
-    info.textContent = "点をタップすると銘柄が表示されます";
-  }
+  /* 詳細はポップに集約したので、下の詳細欄は使わない */
+  info.textContent = ""; info.style.display = "none";
 }
 document.getElementById("tasteModeSeg").addEventListener("click", function(e){
   var b = e.target.closest("button[data-m]"); if(!b) return;
@@ -2460,7 +2455,8 @@ document.getElementById("tasteMapFilter").addEventListener("click", function(e){
   uiMapFilter = b.dataset.id; uiMapSel = null; mapAnim = true; renderTasteMap();
 });
 document.getElementById("tasteMapWrap").addEventListener("click", function(e){
-  if(e.target.closest("#tmPop")){ uiMapSel = null; renderTasteMap(); return; }
+  if(e.target.closest("#tmPopClose")){ uiMapSel = null; renderTasteMap(); return; }
+  if(e.target.closest("#tmPop")) return;
   if(e.target.closest("#tmZoomBtn")){ uiMapZoom = !uiMapZoom; uiMapSel = null; mapAnim = true; renderTasteMap(); return; }
   var g = e.target.closest(".tm-dot"); if(!g) return;
   uiMapSel = (uiMapSel===g.dataset.id) ? null : g.dataset.id; renderTasteMap();
