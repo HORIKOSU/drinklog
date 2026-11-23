@@ -267,7 +267,7 @@ input:not([type=range]):not([type=file]),select,textarea{font-size:16px !importa
 .tm-svg .tm-ax{fill:var(--ink-2); font-size:11px}
 .tm-svg .tm-q{font-size:13px; font-weight:800; fill:var(--ink-1); opacity:.11; letter-spacing:.02em}
 .tm-svg .tm-grid{stroke:var(--ink-1); stroke-opacity:.09; stroke-width:1}
-.tm-svg .tm-frame{fill:#fbfaf6; stroke:var(--hairline); stroke-width:1}
+.tm-svg .tm-frame{fill:var(--surface-1); stroke:var(--hairline); stroke-width:1}
 .tm-svg.wish .tm-frame{stroke:var(--wish); stroke-opacity:.55; stroke-width:1.5}
 .tm-svg .tm-dot{cursor:pointer}
 .tm-title{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:2px 0 8px; font-size:12px; font-weight:700; color:var(--ink-2)}
@@ -2135,13 +2135,8 @@ function drawTasteMap(o){
   var s = '<svg id="'+o.id+'" class="tm-svg'+(wish?' wish':'')+(big?' big':'')+'" viewBox="0 0 320 '+(T+H+44)+'" role="img" aria-label="'+nameKind+'お酒の味マップ(横:'+ax.title+'、縦:'+ax.vlo+'から'+ax.vhi+')">'
     + '<defs><linearGradient id="'+gid+'" x1="0" y1="1" x2="1" y2="0"><stop offset="0" style="stop-color:var('+tint+')" stop-opacity="0"/><stop offset="1" style="stop-color:var('+tint+')" stop-opacity="0.15"/></linearGradient></defs>'
     + '<rect class="tm-frame" x="'+L+'" y="'+T+'" width="'+W+'" height="'+H+'" rx="18"/>'
-    + '<rect x="'+L+'" y="'+T+'" width="'+W+'" height="'+H+'" rx="18" fill="url(#'+gid+')" pointer-events="none"/>'
     + '<line class="tm-grid" x1="'+(L+W/2)+'" y1="'+(T+14)+'" x2="'+(L+W/2)+'" y2="'+(B-14)+'" stroke-dasharray="3 5"/>'
     + '<line class="tm-grid" x1="'+(L+14)+'" y1="'+(T+H/2)+'" x2="'+(R-14)+'" y2="'+(T+H/2)+'" stroke-dasharray="3 5"/>'
-    + '<text class="tm-q" x="'+(L+W*.25)+'" y="'+(T+H*.2)+'" text-anchor="middle">'+(q.tl||"")+'</text>'
-    + '<text class="tm-q" x="'+(L+W*.75)+'" y="'+(T+H*.2)+'" text-anchor="middle">'+(q.tr||"")+'</text>'
-    + '<text class="tm-q" x="'+(L+W*.25)+'" y="'+(T+H*.84)+'" text-anchor="middle">'+(q.bl||"")+'</text>'
-    + '<text class="tm-q" x="'+(L+W*.75)+'" y="'+(T+H*.84)+'" text-anchor="middle">'+(q.br||"")+'</text>'
     + '<text class="tm-ax" x="'+L+'" y="'+(B+18)+'" text-anchor="start">← '+ax.lo+'</text>'
     + '<text class="tm-ax" x="'+R+'" y="'+(B+18)+'" text-anchor="end">'+ax.hi+' →</text>'
     + '<text class="tm-ax" x="'+(L+W/2)+'" y="'+(B+18)+'" text-anchor="middle">'+ax.title+'</text>'
@@ -2204,11 +2199,12 @@ function drawTasteMap(o){
     byRate.forEach(function(p){
       if(selP && p===selP) return;
       var lb = String(p.name||"").normalize("NFKC").replace(/[【\[(][^】\])]*[】\])]/g,"").trim().split(/[\s\u3000]+/)[0]; if(Array.from(lb).length>7) lb = Array.from(lb).slice(0,7).join("")+"…";
-      var w = lwid(lb), cands = [[p.x+p.r+3, p.y-lh/2],[p.x-p.r-3-w, p.y-lh/2],[p.x-w/2, p.y-p.r-3-lh],[p.x-w/2, p.y+p.r+3]], pick = null;
+      var w = lwid(lb), cands = [[p.x+p.r+3, p.y-lh/2],[p.x-p.r-3-w, p.y-lh/2],[p.x-w/2, p.y-p.r-3-lh],[p.x-w/2, p.y+p.r+3],[p.x-p.r-3-w, p.y-p.r-lh],[p.x-p.r-3-w, p.y+p.r]], pick = null;
       cands.forEach(function(c){
         if(pick) return;
         var cx = Math.min(R-w-2, Math.max(L+2, c[0])), cy = Math.min(B-lh-2, Math.max(T+2, c[1]));
-        if(labs.every(function(l){ return !(cx<l.x+l.w && cx+w>l.x && cy<l.y+l.h && cy+lh>l.y); })) pick = [cx, cy];
+        var onDot = byRate.some(function(d){ var nx = Math.max(cx, Math.min(d.x, cx+w)), ny = Math.max(cy, Math.min(d.y, cy+lh)); return Math.sqrt((nx-d.x)*(nx-d.x)+(ny-d.y)*(ny-d.y)) < d.r+1; });
+        if(!onDot && labs.every(function(l){ return !(cx<l.x+l.w && cx+w>l.x && cy<l.y+l.h && cy+lh>l.y); })) pick = [cx, cy];
       });
       if(!pick) pick = [Math.min(R-w-2, Math.max(L+2, cands[0][0])), Math.min(B-lh-2, Math.max(T+2, cands[0][1]))];
       labs.push({x:pick[0], y:pick[1], w:w, h:lh});
@@ -2372,13 +2368,12 @@ function renderTasteMap(){
   var all = dr.map(function(r){ return { id:r.id, cat:r.category, t:tOf(r), rating:r.rating||3, name:String(r.name||""), shape:"c", rec:r }; })
     .concat(wi.map(function(w){ return { id:w.id, cat:w.category, t:tOf(w), rating:0, name:String(w.name||""), shape:"d", rec:w }; }));
   var catC = (CAT_BY_ID[uiMapFilter]||CATEGORIES[0]).c;
-  var faintPts = skView ? SAKE_DB.all.map(function(v){ var t = {}; t[hk] = sakeScale(v[ax.sn.hx], ax.sn.hx); t.y = sakeScale(v[ax.sn.vy], ax.sn.vy); return { cat:"_", t:t }; })
-    : refPoints(uiMapFilter).filter(function(f){ return isNum(f.t[hk]) && isNum(f.t.y); });
-  var m = drawTasteMap({ id:"tasteMapSvg", kind:mode, ax:ax, sel:uiMapSel, faint:faintPts, faintR:2.3, faintLabel:(skView ? "全銘柄のひろがり" : "代表的なスタイルの目安"), cloudColor:(skView ? "var(--cat-sake)" : "var("+catC+")"), cloudR:(skView ? 8 : 24), cloudO:(skView ? 0.055 : 0.1), refLabels:false, labels:(all.length<=12), pts:all, big:true, animate:mapAnim });
+  var faintPts = [];
+  var m = drawTasteMap({ id:"tasteMapSvg", kind:mode, ax:ax, sel:uiMapSel, faint:faintPts, faintR:2.3, faintLabel:"", cloudColor:(skView ? "var(--cat-sake)" : "var("+catC+")"), cloudR:(skView ? 8 : 24), cloudO:(skView ? 0.055 : 0.1), refLabels:false, labels:(all.length<=12), pts:all, big:true, animate:mapAnim });
   mapAnim = false;
   var badges = (mode!=="wish" ? '<span class="tm-badge drank">● 飲んだ '+dr.length+'件</span>' : '') + (mode!=="drank" ? '<span class="tm-badge wish">◆ 飲みたい '+wi.length+'件</span>' : '');
-  var snNote = skView ? '<div class="tm-note">薄い青色は、さけのわ全銘柄の分布です。象限名は日本酒の4タイプ分類を参考にした目安です</div><div class="tm-note"><a href="https://sakenowa.com" target="_blank" rel="noopener">さけのわデータ</a>を利用しています'+(skMiss ? ' ・ 名前が一致しない'+skMiss+'件は表示していません' : '')+'</div>' : '';
-  var refNote = skView ? '' : '<div class="tm-note">薄い色は、代表的なスタイル(IPA・芋・カベルネなど)の目安位置です(実測データではありません)</div>';
+  var snNote = skView ? '<div class="tm-note"><a href="https://sakenowa.com" target="_blank" rel="noopener">さけのわデータ</a>を利用しています'+(skMiss ? ' ・ 名前が一致しない'+skMiss+'件は表示していません' : '')+'</div>' : '';
+  var refNote = '';
   wrap.innerHTML = '<div class="tm-title">'+badges+'</div>' + m.svg + m.legend + m.key + m.note + refNote + snNote;
   var sp = all.filter(function(p){ return p.id===uiMapSel; })[0];
   if(sp){
