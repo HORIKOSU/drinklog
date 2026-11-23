@@ -289,7 +289,7 @@ input:not([type=range]):not([type=file]),select,textarea{font-size:16px !importa
 .past-hint small{display:block; font-weight:600; color:var(--ink-2); font-size:11.5px; margin-top:1px}
 .rec-nth{display:inline-block; margin-left:6px; padding:1px 8px; border-radius:var(--r-pill); background:var(--accent-soft); color:var(--accent); font-size:11px; font-weight:800; vertical-align:2px; white-space:nowrap}
 .rank-cnt{display:inline-block; margin-left:6px; padding:0 7px; border-radius:var(--r-pill); background:var(--accent-soft); color:var(--accent); font-size:10.5px; font-weight:800; vertical-align:1px}
-.tm-note{font-size:11px; color:var(--ink-3); text-align:center; margin-top:4px}
+.tm-note{font-size:10px; color:var(--ink-3); text-align:center; margin-top:4px}
 /* history */
 .search-row{margin-bottom:10px}
 .search-row input{width:100%; border:1.5px solid var(--hairline); background:var(--surface-input); color:var(--ink-1); border-radius:var(--r-pill); padding:9px 14px; font-size:16px; font-family:inherit}
@@ -398,12 +398,12 @@ input:not([type=range]):not([type=file]),select,textarea{font-size:16px !importa
 #cardTasteMap{padding-left:8px; padding-right:8px}
 #cardTasteMap .card-head, #cardTasteMap .filter-scroll, #cardTasteMap .map-view, #cardTasteMap .taste-info, #cardTasteMap .tm-title, #cardTasteMap .tm-note{padding-left:10px; padding-right:10px}
 #cardTasteMap .filter-scroll{padding-bottom:6px}
-.tm-svg.big text{font-size:11.5px}
-.tm-svg.big .tm-ax{font-size:12px}
+.tm-svg.big text{font-size:10px}
+.tm-svg.big .tm-ax{font-size:10.5px}
 .tm-svg.big .tm-q{font-size:16px}
-.tm-svg.big ~ .tm-legend{font-size:12.5px; gap:6px 16px}
+.tm-svg.big ~ .tm-legend{font-size:11px; gap:6px 14px}
 .tm-svg.big ~ .tm-legend i{width:11px; height:11px}
-.tm-svg.big ~ .tm-key{font-size:12px}
+.tm-svg.big ~ .tm-key{font-size:10.5px}
 #catBreakdownBody .cat-bar-row{padding:10px 0; gap:12px}
 #catBreakdownBody .cat-bar-row .cb-label{flex:0 0 112px; font-size:15px; color:var(--ink-1)}
 #catBreakdownBody .cat-bar-row .cb-label .ic{width:20px; height:20px}
@@ -573,8 +573,6 @@ nav.bottom-nav button:focus-visible{outline:2px solid var(--accent); outline-off
           <button type="button" data-v="1">★</button>
           <button type="button" data-v="2">★</button>
           <button type="button" data-v="3">★</button>
-          <button type="button" data-v="4">★</button>
-          <button type="button" data-v="5">★</button>
         </div>
       </div>
 
@@ -831,7 +829,9 @@ function fmtDateShort(iso){
   return parseInt(p[1],10)+"/"+parseInt(p[2],10)+"("+wd+")";
 }
 function yen(n){ return "¥"+Number(n).toLocaleString("ja-JP"); }
-function starsStr(n){ n = n||0; return "★★★★★".slice(0,n) + "☆☆☆☆☆".slice(0,5-n); }
+/* 評価は★3つ。保存値は従来の5段階のまま(1〜2→★1、3→★2、4〜5→★3)。新しく付ける評価は 1/3/5 で保存 */
+function stars3(n){ n = n||0; return n<=0 ? 0 : n<=2 ? 1 : n===3 ? 2 : 3; }
+function starsStr(n){ var k = stars3(n); return "★★★".slice(0,k) + "☆☆☆".slice(0,3-k); }
 function escHtml(s){
   return String(s==null?"":s).replace(/[&<>"']/g, function(c){
     return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
@@ -894,7 +894,7 @@ function renderDashboard(){
   var rankEl = document.getElementById("rankingBody");
   var rgroups = groupByName();
   var top = recs.slice().sort(function(a,b){
-    if((b.rating||0) !== (a.rating||0)) return (b.rating||0)-(a.rating||0);
+    if(stars3(b.rating) !== stars3(a.rating)) return stars3(b.rating)-stars3(a.rating);
     return (b.date||"").localeCompare(a.date||"");
   }).slice(0,5);
   if(top.length===0){
@@ -1016,16 +1016,13 @@ function renderDetailFields(existingDetail){
 
 function renderStarInput(){
   document.querySelectorAll("#starInput button").forEach(function(b){
-    b.classList.toggle("on", parseInt(b.dataset.v,10) <= selectedRating);
+    b.classList.toggle("on", parseInt(b.dataset.v,10) <= stars3(selectedRating));
   });
 }
 document.getElementById("starInput").addEventListener("click", function(e){
   var b = e.target.closest("button[data-v]"); if(!b) return;
   var v = parseInt(b.dataset.v,10);
-  selectedRating = (selectedRating===v) ? v : v; // tap sets rating to tapped star
-  if(selectedRating===v && v===1 && document.querySelectorAll("#starInput button.on").length===1){
-    // allow deselect by tapping the single active star again handled below
-  }
+  selectedRating = [1,3,5][v-1]; // タップした星の数に対応(★1=1, ★2=3, ★3=5)
   renderStarInput();
 });
 // double logic simplified: track last value; tapping same single star toggles to 0
@@ -2182,7 +2179,7 @@ function drawTasteMap(o){
   byRate.slice().reverse().forEach(function(p, pi){
     var cat = CAT_BY_ID[p.cat] || CATEGORIES[0], est = !!p.t.est, low = !!p.t.low, sel = (o.sel===p.id), x = p.x, y = p.y, r = p.r;
     if(sel) selP = p;
-    var fo = low ? 0.2 : est ? 0.55 : 0.9;
+    var fo = [0.34, 0.34, 0.62, 0.95][stars3(p.rating)] * (low ? 0.8 : 1); /* 評価(★)の高さで色の濃さを変える */
     var shape;
     if(p.shape==="d"){
       shape = '<path d="M'+x+' '+(y-r)+' L'+(x+r)+' '+y+' L'+x+' '+(y+r)+' L'+(x-r)+' '+y+' Z" fill="var('+cat.c+')" fill-opacity="'+(low?0.45:0.92)+'" stroke="var(--wish)" stroke-width="1.8" stroke-linejoin="round"'+(low?' stroke-dasharray="2 2.5"':'')+'/>';
@@ -2194,7 +2191,7 @@ function drawTasteMap(o){
       + shape + '</g>';
   });
   if(o.labels){
-    var lfs = big ? 11.5 : 10.5, lh = lfs+9, labs = [];
+    var lfs = big ? 10 : 9.5, lh = lfs+9, labs = [];
     var lwid = function(t){ var w = 0; Array.from(t).forEach(function(ch){ w += /[\u0020-\u007e\uff61-\uff9f]/.test(ch) ? lfs*0.58 : lfs; }); return w + 14; };
     byRate.forEach(function(p){
       if(selP && p===selP) return;
@@ -2214,7 +2211,7 @@ function drawTasteMap(o){
   }
   if(selP){
     /* 銘柄名は省略せず全文表示(長い名前は複数行に折り返す) */
-    var nm = String(p_name(selP)), fs = big?12.5:11, cw = fs*1.02, maxW = W-16, per = Math.max(6, Math.floor(maxW/cw));
+    var nm = String(p_name(selP)), fs = big?11:10, cw = fs*1.02, maxW = W-16, per = Math.max(6, Math.floor(maxW/cw));
     var chars = Array.from(nm), lines = [], cur = "", curW = 0;
     chars.forEach(function(ch){
       var cwid = /[\u0020-\u007e\uff61-\uff9f]/.test(ch) ? cw*0.56 : cw;
@@ -2241,7 +2238,10 @@ function drawTasteMap(o){
   var keyParts = [];
   var cPts = o.pts.filter(function(p){ return p.shape!=="d"; }), dPts = o.pts.filter(function(p){ return p.shape==="d"; });
   var solidC = cPts.filter(function(p){ return !p.t.est; }), estC = cPts.filter(function(p){ return p.t.est && !p.t.low; }), lowC = cPts.filter(function(p){ return p.t.low; });
-  if(solidC.length) keyParts.push(sym('<circle cx="7" cy="7" r="5" fill="var(--ink-2)" fill-opacity=".9"/>')+'飲んだ記録');
+  if(cPts.length){
+    var rc = (CAT_BY_ID[cPts[0].cat] || CATEGORIES[0]).c;
+    keyParts.push([[3,.95],[2,.62],[1,.34]].map(function(t){ return sym('<circle cx="7" cy="7" r="5" fill="var('+rc+')" fill-opacity="'+t[1]+'"/>')+'★'+t[0]; }).join(' &nbsp;'));
+  }
   if(estC.length) keyParts.push(sym('<circle cx="7" cy="7" r="5" fill="var(--ink-2)" fill-opacity=".55" stroke="var(--ink-2)" stroke-width="1.500" stroke-dasharray="2.500 2"/>')+(solidC.length?'飲んだ・予想':'飲んだ記録(味は予想)'));
   if(lowC.length) keyParts.push(sym('<circle cx="7" cy="7" r="5" fill="var(--ink-2)" fill-opacity=".2" stroke="var(--ink-2)" stroke-width="1.500" stroke-dasharray="1 3"/>')+'飲んだ・仮置き(名前・種類に手掛かりなし)');
   if(o.faintLabel) keyParts.push(sym('<circle cx="7" cy="7" r="5.500" fill="'+(o.cloudColor||'var(--cat-sake)')+'" fill-opacity=".25"/>')+o.faintLabel);
@@ -2332,10 +2332,10 @@ function renderTasteMap(){
   }).join("");
   var ax = MAP_AXES[uiMapFilter] || MAP_AXES.all, mode = uiMapMode;
   /* 日本酒は、さけのわのデータ(同梱ファイルがある時)で見る切り替えを出す */
-  var skOn = (uiMapFilter==="sake" && !!SAKE_DB); if(uiSakeView!=="sk1" && uiSakeView!=="sk2") uiSakeView = "sk1"; var skView = skOn ? SAKE_AXES[uiSakeView] : null;
+  var skOn = (uiMapFilter==="sake" && !!SAKE_DB); uiSakeView = "sk2"; var skView = skOn ? SAKE_AXES[uiSakeView] : null;
   var segEl = document.getElementById("sakeViewSeg");
-  segEl.hidden = !skOn;
-  if(skOn){
+  segEl.hidden = true;
+  if(false){
     var sv = [["sk1","華やか × 芳醇"],["sk2","ドライ × 重厚"]];
     segEl.innerHTML = sv.map(function(o){ return '<button type="button" data-v="'+o[0]+'" class="'+(uiSakeView===o[0]?"active":"")+'">'+o[1]+'</button>'; }).join("");
   }
