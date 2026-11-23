@@ -290,6 +290,7 @@ input:not([type=range]):not([type=file]),select,textarea{font-size:16px !importa
 .rec-nth{display:inline-block; margin-left:6px; padding:1px 8px; border-radius:var(--r-pill); background:var(--accent-soft); color:var(--accent); font-size:11px; font-weight:800; vertical-align:2px; white-space:nowrap}
 .rank-cnt{display:inline-block; margin-left:6px; padding:0 7px; border-radius:var(--r-pill); background:var(--accent-soft); color:var(--accent); font-size:10.5px; font-weight:800; vertical-align:1px}
 .tm-note{font-size:10px; color:var(--ink-3); text-align:center; margin-top:4px}
+.tm-zoombtn{font:inherit; font-size:10.5px; font-weight:800; color:var(--accent); background:var(--surface-1); border:1px solid var(--hairline); border-radius:999px; padding:3px 10px; margin-left:6px; cursor:pointer}
 /* history */
 .search-row{margin-bottom:10px}
 .search-row input{width:100%; border:1.5px solid var(--hairline); background:var(--surface-input); color:var(--ink-1); border-radius:var(--r-pill); padding:9px 14px; font-size:16px; font-family:inherit}
@@ -2128,12 +2129,15 @@ function drawTasteMap(o){
   var ax = o.ax, hk = ax.h, q = ax.q || {}, wish = (o.kind==="wish");
   var nameKind = o.kind==="wish" ? "飲みたい" : o.kind==="both" ? "飲んだ・飲みたい" : "飲んだ";
   var big = !!o.big, ks = big ? 1.3 : 1;
+  var vw = o.view || {x0:0,x1:100,y0:0,y1:100};
+  var mapX = function(v){ return (v-vw.x0)/(vw.x1-vw.x0); }, mapY = function(v){ return (vw.y1-v)/(vw.y1-vw.y0); };
+  var zoomed = !!o.view;
   var L=big?54:50, T=14, W=big?262:258, H=big?300:244, B=T+H, R=L+W, gid = o.id+"G", tint = wish ? "--wish" : "--accent";
   var s = '<svg id="'+o.id+'" class="tm-svg'+(wish?' wish':'')+(big?' big':'')+'" viewBox="0 0 320 '+(T+H+44)+'" role="img" aria-label="'+nameKind+'お酒の味マップ(横:'+ax.title+'、縦:'+ax.vlo+'から'+ax.vhi+')">'
     + '<defs><linearGradient id="'+gid+'" x1="0" y1="1" x2="1" y2="0"><stop offset="0" style="stop-color:var('+tint+')" stop-opacity="0"/><stop offset="1" style="stop-color:var('+tint+')" stop-opacity="0.15"/></linearGradient></defs>'
     + '<rect class="tm-frame" x="'+L+'" y="'+T+'" width="'+W+'" height="'+H+'" rx="18"/>'
-    + '<line class="tm-grid" x1="'+(L+W/2)+'" y1="'+(T+14)+'" x2="'+(L+W/2)+'" y2="'+(B-14)+'" stroke-dasharray="3 5"/>'
-    + '<line class="tm-grid" x1="'+(L+14)+'" y1="'+(T+H/2)+'" x2="'+(R-14)+'" y2="'+(T+H/2)+'" stroke-dasharray="3 5"/>'
+    + ((50>vw.x0+4 && 50<vw.x1-4) ? '<line class="tm-grid" x1="'+(L+mapX(50)*W)+'" y1="'+(T+14)+'" x2="'+(L+mapX(50)*W)+'" y2="'+(B-14)+'" stroke-dasharray="3 5"/>' : '')
+    + ((50>vw.y0+4 && 50<vw.y1-4) ? '<line class="tm-grid" x1="'+(L+14)+'" y1="'+(T+mapY(50)*H)+'" x2="'+(R-14)+'" y2="'+(T+mapY(50)*H)+'" stroke-dasharray="3 5"/>' : '')
     + '<text class="tm-ax" x="'+L+'" y="'+(B+18)+'" text-anchor="start">← '+ax.lo+'</text>'
     + '<text class="tm-ax" x="'+R+'" y="'+(B+18)+'" text-anchor="end">'+ax.hi+' →</text>'
     + '<text class="tm-ax" x="'+(L+W/2)+'" y="'+(B+18)+'" text-anchor="middle">'+ax.title+'</text>'
@@ -2143,7 +2147,7 @@ function drawTasteMap(o){
     /* 全銘柄は、1つずつの点ではなく、ぼかした濃淡で見せる */
     var cl = '', rl = '', rlabs = [];
     (o.faint||[]).forEach(function(f){
-      var fx = L + f.t[hk]/100*W, fy = T + (100-f.t.y)/100*H;
+      var fx = L + mapX(f.t[hk])*W, fy = T + mapY(f.t.y)*H;
       cl += '<circle cx="'+fx.toFixed(1)+'" cy="'+fy.toFixed(1)+'" r="'+(o.cloudR||8)+'"/>';
       if(o.refLabels && f.name){
         var rw = Array.from(f.name).length*8.6, rx0 = Math.min(R-rw/2-3, Math.max(L+rw/2+3, fx)), ry0 = fy+3;
@@ -2158,14 +2162,14 @@ function drawTasteMap(o){
   } else {
     (o.faint||[]).forEach(function(f){
       var cat = CAT_BY_ID[f.cat] || CATEGORIES[0];
-      s += '<circle class="wm-past" cx="'+(L + f.t[hk]/100*W)+'" cy="'+(T + (100-f.t.y)/100*H)+'" r="4.5" fill="var('+cat.c+')" fill-opacity="0.2"/>';
+      s += '<circle class="wm-past" cx="'+(L + mapX(f.t[hk])*W)+'" cy="'+(T + mapY(f.t.y)*H)+'" r="4.5" fill="var('+cat.c+')" fill-opacity="0.2"/>';
     });
   }
   /* 同じ位置に重なる点は、少しずらして見えるようにする(評価の高い点を先に置く) */
   var placed = [], moved = false, byRate = o.pts.slice().sort(function(a,b){ return (b.rating||0)-(a.rating||0); });
   byRate.forEach(function(p){
     var rad = (p.shape==="d" ? 8 : 4 + (p.rating||3)*0.9) * ks;
-    var px = L + p.t[hk]/100*W, py = T + (100-p.t.y)/100*H, best = null;
+    var px = L + mapX(p.t[hk])*W, py = T + mapY(p.t.y)*H, best = null;
     for(var k=0;k<140 && !best;k++){
       var ang = k*2.399963, d = k===0 ? 0 : 5.2*Math.sqrt(k);
       var x = Math.min(R-rad-2, Math.max(L+rad+2, px+Math.cos(ang)*d)), y = Math.min(B-rad-2, Math.max(T+rad+2, py+Math.sin(ang)*d));
@@ -2254,10 +2258,10 @@ function drawTasteMap(o){
   if(dPts.length) keyParts.push(sym('<path d="M7 1.500L12.500 7L7 12.500L1.500 7Z" fill="var(--ink-2)" fill-opacity=".92" stroke="var(--wish)" stroke-width="1.600"/>')+'飲みたい');
   var key = '<div class="tm-key">'+keyParts.map(function(k){ return '<span>'+k+'</span>'; }).join("")+'</div>';
   var note = '<div class="tm-note">'+ax.desc+(moved?' ・ 重なる点は少しずらして表示':'')+'</div>';
-  return { svg:s, legend:legend, key:key, note:note, hiddenLabels:hiddenLabels };
+  return { svg:s, legend:legend, key:key, note:note, hiddenLabels:hiddenLabels, moved:moved };
 }
 function p_name(p){ return p.name || ""; }
-var uiMapMode = "drank", mapAnim = true;
+var uiMapMode = "drank", mapAnim = true, uiMapZoom = true;
 /* 代表的なスタイルの目安位置(銘柄名・種類からの予想ルールの基準点。実測データではない) */
 var REF_NAMES = { beer:["IPA","スタウト","ヴァイツェン","エール","ラガー"], sake:["にごり","純米大吟醸","大吟醸","純米吟醸","吟醸","本醸造","普通酒","純米"],
   shochu:["泡盛","黒糖","芋","そば","麦","米"], wine:["カベルネ","メルロー","ピノ・ノワール","シラー","シャルドネ","ソーヴィニヨン・ブラン","リースリング","甲州"] };
@@ -2375,12 +2379,30 @@ function renderTasteMap(){
     .concat(wi.map(function(w){ return { id:w.id, cat:w.category, t:tOf(w), rating:0, name:String(w.name||""), shape:"d", rec:w }; }));
   var catC = (CAT_BY_ID[uiMapFilter]||CATEGORIES[0]).c;
   var faintPts = [];
-  var m = drawTasteMap({ id:"tasteMapSvg", kind:mode, ax:ax, sel:uiMapSel, faint:faintPts, faintR:2.3, faintLabel:"", cloudColor:(skView ? "var(--cat-sake)" : "var("+catC+")"), cloudR:(skView ? 8 : 24), cloudO:(skView ? 0.055 : 0.1), refLabels:false, labels:(all.length<=12), pts:all, big:true, animate:mapAnim });
+  /* 記録が一部に固まっている時は、自分の記録の範囲に合わせて拡大する */
+  var fullView = {x0:0,x1:100,y0:0,y1:100}, zoomView = null;
+  (function(){
+    if(all.length<2) return;
+    var ext = function(f){ var v = all.map(f); return [Math.min.apply(null,v), Math.max.apply(null,v)]; };
+    var fit = function(a){
+      var span = Math.max(40, (a[1]-a[0])+28);
+      if(span>=80) return [0,100];
+      var c = (a[0]+a[1])/2, lo = c-span/2, hi = c+span/2;
+      if(lo<0){ hi -= lo; lo = 0; } if(hi>100){ lo -= hi-100; hi = 100; }
+      return [Math.round(lo), Math.round(hi)];
+    };
+    var xr = fit(ext(function(p){ return p.t[hk]; })), yr = fit(ext(function(p){ return p.t.y; }));
+    if(xr[0]===0 && xr[1]===100 && yr[0]===0 && yr[1]===100) return;
+    zoomView = {x0:xr[0], x1:xr[1], y0:yr[0], y1:yr[1]};
+  })();
+  var useZoom = !!zoomView && uiMapZoom;
+  var m = drawTasteMap({ id:"tasteMapSvg", view:(useZoom ? zoomView : null), kind:mode, ax:ax, sel:uiMapSel, faint:faintPts, faintR:2.3, faintLabel:"", cloudColor:(skView ? "var(--cat-sake)" : "var("+catC+")"), cloudR:(skView ? 8 : 24), cloudO:(skView ? 0.055 : 0.1), refLabels:false, labels:(all.length<=12), pts:all, big:true, animate:mapAnim });
   mapAnim = false;
   var badges = (mode!=="wish" ? '<span class="tm-badge drank">● 飲んだ '+dr.length+'件</span>' : '') + (mode!=="drank" ? '<span class="tm-badge wish">◆ 飲みたい '+wi.length+'件</span>' : '');
   var snNote = skView ? '<div class="tm-note"><a href="https://sakenowa.com" target="_blank" rel="noopener">さけのわデータ</a>を利用しています'+(skMiss ? ' ・ 名前が一致しない'+skMiss+'件は表示していません' : '')+'</div>' : '';
+  var zoomNote = zoomView ? '<div class="tm-note tm-zoomrow">'+(useZoom ? '自分の記録に合わせて拡大しています(全体の一部)' : '全体を表示しています')+' <button type="button" class="tm-zoombtn" id="tmZoomBtn">'+(useZoom ? '全体を見る' : '記録に合わせて拡大')+'</button></div>' : '';
   var refNote = m.hiddenLabels ? '<div class="tm-note">重なる銘柄の名前は省略しています。点をタップすると表示されます</div>' : '';
-  wrap.innerHTML = '<div class="tm-title">'+badges+'</div>' + m.svg + m.legend + m.key + m.note + refNote + snNote;
+  wrap.innerHTML = '<div class="tm-title">'+badges+'</div>' + m.svg + m.legend + m.key + m.note + zoomNote + refNote + snNote;
   var sp = all.filter(function(p){ return p.id===uiMapSel; })[0];
   if(sp){
     var sr = sp.rec, sc = CAT_BY_ID[sr.category] || CATEGORIES[0], isW = sp.shape==="d";
@@ -2405,6 +2427,7 @@ document.getElementById("tasteMapFilter").addEventListener("click", function(e){
   uiMapFilter = b.dataset.id; uiMapSel = null; mapAnim = true; renderTasteMap();
 });
 document.getElementById("tasteMapWrap").addEventListener("click", function(e){
+  if(e.target.closest("#tmZoomBtn")){ uiMapZoom = !uiMapZoom; uiMapSel = null; mapAnim = true; renderTasteMap(); return; }
   var g = e.target.closest(".tm-dot"); if(!g) return;
   uiMapSel = (uiMapSel===g.dataset.id) ? null : g.dataset.id; renderTasteMap();
 });
